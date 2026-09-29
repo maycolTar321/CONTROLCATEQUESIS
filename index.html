@@ -3,22 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sendero Pastoral - Sistema de Catequesis</title>
+    <title>Control De Catequesis- Sistema de Catequesis</title>
     <!-- Incluimos FontAwesome para iconos modernos -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Librería para exportar a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Configuración para App de Celular (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Librerías para Editor de Texto Enriquecido (Quill.js) -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
     <style>
         :root {
-            --primary-color: #0f766e; 
-            --secondary-color: #14b8a6;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --bg-color: #f0fdfa; 
+            /* Paleta Plomo y Azul */
+            --primary-color: #1e3a8a; /* Azul oscuro profundo */
+            --secondary-color: #3b82f6; /* Azul brillante */
+            --dark-gray: #334155; /* Plomo oscuro */
+            --medium-gray: #64748b; /* Plomo medio */
+            --light-gray: #e2e8f0; /* Plomo claro */
+            
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626; /* Rojo para alertas */
+            
+            --bg-color: #f8fafc; /* Fondo general ultra claro */
             --card-bg: #ffffff;
             --text-color: #0f172a;
-            --border-color: #ccfbf1;
+            --border-color: #cbd5e1;
+            
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -27,126 +49,222 @@
         /* ----- PANTALLA DE LOGIN ----- */
         #login-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(15, 118, 110, 0.95), rgba(20, 184, 166, 0.95));
+            background: linear-gradient(135deg, var(--dark-gray), var(--primary-color));
             display: flex; justify-content: center; align-items: center; z-index: 10000;
         }
-        .login-card { background: white; padding: 3rem 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; max-width: 400px; width: 90%; }
-        .logo-login { max-width: 130px; height: auto; margin-bottom: 1rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .login-card h1 { color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.8rem; }
-        .login-card p { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
-        .login-card input { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-        .login-card input:focus { border-color: var(--primary-color); }
-        .login-card button { width: 100%; background: var(--primary-color); color: white; border: none; padding: 0.9rem; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .login-card button:hover { background: #0f5132; }
-        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+        .login-card { 
+            background: white; padding: 3rem 2.5rem; border-radius: 16px; 
+            box-shadow: var(--shadow-lg); text-align: center; max-width: 420px; width: 90%; 
+            border-top: 5px solid var(--primary-color);
+        }
+        .logo-login { max-width: 140px; height: auto; margin-bottom: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-md); }
+        .login-card h1 { color: var(--dark-gray); margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 800; }
+        .login-card p { color: var(--medium-gray); margin-bottom: 2rem; font-size: 0.95rem; }
+        .login-card input { 
+            width: 100%; padding: 0.9rem; margin-bottom: 1.5rem; border: 2px solid var(--light-gray); 
+            border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; 
+        }
+        .login-card input:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .login-card button { 
+            width: 100%; background: var(--primary-color); color: white; border: none; padding: 1rem; 
+            border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s, transform 0.1s; 
+        }
+        .login-card button:hover { background: #172554; transform: translateY(-2px); }
+        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-bottom: 1rem; display: none; font-weight: bold;}
 
         /* ----- APLICACIÓN PRINCIPAL ----- */
         #app-container { display: none; flex-direction: column; min-height: 100vh; }
-        header { background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; padding: 2rem 1rem; text-align: center; box-shadow: var(--shadow-md); }
-        .logo-header { height: 55px; width: auto; border-radius: 8px; margin-right: 12px; vertical-align: middle; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; }
-        header p { font-size: 0.9rem; color: #ccfbf1; font-weight: 500; }
+        
+        header { 
+            background: linear-gradient(135deg, var(--dark-gray), var(--primary-color)); 
+            color: white; padding: 1.5rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: var(--shadow-md); position: relative;
+        }
+        .logo-header { height: 50px; width: auto; border-radius: 8px; margin-right: 12px; vertical-align: middle; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.3rem; display: flex; align-items: center; justify-content: center; }
+        header p { font-size: 0.9rem; color: var(--light-gray); font-weight: 500; }
+        
+        .btn-logout { 
+            position: absolute; right: 20px; top: 25px; background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; 
+            border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-logout:hover { background: var(--danger-color); border-color: var(--danger-color); }
 
-        .grupo-bar { background: #ffffff; padding: 1rem 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .grupo-bar { 
+            background: #ffffff; padding: 1rem 2rem; display: flex; justify-content: center; align-items: center; 
+            gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; 
+            z-index: 100; box-shadow: var(--shadow-sm); 
+        }
         .grupo-bar select, .grupo-bar button { padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; transition: all 0.2s; outline: none; }
-        .grupo-bar select { background: white; color: var(--primary-color); min-width: 150px; }
-        .btn-crear-grupo { background-color: var(--success-color); color: white; border: none !important; }
-        .btn-sincronizar { background-color: var(--primary-color); color: white; border: none !important; }
+        .grupo-bar select { background: var(--bg-color); color: var(--primary-color); min-width: 150px; border: 2px solid var(--light-gray); }
+        .btn-crear-grupo { background-color: var(--primary-color); color: white; border: none !important; }
+        .btn-crear-grupo:hover { background-color: #172554; }
+        .btn-sincronizar { background-color: var(--dark-gray); color: white; border: none !important; }
+        .btn-sincronizar:hover { background-color: #1e293b; }
 
         nav { display: flex; justify-content: center; background: #ffffff; border-bottom: 1px solid var(--border-color); overflow-x: auto; padding: 0 1rem; }
-        nav button { background: none; border: none; padding: 1.25rem 1.5rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: #64748b; white-space: nowrap; transition: all 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 8px; }
-        nav button:hover { color: var(--primary-color); background-color: #f8fafc; }
-        nav button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background-color: #f0fdfa; }
+        nav button { 
+            background: none; border: none; padding: 1.25rem 1.5rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; 
+            color: var(--medium-gray); white-space: nowrap; transition: all 0.2s; border-bottom: 3px solid transparent; 
+            display: flex; align-items: center; gap: 8px; 
+        }
+        nav button:hover { color: var(--primary-color); background-color: var(--bg-color); }
+        nav button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background-color: #eff6ff; }
 
-        main { flex: 1; padding: 2rem 1.5rem; max-width: 1280px; margin: 0 auto; width: 100%; }
+        main { flex: 1; padding: 2rem 1.5rem; max-width: 1300px; margin: 0 auto; width: 100%; }
         .section { display: none; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .section.active { display: block; }
-        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-        h2 { margin-bottom: 1.5rem; font-size: 1.5rem; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md); }
+        h2 { margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--dark-gray); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--bg-color); padding-bottom: 0.5rem; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; box-shadow: var(--shadow-sm); }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
-        .stat-card.success::before { background-color: var(--success-color); }
-        .stat-card.warning::before { background-color: var(--warning-color); }
-        .stat-card.danger::before { background-color: var(--danger-color); }
-        .stat-card h3 { font-size: 0.85rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; }
-        .stat-card .number { font-size: 2.5rem; font-weight: 800; color: var(--text-color); }
+        .stat-card.success::before { background-color: var(--secondary-color); } /* Azul */
+        .stat-card.warning::before { background-color: var(--medium-gray); }     /* Plomo */
+        .stat-card.danger::before { background-color: var(--danger-color); }     /* Rojo */
+        
+        .stat-card h3 { font-size: 0.85rem; color: var(--medium-gray); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; }
+        .stat-card .number { font-size: 2.5rem; font-weight: 800; color: var(--dark-gray); }
 
-        .filters-container { background: #f8fafc; padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .filters-container { background: var(--bg-color); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
         .form-full { grid-column: 1 / -1; }
-        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .btn-logout { position: static; margin-top: 10px; } }
 
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
         th, td { padding: 1rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background-color: #f1f5f9; font-weight: 700; color: #334155; text-transform: uppercase; font-size: 0.8rem; }
-        tbody tr:hover { background-color: #f8fafc; }
+        th { background-color: var(--bg-color); font-weight: 700; color: var(--dark-gray); text-transform: uppercase; font-size: 0.8rem; border-bottom: 2px solid var(--light-gray); }
+        tbody tr:hover { background-color: #f1f5f9; }
 
-        input[type="text"], input[type="tel"], input[type="date"], input[type="password"], textarea, select { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; }
-        button.btn { background-color: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: background 0.2s; }
-        button.btn:hover { background-color: #0d5f58; }
+        input[type="text"], input[type="tel"], input[type="date"], input[type="password"], textarea, select { 
+            width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; 
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline:none; }
+        
+        button.btn { 
+            background-color: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; 
+            cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; justify-content: center; 
+            transition: all 0.2s; box-shadow: var(--shadow-sm);
+        }
+        button.btn:hover { background-color: #172554; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        button.btn:active { transform: translateY(0); }
+        
         .btn-danger { background-color: var(--danger-color) !important; }
         .btn-danger:hover { background-color: #b91c1c !important; }
-        .btn-info { background-color: #3b82f6 !important; }
-        .btn-info:hover { background-color: #2563eb !important; }
+        .btn-info { background-color: var(--dark-gray) !important; }
+        .btn-info:hover { background-color: #1e293b !important; }
+        
+        /* Botones de WhatsApp se mantienen en su color de marca para ser intuitivos */
+        .btn-whatsapp { background-color: #25D366 !important; padding: 0.5rem 0.8rem !important; font-size: 0.8rem !important; border-radius: 6px !important; color: white !important;}
+        .btn-whatsapp:hover { background-color: #128C7E !important; }
 
-        .badge-estado { padding: 0.4rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
-        .bg-presente { background: #d1fae5; color: #065f46; }
-        .bg-falta-justificada { background: #fef3c7; color: #92400e; }
-        .bg-falta-injustificada { background: #fee2e2; color: #991b1b; }
-        .bg-retraso { background: #e0e7ff; color: #3730a3; }
-        .badge-alerta { background: #fee2e2; color: #b91c1c; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block;}
+        .badge-estado { padding: 0.4rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;}
+        .bg-presente { background: #dbeafe; color: #1e40af; } /* Azul claro/oscuro */
+        .bg-falta-justificada { background: #fef3c7; color: #92400e; } /* Amarillento */
+        .bg-falta-injustificada { background: #fee2e2; color: #991b1b; } /* Rojizo */
+        .bg-retraso { background: #f1f5f9; color: #475569; } /* Plomo */
+        .badge-alerta { background: var(--danger-color); color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block; max-width: 200px; white-space: normal;}
 
-        .input-motivo { margin-top: 0.5rem; display: none; background: #fffbeb; border-color: #fcd34d; }
+        .input-motivo { margin-top: 0.5rem; display: none; background: #fffbeb; border: 1px dashed #f59e0b; font-size: 0.85rem; border-radius: 6px; transition: all 0.3s;}
+        
+        /* Estilos mejorados para Lista de Asistencia */
+        .select-asis, .select-tarea { font-weight: 700; padding: 0.6rem 1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .select-asis.presente { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .select-asis.retraso { background-color: #fef9c3; color: #854d0e; border-color: #fef08a; }
+        .select-asis.falta { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .select-tarea.entregado { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .select-tarea.nopresento { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0; }
 
         #loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10001; display: none; }
         .spinner { border: 4px solid rgba(0,0,0,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .task-list { list-style: none; margin-top: 1.5rem; }
-        .task-list li { background: #f8fafc; border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .task-list li { background: var(--bg-color); border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; font-weight: 500;}
 
-        /* MODAL DIRECTORIO */
-        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background-color: #fff; padding: 2rem; border-radius: 12px; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
-        .close-btn { position: absolute; right: 20px; top: 20px; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        /* MODALES */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.7); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; padding: 2.5rem; border-radius: 16px; max-width: 1000px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); position: relative; }
+        .close-btn { position: absolute; right: 20px; top: 20px; font-size: 1.8rem; cursor: pointer; color: var(--medium-gray); transition: color 0.2s; }
         .close-btn:hover { color: var(--danger-color); }
+
+        /* ESTILOS DE POST-IT (NOTAS) */
+        .notas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .nota-card {
+            background: #fef9c3; /* Amarillo pastel Post-It */
+            padding: 1.5rem;
+            border-radius: 4px 4px 12px 4px;
+            box-shadow: 3px 5px 15px rgba(0,0,0,0.08);
+            position: relative;
+            border-top: 15px solid #fde047;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .nota-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 5px 8px 20px rgba(0,0,0,0.12); }
+        .nota-card h3 { font-size: 1.1rem; color: #854d0e; margin-bottom: 0.2rem; font-weight: 800; }
+        .nota-card .fecha { font-size: 0.75rem; color: #a16207; margin-bottom: 1rem; display: block; font-weight: 600; }
+        .nota-card .contenido { font-size: 0.95rem; color: #3f6212; max-height: 180px; overflow: hidden; text-overflow: ellipsis; }
+        .nota-card .acciones { position: absolute; top: -35px; right: 10px; display: flex; gap: 8px; }
+        .nota-card .btn-icon { background: none; border: none; cursor: pointer; color: #854d0e; font-size: 1.1rem; transition: color 0.2s; }
+        .nota-card .btn-icon:hover { color: var(--danger-color); }
+        
+        /* Ajustes menores de Quill */
+        .ql-editor { font-size: 1rem; font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body>
 
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <p style="margin-top: 15px; font-weight: 600; color: #475569;">Sincronizando con Google Drive...</p>
+        <p style="margin-top: 15px; font-weight: 600; color: var(--dark-gray);">Sincronizando con Google Drive...</p>
     </div>
 
+    <!-- PANTALLA DE LOGIN -->
     <div id="login-overlay">
         <div class="login-card">
-            <img src="logo.jpg" alt="Logo Sendero Pastoral" class="logo-login">
-            <h1>Sendero Pastoral</h1>
-            <p>Acceso exclusivo para el Catequista</p>
+            <img src="logo.jpg" alt="Logo Control de Catequesis" class="logo-login">
+            <h1>Control de Catequesis</h1>
+            <p>Acceso seguro para el Catequista</p>
             <p class="error-msg" id="login-error">Contraseña incorrecta.</p>
             <input type="password" id="input-password" placeholder="Ingresa tu contraseña" onkeypress="if(event.key === 'Enter') verificarLogin()">
-            <button onclick="verificarLogin()">Ingresar al Sistema</button>
+            <button onclick="verificarLogin()"><i class="fa-solid fa-lock-open"></i> Entrar al Sistema</button>
         </div>
     </div>
 
     <div id="app-container">
         <header>
-            <h1><img src="logo.jpg" alt="Logo" class="logo-header"> SENDERO PASTORAL</h1>
+            <button class="btn-logout" onclick="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</button>
+            <h1><img src="logo.jpg" alt="Logo" class="logo-header"> CONTROL DE CATEQUESIS</h1>
             <p>Sistema Integral de Gestión de Catequesis</p>
         </header>
 
-        <div class="grupo-bar">
+        <div id="install-banner" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 15px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-shadow: inset 0 -3px 5px rgba(0,0,0,0.1);">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="logo.jpg" style="width:40px; height:40px; border-radius: 8px;">
+                <span style="font-weight: 600;">Lleva el sistema sin internet en tu celular</span>
+            </div>
+            <button onclick="instalarApp()" class="btn btn-warning" style="box-shadow: 0 4px 6px rgba(0,0,0,0.2); font-size:1.1rem; padding: 10px 20px;"><i class="fa-solid fa-download"></i> Descargar a tu Dispositivo Celular</button>
+        </div>
+
+        <div class="grupo-bar" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
             <span><i class="fa-solid fa-users"></i> Grupo Activo:</span>
             <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
-            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo Grupo</button>
-            <button class="btn-sincronizar" onclick="sincronizarConNube()"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
+            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo</button>
+            <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()"><i class="fa-solid fa-eraser"></i> Vaciar Grupo</button>
+            <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()"><i class="fa-solid fa-trash"></i> Eliminar Grupo</button>
+            <button class="btn-sincronizar" onclick="sincronizarConNube()" style="margin-left:auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
         </div>
 
         <nav>
@@ -154,7 +272,7 @@
             <button class="tab-btn" onclick="switchTab(event, 'tareas')"><i class="fa-solid fa-book"></i> Tareas</button>
             <button class="tab-btn" onclick="switchTab(event, 'asistencia')"><i class="fa-solid fa-clipboard-list"></i> Tomar Lista</button>
             <button class="tab-btn" onclick="switchTab(event, 'alumnos')"><i class="fa-solid fa-user-graduate"></i> Catequizandos & Fichas</button>
-            <button class="tab-btn" onclick="switchTab(event, 'notas')"><i class="fa-solid fa-book-open"></i> Notas</button>
+            <button class="tab-btn" onclick="switchTab(event, 'notas')"><i class="fa-solid fa-thumbtack"></i> Mis Notas (Post-its)</button>
         </nav>
 
         <main>
@@ -163,13 +281,17 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <h2 style="margin: 0;"><i class="fa-solid fa-chart-pie"></i> Estadísticas - <span id="lbl-grupo-dash" style="color: var(--primary-color);"></span></h2>
                     
-                    <!-- BOTÓN DE DIRECTORIO Y SALUD SOLICITADO -->
-                    <button class="btn btn-info" onclick="abrirModalDirectorio()">
-                        <i class="fa-solid fa-address-book"></i> Ver Directorio de Tutores y Ficha Médica
-                    </button>
+                    <div>
+                        <button class="btn" style="background-color: var(--danger-color); margin-right: 10px;" onclick="abrirModalPDF()">
+                            <i class="fa-solid fa-file-pdf"></i> Imprimir Reporte PDF
+                        </button>
+                        <button class="btn btn-info" onclick="abrirModalDirectorio()">
+                            <i class="fa-solid fa-address-book"></i> Directorio / Salud
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="stats-grid">
+                <div class="stats-grid" id="stats-para-pdf">
                     <div class="stat-card success">
                         <h3>Asistencia Promedio</h3>
                         <div class="number" id="stat-asistencia">100%</div>
@@ -185,8 +307,12 @@
                 </div>
 
                 <div class="card">
-                    <h2><i class="fa-solid fa-filter"></i> Filtros de Asistencia</h2>
+                    <h2><i class="fa-solid fa-filter"></i> Filtros de Búsqueda y Asistencia</h2>
                     <div class="filters-container filters-grid">
+                        <div class="filter-group">
+                            <label>Buscar Catequizando:</label>
+                            <input type="text" id="filtro-nombre" placeholder="Escribe un nombre..." onkeyup="renderizarDashboard()">
+                        </div>
                         <div class="filter-group">
                             <label>Filtrar por Estado de Asistencia:</label>
                             <select id="filtro-estado" onchange="renderizarDashboard()">
@@ -207,8 +333,8 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table>
+                    <div class="table-responsive" id="tabla-para-pdf">
+                        <table id="tabla-registros">
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
@@ -216,6 +342,7 @@
                                     <th>Estado / Motivo</th>
                                     <th>Tema de Tarea</th>
                                     <th>Estado Tarea</th>
+                                    <th class="col-accion-pdf">Avisos a Padres (WhatsApp)</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-dashboard-detalles"></tbody>
@@ -228,10 +355,11 @@
             <section id="tareas" class="section">
                 <div class="card">
                     <h2><i class="fa-solid fa-book"></i> Gestión de Tareas y Temas</h2>
-                    <p style="margin-bottom: 1.5rem; color: #64748b;">Crea las tareas aquí para que luego puedas seleccionarlas rápidamente al tomar la lista.</p>
+                    <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Crea las tareas aquí para que luego puedas seleccionarlas rápidamente al tomar la lista.</p>
                     
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                        <input type="text" id="nueva-tarea-input" placeholder="Ej: Investigar los 7 Sacramentos">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap:wrap;">
+                        <input type="text" id="nueva-tarea-input" placeholder="Ej: Investigar los 7 Sacramentos" style="flex:2; min-width:200px;">
+                        <input type="date" id="nueva-tarea-fecha" title="Fecha de Entrega" style="flex:1; min-width:130px;">
                         <button class="btn" onclick="agregarTarea()"><i class="fa-solid fa-plus"></i> Crear Tarea</button>
                     </div>
                     <ul class="task-list" id="lista-tareas-creadas"></ul>
@@ -249,7 +377,7 @@
                         </div>
                         <div class="filter-group" style="grid-column: span 2;">
                             <label>Selecciona la Tarea del Día:</label>
-                            <select id="selector-tarea-actual">
+                            <select id="selector-tarea-actual" onchange="actualizarTextosTareas()">
                                 <option value="Ninguna">Ninguna / Sin Tarea</option>
                             </select>
                         </div>
@@ -267,36 +395,75 @@
                             <tbody id="tabla-asistencia-dinamica"></tbody>
                         </table>
                     </div>
-                    <button class="btn" style="margin-top: 1.5rem; width: 100%;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
+                    <button class="btn" style="margin-top: 1.5rem; width: 100%; font-size: 1.1rem; padding: 1rem;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
                 </div>
             </section>
 
             <!-- ALUMNOS (FICHA COMPLETA) -->
             <section id="alumnos" class="section">
-                <div class="card" style="background-color: #f8fafc;">
-                    <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
-                    <p style="color: #64748b; margin-bottom: 1.5rem;">Registra los datos completos del catequizando para tener su información de salud y contacto de emergencia.</p>
+                <div class="card" style="background-color: #f8fafc; border: 2px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
+                        <button class="btn btn-info" style="font-size: 0.8rem; padding: 4px 8px; opacity: 0.7; background-color: #64748b; border: none;" onclick="cargarDatosDePrueba()"><i class="fa-solid fa-vial"></i> Cargar Pruebas</button>
+                    </div>
+                    <p style="color: var(--medium-gray); margin-bottom: 1.5rem;">Registra los datos completos del joven para tener su información de contacto y salud.</p>
                     
                     <div class="form-grid">
-                        <div class="filter-group form-full">
+                        <div class="filter-group">
                             <label>Nombre del Catequizando *</label>
-                            <input type="text" id="alumno-nombre" placeholder="Nombre completo">
+                            <input type="text" id="alumno-nombre" placeholder="Nombre completo del joven">
+                        </div>
+                        <div class="filter-group">
+                            <label>Celular del Catequizando</label>
+                            <input type="tel" id="alumno-celular" placeholder="Ej: 61234567">
+                        </div>
+                        <div class="filter-group form-full">
+                            <label>Dirección de Domicilio</label>
+                            <input type="text" id="alumno-direccion" placeholder="Ej: Barrio San José, Calle 4...">
                         </div>
                         <div class="filter-group">
                             <label>Nombre del Tutor / Padre / Madre *</label>
                             <input type="text" id="alumno-tutor" placeholder="Nombre completo del responsable">
                         </div>
                         <div class="filter-group">
-                            <label>Teléfono (WhatsApp)</label>
+                            <label>Teléfono del Tutor (WhatsApp)</label>
                             <input type="tel" id="alumno-tel" placeholder="Ej: 71234567">
                         </div>
                         <div class="filter-group form-full">
-                            <label>Enfermedades, Alergias o Cuidados Especiales</label>
-                            <textarea id="alumno-salud" placeholder="Si el catequizando padece de asma, alergias a medicamentos, etc., anótalo aquí. De lo contrario, déjalo vacío." style="min-height: 80px;"></textarea>
+                            <label>¿Padece alguna enfermedad, alergia o requiere cuidado especial?</label>
+                            <select id="alumno-tiene-salud" onchange="toggleSaludDetalles()">
+                                <option value="No">No, ninguna</option>
+                                <option value="Sí">Sí, requiere atención especial</option>
+                            </select>
+                        </div>
+                        <div id="salud-detalles" style="display: none; grid-column: 1 / -1; background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 1rem;">
+                            <div class="form-grid" style="margin-bottom: 0;">
+                                <div class="filter-group form-full">
+                                    <label>Descripción de la enfermedad o alergia:</label>
+                                    <input type="text" id="alumno-enfermedad" placeholder="Ej: Asma, Alergia al polvo...">
+                                </div>
+                                <div class="filter-group">
+                                    <label>¿Qué medicamento(s) toma?</label>
+                                    <input type="text" id="alumno-medicamento" placeholder="Ej: Salbutamol">
+                                </div>
+                                <div class="filter-group form-full">
+                                    <label><i class="fa-regular fa-clock"></i> Horarios de Medicación (Elige las horas si toma varias veces al día):</label>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <input type="time" id="alumno-horario-1" style="flex: 1; min-width: 100px;" title="Toma 1">
+                                        <input type="time" id="alumno-horario-2" style="flex: 1; min-width: 100px;" title="Toma 2">
+                                        <input type="time" id="alumno-horario-3" style="flex: 1; min-width: 100px;" title="Toma 3">
+                                        <input type="text" id="alumno-horario-extra" placeholder="Aclaración (Ej: En ayunas)" style="flex: 2; min-width: 150px;">
+                                    </div>
+                                </div>
+                                <div class="filter-group form-full">
+                                    <label><i class="fa-solid fa-hand-holding-medical" style="color:var(--danger-color)"></i> Cuidados Especiales:</label>
+                                    <input type="text" id="alumno-cuidados" placeholder="Ej: Avisar a los padres si se agita mucho">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <button class="btn" onclick="agregarAlumno()"><i class="fa-solid fa-user-plus"></i> Inscribir Catequizando</button>
+                    <button class="btn" id="btn-guardar-alumno" style="width:100%" onclick="agregarAlumno()"><i class="fa-solid fa-user-plus"></i> Inscribir Catequizando Oficialmente</button>
                 </div>
 
                 <div class="card">
@@ -306,7 +473,8 @@
                             <thead>
                                 <tr>
                                     <th style="width: 50px;">#</th>
-                                    <th>Catequizando</th>
+                                    <th>Catequizando (Joven)</th>
+                                    <th>Dirección</th>
                                     <th>Tutor / Contacto</th>
                                     <th>Salud</th>
                                     <th style="width: 80px;">Acción</th>
@@ -318,14 +486,19 @@
                 </div>
             </section>
 
-            <!-- NOTAS -->
+            <!-- NOTAS (MULTILPLE POST-ITS) -->
             <section id="notas" class="section">
-                <div class="card">
-                    <h2><i class="fa-solid fa-book-journal-whills"></i> Bloc de Notas Parroquial</h2>
-                    <p style="margin-bottom: 1rem; color: #64748b;">Escribe tus apuntes, reflexiones o avisos. Se guardan en la nube.</p>
-                    <textarea id="editor-notas" placeholder="Escribe aquí tus apuntes..."></textarea>
-                    <br><br>
-                    <button class="btn" onclick="sincronizarConNube()"><i class="fa-solid fa-cloud"></i> Guardar Notas en Drive</button>
+                <div class="card" style="background-color: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <h2 style="border:none; margin:0;"><i class="fa-solid fa-thumbtack"></i> Mis Notas (Estilo Post-it)</h2>
+                        <button class="btn" style="background-color: var(--secondary-color);" onclick="abrirEditorNota()"><i class="fa-solid fa-plus"></i> Crear Nueva Nota</button>
+                    </div>
+                    <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Crea múltiples apuntes o listas. Puedes darles formato como si fuera Word y quedarán guardados aquí.</p>
+                    
+                    <!-- GRID DE NOTAS -->
+                    <div class="notas-grid" id="contenedor-notas">
+                        <!-- Generado dinámicamente -->
+                    </div>
                 </div>
             </section>
         </main>
@@ -335,16 +508,17 @@
     <div id="modal-directorio" class="modal">
         <div class="modal-content">
             <i class="fa-solid fa-xmark close-btn" onclick="cerrarModalDirectorio()"></i>
-            <h2><i class="fa-solid fa-address-book"></i> Directorio y Ficha Médica del Grupo</h2>
-            <p style="margin-bottom: 1.5rem; color: #64748b;">Lista rápida de contactos de emergencia e historial médico.</p>
+            <h2><i class="fa-solid fa-address-book"></i> Directorio del Grupo</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Lista rápida de contacto de los jóvenes, tutores e historial médico.</p>
             
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Catequizando</th>
+                            <th>Catequizando (Celular)</th>
+                            <th>Dirección</th>
                             <th>Tutor Responsable</th>
-                            <th>Teléfono</th>
+                            <th>Teléfono Tutor</th>
                             <th>Observaciones de Salud</th>
                         </tr>
                     </thead>
@@ -355,8 +529,60 @@
             </div>
             
             <div style="text-align: right; margin-top: 1.5rem;">
-                <button class="btn" onclick="cerrarModalDirectorio()">Cerrar</button>
+                <button class="btn btn-info" onclick="cerrarModalDirectorio()">Cerrar Directorio</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITOR QUILL (WORD) -->
+    <div id="modal-nota" class="modal">
+        <div class="modal-content" style="max-width: 800px; padding: 2rem;">
+            <i class="fa-solid fa-xmark close-btn" onclick="cerrarEditorNota()"></i>
+            <h2><i class="fa-solid fa-pen-to-square"></i> Editor de Notas (Formato Word)</h2>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="font-weight: bold; margin-bottom: 0.5rem; display:block; color: var(--dark-gray);">Título de la Nota:</label>
+                <input type="text" id="nota-titulo" placeholder="Ej: Materiales para el domingo..." style="font-size: 1.1rem; font-weight: bold;">
+            </div>
+            
+            <div id="quill-toolbar-container"></div>
+            <div id="editor-quill" style="height: 300px; background: #fff; font-size: 1rem;"></div>
+            
+            <input type="hidden" id="nota-id-actual">
+            <button class="btn" style="width: 100%; margin-top: 1.5rem; font-size: 1.1rem;" onclick="guardarNota()"><i class="fa-solid fa-save"></i> Guardar Nota</button>
+        </div>
+    </div>
+
+    <!-- MODAL GENERAR REPORTE PDF INTELIGENTE -->
+    <div id="modal-pdf" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <i class="fa-solid fa-xmark close-btn" onclick="cerrarModalPDF()"></i>
+            <h2><i class="fa-solid fa-file-pdf" style="color:var(--danger-color);"></i> Configurar Reporte PDF</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--medium-gray);">Elige exactamente qué información quieres que tenga este documento antes de imprimirlo.</p>
+            
+            <div class="form-grid">
+                <div class="filter-group form-full">
+                    <label>Título de tu documento:</label>
+                    <input type="text" id="pdf-titulo" placeholder="Ej: Reporte de Faltas - Octubre">
+                </div>
+                
+                <div class="filter-group form-full">
+                    <label>¿Qué datos deseas incluir?</label>
+                    <select id="pdf-tipo" onchange="cambiarFiltroPdf()">
+                        <option value="todo">Historial Completo del Grupo</option>
+                        <option value="faltas">SÓLO inasistencias (Faltas justificadas e injustificadas)</option>
+                        <option value="tareas">SÓLO jóvenes que NO presentaron tareas</option>
+                        <option value="alumno">Reporte individual de un catequizando en específico</option>
+                    </select>
+                </div>
+
+                <div class="filter-group form-full" id="div-pdf-alumno" style="display:none; background:#f1f5f9; padding:15px; border-radius:8px;">
+                    <label>Selecciona al Catequizando:</label>
+                    <select id="pdf-alumno-select"></select>
+                </div>
+            </div>
+            
+            <button class="btn btn-danger" style="width: 100%; margin-top: 1.5rem; font-size:1.1rem; padding: 12px;" onclick="ejecutarGeneracionPDF()"><i class="fa-solid fa-download"></i> Crear y Descargar PDF</button>
         </div>
     </div>
 
@@ -364,21 +590,31 @@
         // =========================================================================
         // CONFIGURACIÓN: CONTRASEÑA Y URL DE GOOGLE APPS SCRIPT
         // =========================================================================
-        const PASSWORD_ACCESO = "admin123"; 
+        const PASSWORD_ACCESO = "5230"; 
         const GOOGLE_SCRIPT_URL = "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI"; 
         
         let sistemaDatos = {
             grupos: {
                 "Grupo 1": { alumnos: [], registros: [], listaTareas: [] }
             },
-            notas: ""
+            notas: [] // Ahora es un arreglo de objetos (post-its)
         };
         let grupoActual = "Grupo 1";
+        let quillEditor = null; // Variable global para el editor Quill
 
-        // ----- SISTEMA DE LOGIN -----
+        // ----- SISTEMA DE LOGIN PERSISTENTE -----
+        window.onload = function() {
+            if(localStorage.getItem('catequesis_auth') === 'true') {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                cargarDatosNube();
+            }
+        };
+
         function verificarLogin() {
             const pass = document.getElementById('input-password').value;
             if (pass === PASSWORD_ACCESO) {
+                localStorage.setItem('catequesis_auth', 'true');
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 cargarDatosNube();
@@ -386,6 +622,55 @@
                 document.getElementById('login-error').style.display = 'block';
             }
         }
+
+        function cerrarSesion() {
+            if(confirm("¿Estás seguro de cerrar sesión? Tendrás que ingresar tu contraseña nuevamente.")) {
+                localStorage.removeItem('catequesis_auth');
+                location.reload(); 
+            }
+        }
+
+        // ----- CARGAR DATOS DE PRUEBA -----
+        function cargarDatosDePrueba() {
+            const pass = prompt("Acceso Restringido: Ingrese la contraseña para cargar datos de demostración:");
+            if (pass !== "5230") {
+                if (pass !== null) alert("Contraseña incorrecta. Acción cancelada.");
+                return;
+            }
+            if(!confirm("Esto creará dos grupos nuevos (Primer Año y Segundo Año) con 15 alumnos cada uno para que veas cómo funciona el sistema. ¿Continuar?")) return;
+            
+            const nombres1 = ["Ana Silva", "Carlos Mamani", "Diego Rojas", "Elena Vargas", "Fernando Choque", "Gabriela Quispe", "Hugo Pardo", "Isabel Torrez", "Jorge Mendoza", "Karla Pinto", "Luis Flores", "Maria Condori", "Nestor Lima", "Olivia Suarez", "Pedro Guzman"];
+            const nombres2 = ["Raul Arce", "Sofia Castro", "Tomas Blanco", "Ursula Vega", "Victor Paz", "Wendy Cruz", "Xavier Luna", "Yolanda Rios", "Zacarías Solis", "Andrea Peña", "Bruno Tapia", "Carmen Ruiz", "Daniel Orozco", "Erika Medina", "Fabian Soto"];
+
+            const crearGrupo = (lista) => {
+                return {
+                    alumnos: lista.map(n => ({
+                        nombre: n,
+                        celular: "6" + Math.floor(Math.random()*9000000 + 1000000),
+                        direccion: "Barrio " + (Math.random()>0.5?"San José":"Central") + ", Calle " + Math.floor(Math.random()*15 + 1),
+                        tutor: "Tutor de " + n.split(" ")[0],
+                        telefono: "7" + Math.floor(Math.random()*9000000 + 1000000),
+                        salud: Math.random() > 0.8 ? "Enfermedad: Asma | Medicamento: Inhalador | Horario/Cuidados: Antes de agitarse" : ""
+                    })),
+                    registros: [
+                        { fecha: new Date().toISOString().split('T')[0], alumno: lista[0], asistencia: "Falta Injustificada", tareaNombre: "Investigar Sacramentos", tareaEstado: "No Presentó" },
+                        { fecha: new Date().toISOString().split('T')[0], alumno: lista[1], asistencia: "Presente", tareaNombre: "Investigar Sacramentos", tareaEstado: "No Presentó" }
+                    ],
+                    listaTareas: ["Investigar los 7 Sacramentos", "Aprenderse el Credo", "Misa Dominical"]
+                };
+            };
+
+            sistemaDatos.grupos["Primer Año"] = crearGrupo(nombres1);
+            sistemaDatos.grupos["Segundo Año"] = crearGrupo(nombres2);
+            
+            grupoActual = "Primer Año";
+            sincronizarConNube();
+            actualizarSelectorGrupos();
+            actualizarInterfazGrupo();
+            renderizarDashboard();
+            alert("¡Grupos de prueba cargados con éxito! Ahora puedes ir al Dashboard y explorar los filtros y asistencias.");
+        }
+
 
         // ----- SISTEMA DE DATOS -----
         function showLoading(show) {
@@ -418,7 +703,6 @@
             inicializarApp();
         }
 
-        // Esta función convierte la vieja lista (solo nombres en texto) al formato completo.
         function migrarDatosAntiguos() {
             if (!sistemaDatos.grupos) return;
             for(let key in sistemaDatos.grupos) {
@@ -426,22 +710,37 @@
                 if(grupo.alumnos && grupo.alumnos.length > 0) {
                     grupo.alumnos = grupo.alumnos.map(al => {
                         if(typeof al === 'string') {
-                            return { nombre: al, tutor: 'No registrado', telefono: '-', salud: '' };
+                            return { nombre: al, celular: '-', direccion: '-', tutor: 'No registrado', telefono: '-', salud: '' };
                         }
+                        if(!al.celular) al.celular = '-';
+                        if(!al.direccion) al.direccion = '-';
                         return al;
                     });
                 }
             }
+            // Migrar Notas: de un solo String (textarea) a un Array de objetos post-it
+            if(typeof sistemaDatos.notas === 'string') {
+                if(sistemaDatos.notas.trim() !== '') {
+                    sistemaDatos.notas = [{
+                        id: Date.now(),
+                        titulo: "Nota Recuperada",
+                        contenido: `<p>${sistemaDatos.notas.replace(/\n/g, '<br>')}</p>`,
+                        fecha: new Date().toLocaleDateString()
+                    }];
+                } else {
+                    sistemaDatos.notas = [];
+                }
+            } else if (!Array.isArray(sistemaDatos.notas)) {
+                sistemaDatos.notas = [];
+            }
         }
 
         async function sincronizarConNube() {
-            sistemaDatos.notas = document.getElementById('editor-notas').value;
+            // Nota importante: Ya no guardamos el .value de un textarea único.
+            // Las notas ya se guardan en el array al hacer clic en "Guardar Nota".
             localStorage.setItem('catequesis_db', JSON.stringify(sistemaDatos));
 
-            if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
-                alert("Guardado Localmente. Para guardar en Google Drive, configura el Script URL en el código.");
-                return;
-            }
+            if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") return; 
 
             showLoading(true);
             try {
@@ -452,59 +751,188 @@
                     body: JSON.stringify(sistemaDatos)
                 });
                 showLoading(false);
-                alert("¡Datos guardados exitosamente en Google Drive!");
             } catch (e) {
                 showLoading(false);
-                alert("Error al sincronizar. Se guardó localmente.");
             }
         }
 
         function inicializarApp() {
             if (!sistemaDatos.grupos) sistemaDatos.grupos = {"Grupo 1": {alumnos:[], registros:[], listaTareas: []}};
-            if(!sistemaDatos.grupos[grupoActual]) grupoActual = Object.keys(sistemaDatos.grupos)[0];
             
-            document.getElementById('editor-notas').value = sistemaDatos.notas || "";
+            const grupoGuardado = localStorage.getItem('catequesis_grupo_actual');
+            if(grupoGuardado && sistemaDatos.grupos[grupoGuardado]) {
+                grupoActual = grupoGuardado;
+            } else {
+                if(!sistemaDatos.grupos[grupoActual]) grupoActual = Object.keys(sistemaDatos.grupos)[0];
+            }
+            
             document.getElementById('fecha-sesion').valueAsDate = new Date();
             
             actualizarSelectorGrupos();
             actualizarInterfazGrupo();
             renderizarDashboard();
+            renderizarNotas();
+
+            const tabGuardada = localStorage.getItem('catequesis_tab_actual');
+            if(tabGuardada) {
+                const btn = document.querySelector(`.tab-btn[onclick*="${tabGuardada}"]`);
+                if(btn) btn.click();
+            }
         }
 
-        // ----- NAVEGACIÓN Y MODALES -----
         function switchTab(evt, sectionId) {
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             evt.currentTarget.classList.add('active');
+            
+            localStorage.setItem('catequesis_tab_actual', sectionId);
+            
             if(sectionId === 'dashboard') renderizarDashboard();
             if(sectionId === 'tareas') actualizarListaTareas();
+            if(sectionId === 'notas') renderizarNotas();
         }
 
         function cambiarGrupoSeleccionado() {
             grupoActual = document.getElementById('selector-grupos').value;
+            localStorage.setItem('catequesis_grupo_actual', grupoActual);
             actualizarInterfazGrupo();
             renderizarDashboard();
         }
 
+        // ----- SISTEMA DE POST-ITS (NOTAS CON FORMATO WORD) -----
+
+        function initQuill() {
+            if (!quillEditor) {
+                quillEditor = new Quill('#editor-quill', {
+                    theme: 'snow',
+                    placeholder: 'Escribe el contenido de tu nota aquí...',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['clean']
+                        ]
+                    }
+                });
+            }
+        }
+
+        function renderizarNotas() {
+            const contenedor = document.getElementById('contenedor-notas');
+            contenedor.innerHTML = "";
+
+            if(!sistemaDatos.notas || sistemaDatos.notas.length === 0) {
+                contenedor.innerHTML = `<p style="grid-column: 1/-1; color: var(--medium-gray); font-style: italic;">No tienes notas. Haz clic en "Crear Nueva Nota" para empezar tu bloc.</p>`;
+                return;
+            }
+
+            // Mostrar notas (las más nuevas primero)
+            [...sistemaDatos.notas].reverse().forEach(nota => {
+                contenedor.innerHTML += `
+                    <div class="nota-card" onclick="editarNota(${nota.id})">
+                        <div class="acciones">
+                            <button class="btn-icon" onclick="event.stopPropagation(); eliminarNota(${nota.id})" title="Eliminar Nota"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <h3>${nota.titulo}</h3>
+                        <span class="fecha"><i class="fa-regular fa-calendar"></i> ${nota.fecha}</span>
+                        <div class="contenido ql-editor" style="padding:0; min-height:auto;">
+                            ${nota.contenido}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function abrirEditorNota() {
+            initQuill();
+            document.getElementById('nota-id-actual').value = "";
+            document.getElementById('nota-titulo').value = "";
+            quillEditor.root.innerHTML = ""; // Limpiar editor
+            document.getElementById('modal-nota').style.display = 'flex';
+        }
+
+        function editarNota(id) {
+            initQuill();
+            const nota = sistemaDatos.notas.find(n => n.id === id);
+            if(nota) {
+                document.getElementById('nota-id-actual').value = nota.id;
+                document.getElementById('nota-titulo').value = nota.titulo;
+                quillEditor.root.innerHTML = nota.contenido;
+                document.getElementById('modal-nota').style.display = 'flex';
+            }
+        }
+
+        function guardarNota() {
+            const idStr = document.getElementById('nota-id-actual').value;
+            let titulo = document.getElementById('nota-titulo').value.trim();
+            const contenido = quillEditor.root.innerHTML;
+            const textoPlano = quillEditor.getText().trim();
+
+            if(!titulo) titulo = "Nota sin título";
+            
+            if(textoPlano === "") {
+                alert("La nota está vacía.");
+                return;
+            }
+
+            if(idStr) { // Editar existente
+                const id = parseInt(idStr);
+                const index = sistemaDatos.notas.findIndex(n => n.id === id);
+                if(index > -1) {
+                    sistemaDatos.notas[index].titulo = titulo;
+                    sistemaDatos.notas[index].contenido = contenido;
+                }
+            } else { // Crear nueva
+                sistemaDatos.notas.push({
+                    id: Date.now(),
+                    titulo: titulo,
+                    contenido: contenido,
+                    fecha: new Date().toLocaleDateString()
+                });
+            }
+
+            sincronizarConNube();
+            cerrarEditorNota();
+            renderizarNotas();
+        }
+
+        function eliminarNota(id) {
+            if(confirm("¿Estás seguro de que deseas eliminar permanentemente esta nota?")) {
+                sistemaDatos.notas = sistemaDatos.notas.filter(n => n.id !== id);
+                sincronizarConNube();
+                renderizarNotas();
+            }
+        }
+
+        function cerrarEditorNota() {
+            document.getElementById('modal-nota').style.display = 'none';
+        }
+
+
+        // ----- OTRAS MODALES -----
         function abrirModalDirectorio() {
             const tbody = document.getElementById('tabla-modal-directorio');
             tbody.innerHTML = "";
             const grupo = sistemaDatos.grupos[grupoActual];
             
             if(grupo.alumnos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No hay catequizandos inscritos.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay catequizandos inscritos.</td></tr>`;
             } else {
                 grupo.alumnos.forEach(al => {
-                    let alertaSalud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta"><i class="fa-solid fa-triangle-exclamation"></i> ${al.salud}</span>` : 'Ninguna';
-                    
-                    let linkTel = al.telefono && al.telefono !== '-' ? `<a href="https://wa.me/${al.telefono.replace(/\+/g, '')}" target="_blank" style="color:var(--primary-color); text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ${al.telefono}</a>` : '-';
+                    let alertaSalud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta"><i class="fa-solid fa-triangle-exclamation"></i> ${al.salud}</span>` : '<span style="color:#94a3b8">Ninguna</span>';
+                    let linkTelTutor = al.telefono && al.telefono !== '-' ? `<a href="https://wa.me/${al.telefono.replace(/\+/g, '')}" target="_blank" style="color:var(--secondary-color); text-decoration:none; font-weight:bold;"><i class="fa-brands fa-whatsapp"></i> ${al.telefono}</a>` : '-';
+                    let linkTelJoven = al.celular && al.celular !== '-' ? `<a href="https://wa.me/${al.celular.replace(/\+/g, '')}" target="_blank" style="color:var(--primary-color); text-decoration:none;"><i class="fa-solid fa-mobile-screen"></i> ${al.celular}</a>` : '-';
 
                     tbody.innerHTML += `
                         <tr>
-                            <td><strong>${al.nombre}</strong></td>
+                            <td><strong>${al.nombre}</strong><br><small>${linkTelJoven}</small></td>
+                            <td>${al.direccion}</td>
                             <td>${al.tutor}</td>
-                            <td>${linkTel}</td>
+                            <td>${linkTelTutor}</td>
                             <td>${alertaSalud}</td>
                         </tr>
                     `;
@@ -525,10 +953,41 @@
                 if(sistemaDatos.grupos[nombre]) { alert("Este grupo ya existe."); return; }
                 sistemaDatos.grupos[nombre] = { alumnos: [], registros: [], listaTareas: [] };
                 grupoActual = nombre;
+                localStorage.setItem('catequesis_grupo_actual', grupoActual);
                 sincronizarConNube();
                 actualizarSelectorGrupos();
                 actualizarInterfazGrupo();
                 renderizarDashboard();
+            }
+        }
+
+        function resetearGrupoActual() {
+            if(confirm(`⚠️ ATENCIÓN ⚠️\n\n¿Estás seguro de que quieres BORRAR a TODOS los catequizandos, asistencias y tareas del grupo "${grupoActual}"?\n\nEste botón sirve para iniciar un nuevo año limpio. Esta acción NO se puede deshacer.`)) {
+                if(confirm(`Por favor confirma nuevamente. ¿Vaciar completamente el grupo "${grupoActual}"?`)) {
+                    sistemaDatos.grupos[grupoActual] = { alumnos: [], registros: [], listaTareas: [] };
+                    sincronizarConNube();
+                    actualizarInterfazGrupo();
+                    renderizarDashboard();
+                    alert(`El grupo "${grupoActual}" ha sido vaciado correctamente y está listo para un nuevo año.`);
+                }
+            }
+        }
+
+        function eliminarGrupoActual() {
+            const numGrupos = Object.keys(sistemaDatos.grupos).length;
+            if(numGrupos <= 1) {
+                alert(`No puedes eliminar el único grupo que existe. Puedes "Vaciar Grupo" en su lugar.`);
+                return;
+            }
+            if(confirm(`⚠️ PELIGRO ⚠️\n\n¿Estás súper seguro de ELIMINAR por completo el grupo "${grupoActual}" y todos sus datos del sistema?`)) {
+                delete sistemaDatos.grupos[grupoActual];
+                grupoActual = Object.keys(sistemaDatos.grupos)[0]; // Seleccionar otro grupo existente
+                localStorage.setItem('catequesis_grupo_actual', grupoActual);
+                sincronizarConNube();
+                actualizarSelectorGrupos();
+                actualizarInterfazGrupo();
+                renderizarDashboard();
+                alert(`El grupo ha sido eliminado.`);
             }
         }
 
@@ -546,12 +1005,23 @@
         // ----- GESTIÓN DE TAREAS -----
         function agregarTarea() {
             const input = document.getElementById('nueva-tarea-input');
-            const tarea = input.value.trim();
-            if(!tarea) return;
+            const fechaInput = document.getElementById('nueva-tarea-fecha');
+            const tareaNombre = input.value.trim();
+            if(!tareaNombre) return;
             if(!sistemaDatos.grupos[grupoActual].listaTareas) sistemaDatos.grupos[grupoActual].listaTareas = [];
             
-            sistemaDatos.grupos[grupoActual].listaTareas.push(tarea);
+            let fechaVal = fechaInput.value;
+            if (fechaVal) {
+                const partes = fechaVal.split('-');
+                fechaVal = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+
+            sistemaDatos.grupos[grupoActual].listaTareas.push({
+                nombre: tareaNombre,
+                fecha: fechaVal || ''
+            });
             input.value = "";
+            fechaInput.value = "";
             sincronizarConNube();
             actualizarListaTareas();
             actualizarSelectorTareasAsistencia();
@@ -572,14 +1042,17 @@
             const tareas = sistemaDatos.grupos[grupoActual].listaTareas || [];
             
             if(tareas.length === 0) {
-                lista.innerHTML = "<p style='color:#64748b;'>No has creado tareas para este grupo aún.</p>";
+                lista.innerHTML = "<p style='color:var(--medium-gray);'>No has creado tareas para este grupo aún.</p>";
                 return;
             }
 
             tareas.forEach((tarea, idx) => {
+                let nombreTarea = typeof tarea === 'string' ? tarea : tarea.nombre;
+                let fechaTexto = typeof tarea === 'object' && tarea.fecha ? ` <small style="color:#64748b; margin-left:10px;"><i class="fa-regular fa-calendar"></i> Entrega: ${tarea.fecha}</small>` : '';
+
                 lista.innerHTML += `
                     <li>
-                        <strong>${tarea}</strong>
+                        <span><i class="fa-solid fa-bookmark" style="color:var(--primary-color); margin-right:8px;"></i> ${nombreTarea}${fechaTexto}</span>
                         <button class="btn btn-danger" style="padding: 0.4rem 0.8rem;" onclick="eliminarTarea(${idx})"><i class="fa-solid fa-trash"></i></button>
                     </li>
                 `;
@@ -592,12 +1065,36 @@
             const tareas = sistemaDatos.grupos[grupoActual].listaTareas || [];
             tareas.forEach(tarea => {
                 const opt = document.createElement('option');
-                opt.value = tarea; opt.innerText = tarea;
+                let nombreTarea = typeof tarea === 'string' ? tarea : tarea.nombre;
+                let fechaTexto = typeof tarea === 'object' && tarea.fecha ? ` (Entrega: ${tarea.fecha})` : '';
+                opt.value = nombreTarea; 
+                opt.innerText = nombreTarea + fechaTexto;
                 selector.appendChild(opt);
             });
         }
 
-        // ----- INTERFAZ PRINCIPAL -----
+        function actualizarTextosTareas() {
+            const tareaSeleccionada = document.getElementById('selector-tarea-actual').value;
+            const selectsTareas = document.querySelectorAll('.select-tarea');
+            
+            let textoPresento = "Presentó Tarea";
+            let textoNoPresento = "No Presentó Tarea";
+
+            if (tareaSeleccionada && tareaSeleccionada !== "Ninguna") {
+                // Trucar nombre si es muy largo
+                let nombreCorto = tareaSeleccionada.length > 20 ? tareaSeleccionada.substring(0, 20) + "..." : tareaSeleccionada;
+                textoPresento = `Presentó: ${nombreCorto}`;
+                textoNoPresento = `No presentó: ${nombreCorto}`;
+            }
+
+            selectsTareas.forEach(select => {
+                const optPresento = select.querySelector('option[value="Entregado"]');
+                const optNoPresento = select.querySelector('option[value="No Presentó"]');
+                if (optPresento) optPresento.innerText = textoPresento;
+                if (optNoPresento) optNoPresento.innerText = textoNoPresento;
+            });
+        }
+
         function actualizarInterfazGrupo() {
             document.getElementById('lbl-grupo-dash').innerText = grupoActual;
             const grupo = sistemaDatos.grupos[grupoActual];
@@ -612,13 +1109,19 @@
                 tbodyAsist.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 2rem;">No hay catequizandos inscritos en este grupo.</td></tr>`;
             } else {
                 grupo.alumnos.forEach((al, index) => {
-                    let advertencia = al.salud && al.salud.trim() !== '' ? `<br><small style="color:var(--danger-color)"><i class="fa-solid fa-notes-medical"></i> Salud: ${al.salud}</small>` : '';
+                    let advertencia = al.salud && al.salud.trim() !== '' ? ` <i class="fa-solid fa-notes-medical" style="color:var(--danger-color); margin-left: 5px;" title="Requiere cuidado médico especial"></i>` : '';
+                    let initial = al.nombre.charAt(0).toUpperCase();
 
                     tbodyAsist.innerHTML += `
-                        <tr>
-                            <td><strong>${al.nombre}</strong>${advertencia}</td>
-                            <td>
-                                <select class="select-asis" onchange="verificarMotivo(this, ${index})">
+                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 1rem;">
+                                <div style="display:flex; align-items:center; gap: 12px;">
+                                    <div style="background:linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:white; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.1rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;">${initial}</div> 
+                                    <div style="font-size: 1.05rem;"><strong>${al.nombre}</strong>${advertencia}</div>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem; vertical-align:middle;">
+                                <select class="select-asis presente" onchange="verificarMotivo(this, ${index}); actualizarColorSelect(this, 'asis')">
                                     <option value="Presente">Presente</option>
                                     <option value="Retraso">Retraso</option>
                                     <option value="Falta Justificada">Falta con Justificación</option>
@@ -626,8 +1129,8 @@
                                 </select>
                                 <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso...">
                             </td>
-                            <td>
-                                <select class="select-tarea">
+                            <td style="padding: 1rem; vertical-align:middle;">
+                                <select class="select-tarea entregado" onchange="actualizarColorSelect(this, 'tarea')">
                                     <option value="Entregado">Presentó Tarea</option>
                                     <option value="No Presentó">No Presentó Tarea</option>
                                 </select>
@@ -636,11 +1139,14 @@
                     `;
                 });
             }
+            
+            // Actualizar textos basados en la tarea seleccionada por defecto
+            actualizarTextosTareas();
 
             const tbodyAlumnos = document.getElementById('tabla-lista-alumnos');
             tbodyAlumnos.innerHTML = "";
             if(grupo.alumnos.length === 0) {
-                tbodyAlumnos.innerHTML = `<tr><td colspan="5" style="text-align:center;">Sin alumnos registrados.</td></tr>`;
+                tbodyAlumnos.innerHTML = `<tr><td colspan="6" style="text-align:center;">Sin alumnos registrados.</td></tr>`;
             } else {
                 grupo.alumnos.forEach((al, idx) => {
                     let descSalud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta">${al.salud}</span>` : '<span style="color:#94a3b8">Ninguna</span>';
@@ -648,13 +1154,30 @@
                     tbodyAlumnos.innerHTML += `
                         <tr>
                             <td>${idx+1}</td>
-                            <td><strong>${al.nombre}</strong></td>
-                            <td>${al.tutor}<br><small style="color:#64748b"><i class="fa-solid fa-phone"></i> ${al.telefono || '-'}</small></td>
+                            <td><strong>${al.nombre}</strong><br><small style="color:var(--secondary-color)"><i class="fa-solid fa-mobile-screen"></i> ${al.celular || '-'}</small></td>
+                            <td>${al.direccion}</td>
+                            <td>${al.tutor}<br><small style="color:var(--medium-gray)"><i class="fa-solid fa-phone"></i> ${al.telefono || '-'}</small></td>
                             <td>${descSalud}</td>
-                            <td><button onclick="eliminarAlumno(${idx})" class="btn btn-danger" style="padding:6px 12px;"><i class="fa-solid fa-trash"></i></button></td>
+                            <td>
+                                <button onclick="editarAlumno(${idx})" class="btn btn-info" style="padding:6px 12px; margin-right: 5px;" title="Editar Datos"><i class="fa-solid fa-pencil"></i></button>
+                                <button onclick="eliminarAlumno(${idx})" class="btn btn-danger" style="padding:6px 12px;" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </td>
                         </tr>
                     `;
                 });
+            }
+        }
+
+        function actualizarColorSelect(selectElem, tipo) {
+            selectElem.classList.remove('presente', 'retraso', 'falta', 'entregado', 'nopresento');
+            if (tipo === 'asis') {
+                const val = selectElem.value;
+                if (val === 'Presente') selectElem.classList.add('presente');
+                else if (val === 'Retraso') selectElem.classList.add('retraso');
+                else selectElem.classList.add('falta');
+            } else {
+                if (selectElem.value === 'Entregado') selectElem.classList.add('entregado');
+                else selectElem.classList.add('nopresento');
             }
         }
 
@@ -668,30 +1191,136 @@
             }
         }
 
+        let editandoAlumnoIndex = -1;
+
+        function toggleSaludDetalles() {
+            const select = document.getElementById('alumno-tiene-salud').value;
+            document.getElementById('salud-detalles').style.display = select === 'Sí' ? 'block' : 'none';
+        }
+
         function agregarAlumno() {
             const nombre = document.getElementById('alumno-nombre').value.trim();
+            const celular = document.getElementById('alumno-celular').value.trim();
+            const direccion = document.getElementById('alumno-direccion').value.trim();
             const tutor = document.getElementById('alumno-tutor').value.trim();
             const tel = document.getElementById('alumno-tel').value.trim();
-            const salud = document.getElementById('alumno-salud').value.trim();
+            
+            let saludText = "";
+            if (document.getElementById('alumno-tiene-salud').value === 'Sí') {
+                const enf = document.getElementById('alumno-enfermedad').value.trim();
+                const med = document.getElementById('alumno-medicamento').value.trim();
+                const h1 = document.getElementById('alumno-horario-1').value;
+                const h2 = document.getElementById('alumno-horario-2').value;
+                const h3 = document.getElementById('alumno-horario-3').value;
+                const he = document.getElementById('alumno-horario-extra').value.trim();
+                const hor = [h1, h2, h3, he].filter(Boolean).join(" y ");
+                const cui = document.getElementById('alumno-cuidados').value.trim();
+                saludText = `Enfermedad: ${enf} | Medicamento: ${med} | Horario: ${hor} | Cuidados: ${cui}`;
+            }
 
             if(!nombre) { alert("¡El nombre del catequizando es obligatorio!"); return; }
             if(!tutor) { alert("¡El nombre del Tutor/Responsable es importante!"); return; }
 
-            sistemaDatos.grupos[grupoActual].alumnos.push({
-                nombre: nombre,
-                tutor: tutor,
-                telefono: tel || '-',
-                salud: salud || ''
-            });
+            const nuevoAlumno = {
+                nombre: nombre, celular: celular || '-', direccion: direccion || '-', tutor: tutor, telefono: tel || '-', salud: saludText
+            };
+
+            if (editandoAlumnoIndex > -1) {
+                sistemaDatos.grupos[grupoActual].alumnos[editandoAlumnoIndex] = nuevoAlumno;
+                editandoAlumnoIndex = -1;
+                const btn = document.getElementById('btn-guardar-alumno');
+                btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Inscribir Catequizando Oficialmente`;
+                btn.classList.remove('btn-warning');
+                alert("¡Datos del catequizando actualizados!");
+            } else {
+                sistemaDatos.grupos[grupoActual].alumnos.push(nuevoAlumno);
+                alert("¡Catequizando inscrito correctamente!");
+            }
 
             document.getElementById('alumno-nombre').value = '';
+            document.getElementById('alumno-celular').value = '';
+            document.getElementById('alumno-direccion').value = '';
             document.getElementById('alumno-tutor').value = '';
             document.getElementById('alumno-tel').value = '';
-            document.getElementById('alumno-salud').value = '';
+            document.getElementById('alumno-tiene-salud').value = 'No';
+            document.getElementById('alumno-enfermedad').value = '';
+            document.getElementById('alumno-medicamento').value = '';
+            document.getElementById('alumno-horario-1').value = '';
+            document.getElementById('alumno-horario-2').value = '';
+            document.getElementById('alumno-horario-3').value = '';
+            document.getElementById('alumno-horario-extra').value = '';
+            document.getElementById('alumno-cuidados').value = '';
+            toggleSaludDetalles();
 
             sincronizarConNube();
             actualizarInterfazGrupo();
-            alert("¡Catequizando inscrito correctamente!");
+        }
+
+        function editarAlumno(idx) {
+            const al = sistemaDatos.grupos[grupoActual].alumnos[idx];
+            document.getElementById('alumno-nombre').value = al.nombre;
+            document.getElementById('alumno-celular').value = al.celular !== '-' ? al.celular : '';
+            document.getElementById('alumno-direccion').value = al.direccion !== '-' ? al.direccion : '';
+            document.getElementById('alumno-tutor').value = al.tutor;
+            document.getElementById('alumno-tel').value = al.telefono !== '-' ? al.telefono : '';
+            
+            if (al.salud && al.salud.trim() !== "") {
+                document.getElementById('alumno-tiene-salud').value = "Sí";
+                let enf = al.salud, med = "", hor = "", cui = "";
+                if(al.salud.includes('|')) {
+                    const parts = al.salud.split('|').map(p => p.trim());
+                    enf = parts[0] ? parts[0].replace('Enfermedad:', '').trim() : '';
+                    med = parts[1] ? parts[1].replace('Medicamento:', '').trim() : '';
+                    
+                    if (parts[2] && parts[2].includes('Horario/Cuidados:')) {
+                        hor = "";
+                        cui = parts[2].replace('Horario/Cuidados:', '').trim();
+                    } else {
+                        hor = parts[2] ? parts[2].replace('Horario:', '').trim() : '';
+                        cui = parts[3] ? parts[3].replace('Cuidados:', '').trim() : '';
+                    }
+                }
+                document.getElementById('alumno-enfermedad').value = enf;
+                document.getElementById('alumno-medicamento').value = med;
+                
+                document.getElementById('alumno-horario-1').value = '';
+                document.getElementById('alumno-horario-2').value = '';
+                document.getElementById('alumno-horario-3').value = '';
+                document.getElementById('alumno-horario-extra').value = '';
+                
+                if (hor) {
+                    const horParts = hor.split(' y ');
+                    let timeInputs = ['alumno-horario-1', 'alumno-horario-2', 'alumno-horario-3'];
+                    let extraText = [];
+                    horParts.forEach(p => {
+                        if (/^\d{2}:\d{2}$/.test(p) && timeInputs.length > 0) {
+                            document.getElementById(timeInputs.shift()).value = p;
+                        } else {
+                            extraText.push(p);
+                        }
+                    });
+                    document.getElementById('alumno-horario-extra').value = extraText.join(' y ');
+                }
+
+                document.getElementById('alumno-cuidados').value = cui;
+            } else {
+                document.getElementById('alumno-tiene-salud').value = "No";
+                document.getElementById('alumno-enfermedad').value = '';
+                document.getElementById('alumno-medicamento').value = '';
+                document.getElementById('alumno-horario-1').value = '';
+                document.getElementById('alumno-horario-2').value = '';
+                document.getElementById('alumno-horario-3').value = '';
+                document.getElementById('alumno-horario-extra').value = '';
+                document.getElementById('alumno-cuidados').value = '';
+            }
+            toggleSaludDetalles();
+            
+            editandoAlumnoIndex = idx;
+            const btn = document.getElementById('btn-guardar-alumno');
+            btn.innerHTML = `<i class="fa-solid fa-save"></i> Guardar Cambios del Catequizando`;
+            btn.classList.add('btn-warning');
+            
+            document.getElementById('alumnos').scrollIntoView({behavior: "smooth"});
         }
 
         function eliminarAlumno(idx) {
@@ -709,8 +1338,6 @@
             const filas = document.querySelectorAll('#tabla-asistencia-dinamica tr');
             if(filas.length === 0 || sistemaDatos.grupos[grupoActual].alumnos.length === 0) return;
 
-            // Iteramos de acuerdo a cómo está construida la tabla. 
-            // El índice debe coincidir.
             sistemaDatos.grupos[grupoActual].alumnos.forEach((al, index) => {
                 const fila = filas[index];
                 const asistencia = fila.querySelector('.select-asis').value;
@@ -721,23 +1348,183 @@
                 if (motivoInput) asistenciaConMotivo += ` (${motivoInput})`;
 
                 sistemaDatos.grupos[grupoActual].registros.push({
-                    fecha, 
-                    alumno: al.nombre, 
-                    asistencia: asistenciaConMotivo, 
-                    tareaNombre, 
-                    tareaEstado
+                    fecha, alumno: al.nombre, asistencia: asistenciaConMotivo, tareaNombre, tareaEstado
                 });
             });
 
             sincronizarConNube();
-            alert("¡Asistencia y Tareas guardadas!");
+            alert("¡Asistencia y Tareas guardadas exitosamente!");
             document.querySelectorAll('nav button')[0].click(); // Ir a dashboard
         }
 
+        // ----- WHATSAPP AUTOMÁTICO -----
+        function avisarTutorWhatsApp(alumnoNombre, tipoAviso, detalle) {
+            const grupo = sistemaDatos.grupos[grupoActual];
+            const alumnoInfo = grupo.alumnos.find(a => a.nombre === alumnoNombre);
+            
+            if(!alumnoInfo || !alumnoInfo.telefono || alumnoInfo.telefono === '-') {
+                alert("No hay teléfono de un tutor registrado para " + alumnoNombre);
+                return;
+            }
+
+            let celularCorto = alumnoInfo.telefono.replace(/\D/g, ''); 
+            
+            // 1. Verificar la hora actual
+            const horaActual = new Date().getHours();
+            let saludo = "Buenos días";
+            if (horaActual >= 12 && horaActual < 19) {
+                saludo = "Buenas tardes";
+            } else if (horaActual >= 19) {
+                saludo = "Buenas noches";
+            }
+
+            // 2. Variable de motivo (falta o tarea)
+            let textoMotivo = "";
+            if(tipoAviso === 'falta') {
+                textoMotivo = `quería informarle que el catequizando *${alumnoInfo.nombre}* no asistió a la sesión de hoy (${detalle}). Le pido conversar con el joven y justificar la falta si hubo algún inconveniente.`;
+            } else if(tipoAviso === 'tarea') {
+                textoMotivo = `quería informarle que *${alumnoInfo.nombre}* NO PRESENTÓ la tarea asignada (${detalle}). Le ruego su apoyo en casa para que se ponga al día.`;
+            }
+
+            // 3. Generar mensaje final con bendición y nombre del catequista
+            let mensaje = `${saludo} estimado/a tutor ${alumnoInfo.tutor}. Que Dios le bendiga.\n\nLe habla su catequista, *Maycol Avila*. El motivo de este mensaje es que ${textoMotivo}\n\n¡Paz y Bien!`;
+
+            const url = `https://wa.me/${celularCorto}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        }
+
+        // ----- GENERAR REPORTE PDF INTELIGENTE -----
+        function abrirModalPDF() {
+            document.getElementById('pdf-titulo').value = "Reporte Oficial de Catequesis";
+            document.getElementById('pdf-tipo').value = "todo";
+            document.getElementById('div-pdf-alumno').style.display = "none";
+            
+            const selectAl = document.getElementById('pdf-alumno-select');
+            selectAl.innerHTML = "";
+            const alumnos = sistemaDatos.grupos[grupoActual].alumnos;
+            if(alumnos.length === 0) {
+                selectAl.innerHTML = "<option value=''>No hay alumnos</option>";
+            } else {
+                alumnos.forEach(al => {
+                    const opt = document.createElement('option');
+                    opt.value = al.nombre; opt.innerText = al.nombre;
+                    selectAl.appendChild(opt);
+                });
+            }
+            
+            document.getElementById('modal-pdf').style.display = 'flex';
+        }
+
+        function cerrarModalPDF() {
+            document.getElementById('modal-pdf').style.display = 'none';
+        }
+
+        function cambiarFiltroPdf() {
+            const tipo = document.getElementById('pdf-tipo').value;
+            document.getElementById('div-pdf-alumno').style.display = tipo === 'alumno' ? 'block' : 'none';
+            
+            if(tipo === 'faltas') document.getElementById('pdf-titulo').value = "Reporte de Inasistencias (Faltas)";
+            else if(tipo === 'tareas') document.getElementById('pdf-titulo').value = "Reporte de Tareas Pendientes";
+            else if(tipo === 'todo') document.getElementById('pdf-titulo').value = "Reporte General de Catequesis";
+            else if(tipo === 'alumno') document.getElementById('pdf-titulo').value = "Reporte Individual del Catequizando";
+        }
+
+        function ejecutarGeneracionPDF() {
+            const titulo = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
+            const tipo = document.getElementById('pdf-tipo').value;
+            const alumnoSelect = document.getElementById('pdf-alumno-select').value;
+            cerrarModalPDF();
+            showLoading(true);
+            
+            const grupo = sistemaDatos.grupos[grupoActual];
+            const registros = grupo.registros || [];
+            
+            let filtrados = registros;
+            if(tipo === 'faltas') {
+                filtrados = registros.filter(r => r.asistencia.includes('Falta'));
+            } else if(tipo === 'tareas') {
+                filtrados = registros.filter(r => r.tareaEstado === 'No Presentó' && r.tareaNombre !== 'Ninguna');
+            } else if(tipo === 'alumno') {
+                filtrados = registros.filter(r => r.alumno === alumnoSelect);
+            }
+            
+            let asis = 0, faltas = 0, tar = 0;
+            filtrados.forEach(reg => {
+                if(reg.asistencia.includes('Presente') || reg.asistencia.includes('Retraso')) asis++;
+                if(reg.asistencia.includes('Falta')) faltas++;
+                if(reg.tareaEstado === 'No Presentó' && reg.tareaNombre !== 'Ninguna') tar++;
+            });
+            let pct = filtrados.length > 0 ? Math.round((asis / filtrados.length) * 100) : 100;
+
+            let rowsHtml = "";
+            filtrados.slice().reverse().forEach(reg => {
+                let tc = reg.tareaEstado === 'Entregado' ? 'Entregado' : 'No Presentó';
+                if (reg.tareaNombre === 'Ninguna') tc = '-';
+                rowsHtml += `
+                    <tr>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${reg.fecha}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;"><strong>${reg.alumno}</strong></td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${reg.asistencia}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px;">${reg.tareaNombre}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 8px; color: ${tc === 'No Presentó' ? 'red' : 'green'}; font-weight:bold;">${tc}</td>
+                    </tr>
+                `;
+            });
+
+            if (filtrados.length === 0) {
+                rowsHtml = `<tr><td colspan="5" style="border: 1px solid #cbd5e1; padding: 15px; text-align:center;">No hay registros que coincidan con este reporte.</td></tr>`;
+            }
+
+            const container = document.createElement('div');
+            container.style.padding = '30px';
+            container.style.backgroundColor = '#fff';
+            container.style.fontFamily = 'Arial, sans-serif';
+            container.innerHTML = `
+                <div style="text-align:center; margin-bottom: 20px; border-bottom: 3px solid #1e3a8a; padding-bottom: 15px;">
+                    <h1 style="color: #1e3a8a; margin:0; font-size: 28px;">SENDERO PASTORAL</h1>
+                    <h2 style="color: #334155; margin: 5px 0;">${titulo}</h2>
+                    <p style="color: #64748b; font-size: 14px;"><strong>Grupo:</strong> ${grupoActual} | <strong>Fecha de Reporte:</strong> ${new Date().toLocaleDateString()}</p>
+                </div>
+                <div style="display:flex; justify-content:space-around; margin-bottom: 25px; font-weight:bold; background:#f8fafc; padding:15px; border:1px solid #cbd5e1; border-radius:8px; color: #334155;">
+                    <span style="color: #3b82f6;">Asistencia Promedio: ${pct}%</span>
+                    <span style="color: #475569;">Total Faltas: ${faltas}</span>
+                    <span style="color: #dc2626;">Tareas Pendientes: ${tar}</span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead style="background-color: #f1f5f9; color: #0f172a;">
+                        <tr>
+                            <th style="border: 1px solid #cbd5e1; padding: 10px;">Fecha</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 10px;">Catequizando</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 10px;">Estado / Motivo</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 10px;">Tema de Tarea</th>
+                            <th style="border: 1px solid #cbd5e1; padding: 10px;">Estado Tarea</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            `;
+            
+            var opt = {
+                margin:       15,
+                filename:     `${titulo.replace(/ /g, '_')}_${grupoActual.replace(/ /g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(container).save().then(() => {
+                showLoading(false);
+            });
+        }
+
+        // ----- RENDERIZAR DASHBOARD -----
         function renderizarDashboard() {
             const grupo = sistemaDatos.grupos[grupoActual];
             const registros = grupo.registros || [];
             
+            const filtroNombre = document.getElementById('filtro-nombre').value.toLowerCase();
             const filtroEstado = document.getElementById('filtro-estado').value;
             const filtroTareaEstado = document.getElementById('filtro-tarea-estado').value;
             const tbody = document.getElementById('tabla-dashboard-detalles');
@@ -746,9 +1533,10 @@
             let asis = 0, faltas = 0, tar = 0;
 
             let filtrados = registros.filter(reg => {
+                let cn = reg.alumno.toLowerCase().includes(filtroNombre);
                 let ce = (filtroEstado === 'todos' || reg.asistencia.includes(filtroEstado));
                 let ct = (filtroTareaEstado === 'todos' || reg.tareaEstado === filtroTareaEstado);
-                return ce && ct;
+                return cn && ce && ct;
             });
 
             registros.forEach(reg => {
@@ -758,7 +1546,7 @@
             });
 
             if(filtrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem;">No hay registros con estos filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--medium-gray);">No hay registros con estos filtros.</td></tr>`;
             } else {
                 filtrados.slice().reverse().forEach(reg => {
                     let bc = "bg-presente";
@@ -766,9 +1554,17 @@
                     if(reg.asistencia.includes('Falta Injustificada')) bc = "bg-falta-injustificada";
                     if(reg.asistencia.includes('Retraso')) bc = "bg-retraso";
 
-                    let tc = reg.tareaEstado === 'Entregado' ? '<span style="color:var(--success-color)"><i class="fa-solid fa-check-circle"></i> Entregado</span>' : '<span style="color:var(--danger-color)"><i class="fa-solid fa-times-circle"></i> No Presentó</span>';
-                    
-                    if (reg.tareaNombre === 'Ninguna') tc = '<span style="color:#64748b">-</span>';
+                    let tc = reg.tareaEstado === 'Entregado' ? `<span style="color:var(--success-color); font-weight:bold;"><i class="fa-solid fa-check-circle"></i> Entregado</span>` : `<span style="color:var(--danger-color); font-weight:bold;"><i class="fa-solid fa-times-circle"></i> No Presentó</span>`;
+                    if (reg.tareaNombre === 'Ninguna') tc = '<span style="color:var(--medium-gray)">-</span>';
+
+                    // ---- ACCIONES DE WHATSAPP ----
+                    let btnAcciones = "";
+                    if(reg.asistencia.includes('Falta')) {
+                        btnAcciones += `<button class="btn btn-whatsapp col-accion-pdf" onclick="avisarTutorWhatsApp('${reg.alumno}', 'falta', '${reg.fecha}')" title="Enviar WhatsApp de Falta"><i class="fa-brands fa-whatsapp"></i> Avisar Falta</button><br>`;
+                    }
+                    if(reg.tareaEstado === 'No Presentó' && reg.tareaNombre !== 'Ninguna') {
+                        btnAcciones += `<button class="btn btn-whatsapp col-accion-pdf" style="margin-top:5px;" onclick="avisarTutorWhatsApp('${reg.alumno}', 'tarea', '${reg.tareaNombre}')" title="Enviar WhatsApp de Tarea"><i class="fa-brands fa-whatsapp"></i> Avisar Tarea</button>`;
+                    }
 
                     tbody.innerHTML += `
                         <tr>
@@ -777,6 +1573,7 @@
                             <td><span class="badge-estado ${bc}">${reg.asistencia}</span></td>
                             <td>${reg.tareaNombre}</td>
                             <td>${tc}</td>
+                            <td class="col-accion-pdf">${btnAcciones}</td>
                         </tr>
                     `;
                 });
@@ -786,6 +1583,34 @@
             document.getElementById('stat-asistencia').innerText = pct + '%';
             document.getElementById('stat-faltas').innerText = faltas;
             document.getElementById('stat-tareas-pendientes').innerText = tar;
+        }
+        // ----- INSTALACIÓN PWA Y SERVICE WORKER -----
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-banner').style.display = 'flex';
+        });
+
+        async function instalarApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-banner').style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                alert("Para instalar en Android: Toca los 3 puntitos del navegador y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.\n\nEn iPhone: Toca Compartir (cuadro con flecha) y 'Agregar a Inicio'.");
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registrado'))
+                    .catch(err => console.error('Error SW', err));
+            });
         }
     </script>
 </body>
