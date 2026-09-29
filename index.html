@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sendero Pastoral - Sistema de Catequesis</title>
+    <!-- Incluimos FontAwesome para iconos modernos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0f766e; 
+            --secondary-color: #14b8a6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-color: #f0fdfa; 
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --border-color: #ccfbf1;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* ----- PANTALLA DE LOGIN ----- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(15, 118, 110, 0.95), rgba(20, 184, 166, 0.95));
+            display: flex; justify-content: center; align-items: center; z-index: 10000;
+        }
+        .login-card { background: white; padding: 3rem 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; max-width: 400px; width: 90%; }
+        .logo-login { max-width: 130px; height: auto; margin-bottom: 1rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .login-card h1 { color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.8rem; }
+        .login-card p { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+        .login-card input { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+        .login-card input:focus { border-color: var(--primary-color); }
+        .login-card button { width: 100%; background: var(--primary-color); color: white; border: none; padding: 0.9rem; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .login-card button:hover { background: #0f5132; }
+        .error-msg { color: var(--danger-color); font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+
+        /* ----- APLICACIÓN PRINCIPAL ----- */
+        #app-container { display: none; flex-direction: column; min-height: 100vh; }
+        header { background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; padding: 2rem 1rem; text-align: center; box-shadow: var(--shadow-md); }
+        .logo-header { height: 55px; width: auto; border-radius: 8px; margin-right: 12px; vertical-align: middle; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        header p { font-size: 0.9rem; color: #ccfbf1; font-weight: 500; }
+
+        .grupo-bar { background: #ffffff; padding: 1rem 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+        .grupo-bar select, .grupo-bar button { padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600; cursor: pointer; transition: all 0.2s; outline: none; }
+        .grupo-bar select { background: white; color: var(--primary-color); min-width: 150px; }
+        .btn-crear-grupo { background-color: var(--success-color); color: white; border: none !important; }
+        .btn-sincronizar { background-color: var(--primary-color); color: white; border: none !important; }
+
+        nav { display: flex; justify-content: center; background: #ffffff; border-bottom: 1px solid var(--border-color); overflow-x: auto; padding: 0 1rem; }
+        nav button { background: none; border: none; padding: 1.25rem 1.5rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: #64748b; white-space: nowrap; transition: all 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 8px; }
+        nav button:hover { color: var(--primary-color); background-color: #f8fafc; }
+        nav button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background-color: #f0fdfa; }
+
+        main { flex: 1; padding: 2rem 1.5rem; max-width: 1280px; margin: 0 auto; width: 100%; }
+        .section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section.active { display: block; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        h2 { margin-bottom: 1.5rem; font-size: 1.5rem; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; box-shadow: var(--shadow-sm); }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
+        .stat-card.success::before { background-color: var(--success-color); }
+        .stat-card.warning::before { background-color: var(--warning-color); }
+        .stat-card.danger::before { background-color: var(--danger-color); }
+        .stat-card h3 { font-size: 0.85rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; }
+        .stat-card .number { font-size: 2.5rem; font-weight: 800; color: var(--text-color); }
+
+        .filters-container { background: #f8fafc; padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .form-full { grid-column: 1 / -1; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 1rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f1f5f9; font-weight: 700; color: #334155; text-transform: uppercase; font-size: 0.8rem; }
+        tbody tr:hover { background-color: #f8fafc; }
+
+        input[type="text"], input[type="tel"], input[type="date"], input[type="password"], textarea, select { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; }
+        button.btn { background-color: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: background 0.2s; }
+        button.btn:hover { background-color: #0d5f58; }
+        .btn-danger { background-color: var(--danger-color) !important; }
+        .btn-danger:hover { background-color: #b91c1c !important; }
+        .btn-info { background-color: #3b82f6 !important; }
+        .btn-info:hover { background-color: #2563eb !important; }
+
+        .badge-estado { padding: 0.4rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+        .bg-presente { background: #d1fae5; color: #065f46; }
+        .bg-falta-justificada { background: #fef3c7; color: #92400e; }
+        .bg-falta-injustificada { background: #fee2e2; color: #991b1b; }
+        .bg-retraso { background: #e0e7ff; color: #3730a3; }
+        .badge-alerta { background: #fee2e2; color: #b91c1c; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block;}
+
+        .input-motivo { margin-top: 0.5rem; display: none; background: #fffbeb; border-color: #fcd34d; }
+
+        #loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10001; display: none; }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .task-list { list-style: none; margin-top: 1.5rem; }
+        .task-list li { background: #f8fafc; border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+
+        /* MODAL DIRECTORIO */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background-color: #fff; padding: 2rem; border-radius: 12px; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
+        .close-btn { position: absolute; right: 20px; top: 20px; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        .close-btn:hover { color: var(--danger-color); }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; font-weight: 600; color: #475569;">Sincronizando con Google Drive...</p>
+    </div>
+
+    <div id="login-overlay">
+        <div class="login-card">
+            <img src="logo.jpg" alt="Logo Sendero Pastoral" class="logo-login">
+            <h1>Sendero Pastoral</h1>
+            <p>Acceso exclusivo para el Catequista</p>
+            <p class="error-msg" id="login-error">Contraseña incorrecta.</p>
+            <input type="password" id="input-password" placeholder="Ingresa tu contraseña" onkeypress="if(event.key === 'Enter') verificarLogin()">
+            <button onclick="verificarLogin()">Ingresar al Sistema</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <header>
+            <h1><img src="logo.jpg" alt="Logo" class="logo-header"> SENDERO PASTORAL</h1>
+            <p>Sistema Integral de Gestión de Catequesis</p>
+        </header>
+
+        <div class="grupo-bar">
+            <span><i class="fa-solid fa-users"></i> Grupo Activo:</span>
+            <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
+            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo Grupo</button>
+            <button class="btn-sincronizar" onclick="sincronizarConNube()"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
+        </div>
+
+        <nav>
+            <button class="tab-btn active" onclick="switchTab(event, 'dashboard')"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tareas')"><i class="fa-solid fa-book"></i> Tareas</button>
+            <button class="tab-btn" onclick="switchTab(event, 'asistencia')"><i class="fa-solid fa-clipboard-list"></i> Tomar Lista</button>
+            <button class="tab-btn" onclick="switchTab(event, 'alumnos')"><i class="fa-solid fa-user-graduate"></i> Catequizandos & Fichas</button>
+            <button class="tab-btn" onclick="switchTab(event, 'notas')"><i class="fa-solid fa-book-open"></i> Notas</button>
+        </nav>
+
+        <main>
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="section active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2 style="margin: 0;"><i class="fa-solid fa-chart-pie"></i> Estadísticas - <span id="lbl-grupo-dash" style="color: var(--primary-color);"></span></h2>
+                    
+                    <!-- BOTÓN DE DIRECTORIO Y SALUD SOLICITADO -->
+                    <button class="btn btn-info" onclick="abrirModalDirectorio()">
+                        <i class="fa-solid fa-address-book"></i> Ver Directorio de Tutores y Ficha Médica
+                    </button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card success">
+                        <h3>Asistencia Promedio</h3>
+                        <div class="number" id="stat-asistencia">100%</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <h3>Faltas Totales</h3>
+                        <div class="number" id="stat-faltas">0</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <h3>Tareas No Entregadas</h3>
+                        <div class="number" id="stat-tareas-pendientes">0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fa-solid fa-filter"></i> Filtros de Asistencia</h2>
+                    <div class="filters-container filters-grid">
+                        <div class="filter-group">
+                            <label>Filtrar por Estado de Asistencia:</label>
+                            <select id="filtro-estado" onchange="renderizarDashboard()">
+                                <option value="todos">Todos los registros</option>
+                                <option value="Presente">Presentes</option>
+                                <option value="Retraso">Retrasos</option>
+                                <option value="Falta Justificada">Falta con Justificación</option>
+                                <option value="Falta Injustificada">Falta sin Justificación</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filtrar por Estado de Tarea:</label>
+                            <select id="filtro-tarea-estado" onchange="renderizarDashboard()">
+                                <option value="todos">Todas</option>
+                                <option value="Entregado">Presentó Tarea</option>
+                                <option value="No Presentó">No Presentó Tarea</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Catequizando</th>
+                                    <th>Estado / Motivo</th>
+                                    <th>Tema de Tarea</th>
+                                    <th>Estado Tarea</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-dashboard-detalles"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAREAS -->
+            <section id="tareas" class="section">
+                <div class="card">
+                    <h2><i class="fa-solid fa-book"></i> Gestión de Tareas y Temas</h2>
+                    <p style="margin-bottom: 1.5rem; color: #64748b;">Crea las tareas aquí para que luego puedas seleccionarlas rápidamente al tomar la lista.</p>
+                    
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <input type="text" id="nueva-tarea-input" placeholder="Ej: Investigar los 7 Sacramentos">
+                        <button class="btn" onclick="agregarTarea()"><i class="fa-solid fa-plus"></i> Crear Tarea</button>
+                    </div>
+                    <ul class="task-list" id="lista-tareas-creadas"></ul>
+                </div>
+            </section>
+
+            <!-- TOMAR LISTA -->
+            <section id="asistencia" class="section">
+                <div class="card">
+                    <h2><i class="fa-solid fa-clipboard-check"></i> Registrar Asistencia del Día</h2>
+                    <div class="filters-container filters-grid">
+                        <div class="filter-group">
+                            <label>Fecha de Sesión:</label>
+                            <input type="date" id="fecha-sesion">
+                        </div>
+                        <div class="filter-group" style="grid-column: span 2;">
+                            <label>Selecciona la Tarea del Día:</label>
+                            <select id="selector-tarea-actual">
+                                <option value="Ninguna">Ninguna / Sin Tarea</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Catequizando</th>
+                                    <th>Asistencia</th>
+                                    <th>Revisión de Tarea</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-asistencia-dinamica"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn" style="margin-top: 1.5rem; width: 100%;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
+                </div>
+            </section>
+
+            <!-- ALUMNOS (FICHA COMPLETA) -->
+            <section id="alumnos" class="section">
+                <div class="card" style="background-color: #f8fafc;">
+                    <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">Registra los datos completos del catequizando para tener su información de salud y contacto de emergencia.</p>
+                    
+                    <div class="form-grid">
+                        <div class="filter-group form-full">
+                            <label>Nombre del Catequizando *</label>
+                            <input type="text" id="alumno-nombre" placeholder="Nombre completo">
+                        </div>
+                        <div class="filter-group">
+                            <label>Nombre del Tutor / Padre / Madre *</label>
+                            <input type="text" id="alumno-tutor" placeholder="Nombre completo del responsable">
+                        </div>
+                        <div class="filter-group">
+                            <label>Teléfono (WhatsApp)</label>
+                            <input type="tel" id="alumno-tel" placeholder="Ej: 71234567">
+                        </div>
+                        <div class="filter-group form-full">
+                            <label>Enfermedades, Alergias o Cuidados Especiales</label>
+                            <textarea id="alumno-salud" placeholder="Si el catequizando padece de asma, alergias a medicamentos, etc., anótalo aquí. De lo contrario, déjalo vacío." style="min-height: 80px;"></textarea>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="agregarAlumno()"><i class="fa-solid fa-user-plus"></i> Inscribir Catequizando</button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fa-solid fa-users-gear"></i> Lista del Grupo</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Catequizando</th>
+                                    <th>Tutor / Contacto</th>
+                                    <th>Salud</th>
+                                    <th style="width: 80px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-lista-alumnos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NOTAS -->
+            <section id="notas" class="section">
+                <div class="card">
+                    <h2><i class="fa-solid fa-book-journal-whills"></i> Bloc de Notas Parroquial</h2>
+                    <p style="margin-bottom: 1rem; color: #64748b;">Escribe tus apuntes, reflexiones o avisos. Se guardan en la nube.</p>
+                    <textarea id="editor-notas" placeholder="Escribe aquí tus apuntes..."></textarea>
+                    <br><br>
+                    <button class="btn" onclick="sincronizarConNube()"><i class="fa-solid fa-cloud"></i> Guardar Notas en Drive</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL DIRECTORIO -->
+    <div id="modal-directorio" class="modal">
+        <div class="modal-content">
+            <i class="fa-solid fa-xmark close-btn" onclick="cerrarModalDirectorio()"></i>
+            <h2><i class="fa-solid fa-address-book"></i> Directorio y Ficha Médica del Grupo</h2>
+            <p style="margin-bottom: 1.5rem; color: #64748b;">Lista rápida de contactos de emergencia e historial médico.</p>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Catequizando</th>
+                            <th>Tutor Responsable</th>
+                            <th>Teléfono</th>
+                            <th>Observaciones de Salud</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-modal-directorio">
+                        <!-- Dinamico -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button class="btn" onclick="cerrarModalDirectorio()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // CONFIGURACIÓN: CONTRASEÑA Y URL DE GOOGLE APPS SCRIPT
+        // =========================================================================
+        const PASSWORD_ACCESO = "admin123"; 
+        const GOOGLE_SCRIPT_URL = "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI"; 
+        
+        let sistemaDatos = {
+            grupos: {
+                "Grupo 1": { alumnos: [], registros: [], listaTareas: [] }
+            },
+            notas: ""
+        };
+        let grupoActual = "Grupo 1";
+
+        // ----- SISTEMA DE LOGIN -----
+        function verificarLogin() {
+            const pass = document.getElementById('input-password').value;
+            if (pass === PASSWORD_ACCESO) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                cargarDatosNube();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        // ----- SISTEMA DE DATOS -----
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        async function cargarDatosNube() {
+            if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                const local = localStorage.getItem('catequesis_db');
+                if(local) sistemaDatos = JSON.parse(local);
+                migrarDatosAntiguos();
+                inicializarApp();
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await response.json();
+                if(Object.keys(data).length > 0) {
+                    sistemaDatos = data;
+                }
+            } catch (e) {
+                console.error("Error al cargar de la nube", e);
+                const local = localStorage.getItem('catequesis_db');
+                if(local) sistemaDatos = JSON.parse(local);
+            }
+            migrarDatosAntiguos();
+            showLoading(false);
+            inicializarApp();
+        }
+
+        // Esta función convierte la vieja lista (solo nombres en texto) al formato completo.
+        function migrarDatosAntiguos() {
+            if (!sistemaDatos.grupos) return;
+            for(let key in sistemaDatos.grupos) {
+                let grupo = sistemaDatos.grupos[key];
+                if(grupo.alumnos && grupo.alumnos.length > 0) {
+                    grupo.alumnos = grupo.alumnos.map(al => {
+                        if(typeof al === 'string') {
+                            return { nombre: al, tutor: 'No registrado', telefono: '-', salud: '' };
+                        }
+                        return al;
+                    });
+                }
+            }
+        }
+
+        async function sincronizarConNube() {
+            sistemaDatos.notas = document.getElementById('editor-notas').value;
+            localStorage.setItem('catequesis_db', JSON.stringify(sistemaDatos));
+
+            if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                alert("Guardado Localmente. Para guardar en Google Drive, configura el Script URL en el código.");
+                return;
+            }
+
+            showLoading(true);
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sistemaDatos)
+                });
+                showLoading(false);
+                alert("¡Datos guardados exitosamente en Google Drive!");
+            } catch (e) {
+                showLoading(false);
+                alert("Error al sincronizar. Se guardó localmente.");
+            }
+        }
+
+        function inicializarApp() {
+            if (!sistemaDatos.grupos) sistemaDatos.grupos = {"Grupo 1": {alumnos:[], registros:[], listaTareas: []}};
+            if(!sistemaDatos.grupos[grupoActual]) grupoActual = Object.keys(sistemaDatos.grupos)[0];
+            
+            document.getElementById('editor-notas').value = sistemaDatos.notas || "";
+            document.getElementById('fecha-sesion').valueAsDate = new Date();
+            
+            actualizarSelectorGrupos();
+            actualizarInterfazGrupo();
+            renderizarDashboard();
+        }
+
+        // ----- NAVEGACIÓN Y MODALES -----
+        function switchTab(evt, sectionId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+            if(sectionId === 'dashboard') renderizarDashboard();
+            if(sectionId === 'tareas') actualizarListaTareas();
+        }
+
+        function cambiarGrupoSeleccionado() {
+            grupoActual = document.getElementById('selector-grupos').value;
+            actualizarInterfazGrupo();
+            renderizarDashboard();
+        }
+
+        function abrirModalDirectorio() {
+            const tbody = document.getElementById('tabla-modal-directorio');
+            tbody.innerHTML = "";
+            const grupo = sistemaDatos.grupos[grupoActual];
+            
+            if(grupo.alumnos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No hay catequizandos inscritos.</td></tr>`;
+            } else {
+                grupo.alumnos.forEach(al => {
+                    let alertaSalud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta"><i class="fa-solid fa-triangle-exclamation"></i> ${al.salud}</span>` : 'Ninguna';
+                    
+                    let linkTel = al.telefono && al.telefono !== '-' ? `<a href="https://wa.me/${al.telefono.replace(/\+/g, '')}" target="_blank" style="color:var(--primary-color); text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ${al.telefono}</a>` : '-';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${al.nombre}</strong></td>
+                            <td>${al.tutor}</td>
+                            <td>${linkTel}</td>
+                            <td>${alertaSalud}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            document.getElementById('modal-directorio').style.display = 'flex';
+        }
+
+        function cerrarModalDirectorio() {
+            document.getElementById('modal-directorio').style.display = 'none';
+        }
+
+        function crearNuevoGrupo() {
+            let nombre = prompt("Nombre del nuevo grupo de catequesis:");
+            if(nombre) {
+                nombre = nombre.trim();
+                if(sistemaDatos.grupos[nombre]) { alert("Este grupo ya existe."); return; }
+                sistemaDatos.grupos[nombre] = { alumnos: [], registros: [], listaTareas: [] };
+                grupoActual = nombre;
+                sincronizarConNube();
+                actualizarSelectorGrupos();
+                actualizarInterfazGrupo();
+                renderizarDashboard();
+            }
+        }
+
+        function actualizarSelectorGrupos() {
+            const selector = document.getElementById('selector-grupos');
+            selector.innerHTML = "";
+            for(let g in sistemaDatos.grupos) {
+                let opt = document.createElement('option');
+                opt.value = g; opt.innerText = g;
+                if(g === grupoActual) opt.selected = true;
+                selector.appendChild(opt);
+            }
+        }
+
+        // ----- GESTIÓN DE TAREAS -----
+        function agregarTarea() {
+            const input = document.getElementById('nueva-tarea-input');
+            const tarea = input.value.trim();
+            if(!tarea) return;
+            if(!sistemaDatos.grupos[grupoActual].listaTareas) sistemaDatos.grupos[grupoActual].listaTareas = [];
+            
+            sistemaDatos.grupos[grupoActual].listaTareas.push(tarea);
+            input.value = "";
+            sincronizarConNube();
+            actualizarListaTareas();
+            actualizarSelectorTareasAsistencia();
+        }
+
+        function eliminarTarea(idx) {
+            if(confirm("¿Eliminar esta tarea de la lista?")) {
+                sistemaDatos.grupos[grupoActual].listaTareas.splice(idx, 1);
+                sincronizarConNube();
+                actualizarListaTareas();
+                actualizarSelectorTareasAsistencia();
+            }
+        }
+
+        function actualizarListaTareas() {
+            const lista = document.getElementById('lista-tareas-creadas');
+            lista.innerHTML = "";
+            const tareas = sistemaDatos.grupos[grupoActual].listaTareas || [];
+            
+            if(tareas.length === 0) {
+                lista.innerHTML = "<p style='color:#64748b;'>No has creado tareas para este grupo aún.</p>";
+                return;
+            }
+
+            tareas.forEach((tarea, idx) => {
+                lista.innerHTML += `
+                    <li>
+                        <strong>${tarea}</strong>
+                        <button class="btn btn-danger" style="padding: 0.4rem 0.8rem;" onclick="eliminarTarea(${idx})"><i class="fa-solid fa-trash"></i></button>
+                    </li>
+                `;
+            });
+        }
+
+        function actualizarSelectorTareasAsistencia() {
+            const selector = document.getElementById('selector-tarea-actual');
+            selector.innerHTML = '<option value="Ninguna">Ninguna / Sin Tarea</option>';
+            const tareas = sistemaDatos.grupos[grupoActual].listaTareas || [];
+            tareas.forEach(tarea => {
+                const opt = document.createElement('option');
+                opt.value = tarea; opt.innerText = tarea;
+                selector.appendChild(opt);
+            });
+        }
+
+        // ----- INTERFAZ PRINCIPAL -----
+        function actualizarInterfazGrupo() {
+            document.getElementById('lbl-grupo-dash').innerText = grupoActual;
+            const grupo = sistemaDatos.grupos[grupoActual];
+            if(!grupo.listaTareas) grupo.listaTareas = [];
+
+            actualizarListaTareas();
+            actualizarSelectorTareasAsistencia();
+
+            const tbodyAsist = document.getElementById('tabla-asistencia-dinamica');
+            tbodyAsist.innerHTML = "";
+            if(grupo.alumnos.length === 0) {
+                tbodyAsist.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 2rem;">No hay catequizandos inscritos en este grupo.</td></tr>`;
+            } else {
+                grupo.alumnos.forEach((al, index) => {
+                    let advertencia = al.salud && al.salud.trim() !== '' ? `<br><small style="color:var(--danger-color)"><i class="fa-solid fa-notes-medical"></i> Salud: ${al.salud}</small>` : '';
+
+                    tbodyAsist.innerHTML += `
+                        <tr>
+                            <td><strong>${al.nombre}</strong>${advertencia}</td>
+                            <td>
+                                <select class="select-asis" onchange="verificarMotivo(this, ${index})">
+                                    <option value="Presente">Presente</option>
+                                    <option value="Retraso">Retraso</option>
+                                    <option value="Falta Justificada">Falta con Justificación</option>
+                                    <option value="Falta Injustificada">Falta sin Justificación</option>
+                                </select>
+                                <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso...">
+                            </td>
+                            <td>
+                                <select class="select-tarea">
+                                    <option value="Entregado">Presentó Tarea</option>
+                                    <option value="No Presentó">No Presentó Tarea</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const tbodyAlumnos = document.getElementById('tabla-lista-alumnos');
+            tbodyAlumnos.innerHTML = "";
+            if(grupo.alumnos.length === 0) {
+                tbodyAlumnos.innerHTML = `<tr><td colspan="5" style="text-align:center;">Sin alumnos registrados.</td></tr>`;
+            } else {
+                grupo.alumnos.forEach((al, idx) => {
+                    let descSalud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta">${al.salud}</span>` : '<span style="color:#94a3b8">Ninguna</span>';
+                    
+                    tbodyAlumnos.innerHTML += `
+                        <tr>
+                            <td>${idx+1}</td>
+                            <td><strong>${al.nombre}</strong></td>
+                            <td>${al.tutor}<br><small style="color:#64748b"><i class="fa-solid fa-phone"></i> ${al.telefono || '-'}</small></td>
+                            <td>${descSalud}</td>
+                            <td><button onclick="eliminarAlumno(${idx})" class="btn btn-danger" style="padding:6px 12px;"><i class="fa-solid fa-trash"></i></button></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function verificarMotivo(selectElement, index) {
+            const inputMotivo = document.getElementById(`motivo-${index}`);
+            if (selectElement.value === 'Falta Justificada' || selectElement.value === 'Retraso') {
+                inputMotivo.style.display = 'block';
+            } else {
+                inputMotivo.style.display = 'none';
+                inputMotivo.value = ''; 
+            }
+        }
+
+        function agregarAlumno() {
+            const nombre = document.getElementById('alumno-nombre').value.trim();
+            const tutor = document.getElementById('alumno-tutor').value.trim();
+            const tel = document.getElementById('alumno-tel').value.trim();
+            const salud = document.getElementById('alumno-salud').value.trim();
+
+            if(!nombre) { alert("¡El nombre del catequizando es obligatorio!"); return; }
+            if(!tutor) { alert("¡El nombre del Tutor/Responsable es importante!"); return; }
+
+            sistemaDatos.grupos[grupoActual].alumnos.push({
+                nombre: nombre,
+                tutor: tutor,
+                telefono: tel || '-',
+                salud: salud || ''
+            });
+
+            document.getElementById('alumno-nombre').value = '';
+            document.getElementById('alumno-tutor').value = '';
+            document.getElementById('alumno-tel').value = '';
+            document.getElementById('alumno-salud').value = '';
+
+            sincronizarConNube();
+            actualizarInterfazGrupo();
+            alert("¡Catequizando inscrito correctamente!");
+        }
+
+        function eliminarAlumno(idx) {
+            if(confirm("¿Estás seguro de eliminar a este catequizando y su ficha?")) {
+                sistemaDatos.grupos[grupoActual].alumnos.splice(idx, 1);
+                sincronizarConNube();
+                actualizarInterfazGrupo();
+            }
+        }
+
+        function guardarRegistroSesion() {
+            const fecha = document.getElementById('fecha-sesion').value;
+            const tareaNombre = document.getElementById('selector-tarea-actual').value;
+            
+            const filas = document.querySelectorAll('#tabla-asistencia-dinamica tr');
+            if(filas.length === 0 || sistemaDatos.grupos[grupoActual].alumnos.length === 0) return;
+
+            // Iteramos de acuerdo a cómo está construida la tabla. 
+            // El índice debe coincidir.
+            sistemaDatos.grupos[grupoActual].alumnos.forEach((al, index) => {
+                const fila = filas[index];
+                const asistencia = fila.querySelector('.select-asis').value;
+                const motivoInput = fila.querySelector('.input-motivo').value.trim();
+                const tareaEstado = fila.querySelector('.select-tarea').value;
+
+                let asistenciaConMotivo = asistencia;
+                if (motivoInput) asistenciaConMotivo += ` (${motivoInput})`;
+
+                sistemaDatos.grupos[grupoActual].registros.push({
+                    fecha, 
+                    alumno: al.nombre, 
+                    asistencia: asistenciaConMotivo, 
+                    tareaNombre, 
+                    tareaEstado
+                });
+            });
+
+            sincronizarConNube();
+            alert("¡Asistencia y Tareas guardadas!");
+            document.querySelectorAll('nav button')[0].click(); // Ir a dashboard
+        }
+
+        function renderizarDashboard() {
+            const grupo = sistemaDatos.grupos[grupoActual];
+            const registros = grupo.registros || [];
+            
+            const filtroEstado = document.getElementById('filtro-estado').value;
+            const filtroTareaEstado = document.getElementById('filtro-tarea-estado').value;
+            const tbody = document.getElementById('tabla-dashboard-detalles');
+            
+            tbody.innerHTML = "";
+            let asis = 0, faltas = 0, tar = 0;
+
+            let filtrados = registros.filter(reg => {
+                let ce = (filtroEstado === 'todos' || reg.asistencia.includes(filtroEstado));
+                let ct = (filtroTareaEstado === 'todos' || reg.tareaEstado === filtroTareaEstado);
+                return ce && ct;
+            });
+
+            registros.forEach(reg => {
+                if(reg.asistencia.includes('Presente') || reg.asistencia.includes('Retraso')) asis++;
+                if(reg.asistencia.includes('Falta')) faltas++;
+                if(reg.tareaEstado === 'No Presentó' && reg.tareaNombre !== 'Ninguna') tar++;
+            });
+
+            if(filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem;">No hay registros con estos filtros.</td></tr>`;
+            } else {
+                filtrados.slice().reverse().forEach(reg => {
+                    let bc = "bg-presente";
+                    if(reg.asistencia.includes('Falta Justificada')) bc = "bg-falta-justificada";
+                    if(reg.asistencia.includes('Falta Injustificada')) bc = "bg-falta-injustificada";
+                    if(reg.asistencia.includes('Retraso')) bc = "bg-retraso";
+
+                    let tc = reg.tareaEstado === 'Entregado' ? '<span style="color:var(--success-color)"><i class="fa-solid fa-check-circle"></i> Entregado</span>' : '<span style="color:var(--danger-color)"><i class="fa-solid fa-times-circle"></i> No Presentó</span>';
+                    
+                    if (reg.tareaNombre === 'Ninguna') tc = '<span style="color:#64748b">-</span>';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: 600;">${reg.fecha}</td>
+                            <td><strong>${reg.alumno}</strong></td>
+                            <td><span class="badge-estado ${bc}">${reg.asistencia}</span></td>
+                            <td>${reg.tareaNombre}</td>
+                            <td>${tc}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            let pct = registros.length > 0 ? Math.round((asis / registros.length) * 100) : 100;
+            document.getElementById('stat-asistencia').innerText = pct + '%';
+            document.getElementById('stat-faltas').innerText = faltas;
+            document.getElementById('stat-tareas-pendientes').innerText = tar;
+        }
+    </script>
+</body>
+</html>
