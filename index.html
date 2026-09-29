@@ -134,7 +134,60 @@
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
         .form-full { grid-column: 1 / -1; }
-        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .btn-logout { position: static; margin-top: 10px; } }
+        @media (max-width: 768px) { 
+            .form-grid, .filters-grid { grid-template-columns: 1fr !important; } 
+            .btn-logout { position: static; margin-top: 10px; width: 100%; justify-content: center; }
+            header { padding: 1.5rem 1rem; text-align: center; }
+            #app-container { margin: 10px auto; padding: 0; }
+            .card { padding: 1rem; border-radius: 12px; }
+            
+            /* Mejoras de Navegación */
+            nav { flex-direction: row !important; overflow-x: auto; padding: 10px; flex-wrap: nowrap !important; justify-content: flex-start !important; gap: 8px; border-radius: 0 0 16px 16px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
+            .tab-btn { flex: 0 0 auto; white-space: nowrap; margin-bottom: 0 !important; font-size: 0.95rem; padding: 0.8rem 1.2rem; }
+            
+            /* Mejoras en Top Bar (Selector de Grupos) */
+            .grupo-bar { flex-direction: column; align-items: stretch !important; gap: 10px; padding: 15px; }
+            .grupo-bar select { width: 100%; margin-bottom: 5px; }
+            .grupo-bar button { width: 100%; margin: 0 !important; justify-content: center; }
+            
+            /* Adaptación de Tablas a Tarjetas (Cards) */
+            .table-responsive { border: none; overflow: hidden; }
+            .table-responsive table { border: 0; width: 100%; }
+            .table-responsive thead { display: none; }
+            .table-responsive tr { display: block; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 1rem; padding: 1rem; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            .table-responsive td { display: flex; flex-direction: column; padding: 0.5rem 0 !important; border: none !important; border-bottom: 1px solid #f1f5f9 !important; text-align: left; }
+            .table-responsive td:last-child { border-bottom: none !important; }
+            
+            /* Pseudo-etiquetas para celdas */
+            .table-responsive td::before { font-size: 0.75rem; font-weight: bold; color: var(--medium-gray); text-transform: uppercase; margin-bottom: 5px; }
+            
+            #tabla-asistencia-dinamica td:nth-child(1)::before { content: "Catequizando:"; }
+            #tabla-asistencia-dinamica td:nth-child(2)::before { content: "Asistencia:"; }
+            #tabla-asistencia-dinamica td:nth-child(3)::before { content: "Revisión de Tarea:"; }
+
+            #tabla-lista-alumnos td:nth-child(1) { display:none; } /* Ocultar ID */
+            #tabla-lista-alumnos td:nth-child(2)::before { content: "Catequizando:"; }
+            #tabla-lista-alumnos td:nth-child(3)::before { content: "Dirección:"; }
+            #tabla-lista-alumnos td:nth-child(4)::before { content: "Tutor/Contacto:"; }
+            #tabla-lista-alumnos td:nth-child(5)::before { content: "Salud:"; }
+            #tabla-lista-alumnos td:nth-child(6)::before { content: "Acciones:"; }
+            #tabla-lista-alumnos td:nth-child(6) { flex-direction: row !important; justify-content: space-between; flex-wrap: wrap; gap: 5px; }
+            
+            #tabla-dashboard-detalles td:nth-child(1)::before { content: "Fecha:"; }
+            #tabla-dashboard-detalles td:nth-child(2)::before { content: "Catequizando:"; }
+            #tabla-dashboard-detalles td:nth-child(3)::before { content: "Asistencia / Motivo:"; }
+            #tabla-dashboard-detalles td:nth-child(4)::before { content: "Tema Tarea:"; }
+            #tabla-dashboard-detalles td:nth-child(5)::before { content: "Estado Tarea:"; }
+            #tabla-dashboard-detalles td:nth-child(6)::before { content: "Avisar a Padres (WhatsApp):"; }
+            
+            /* Ajustes Generales de Formularios */
+            input, select, textarea { width: 100% !important; box-sizing: border-box; }
+            
+            .modal-content { padding: 1.5rem; width: 100%; margin: 10px; max-height: 95vh; }
+            
+            /* Ajuste de select de asistencia */
+            .select-asis, .select-tarea { width: 100%; }
+        }
 
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
