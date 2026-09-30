@@ -150,6 +150,10 @@
             .btn-logout { margin: 0; padding: 8px 10px; width: auto; font-size: 0; border-radius: 8px; background: rgba(255,255,255,0.2) !important; flex-shrink: 0; }
             .btn-logout i { font-size: 1.3rem; }
             .hide-mobile { display: none; }
+            .grupo-bar { flex-wrap: nowrap !important; overflow-x: auto !important; padding: 10px !important; justify-content: flex-start !important; gap: 8px !important; }
+            .btn-crear-grupo, .btn-sincronizar { padding: 10px !important; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+            .btn-sincronizar { margin-left: 0 !important; }
+            #selector-grupos { flex: 1; min-width: 130px; font-size: 1.1rem; }
             
             #app-container { margin: 0; padding: 0 0 70px 0; } /* Espacio para el nav de abajo */
             .card { padding: 1rem; border-radius: 12px; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color); }
@@ -382,7 +386,7 @@
             <div style="display:flex; align-items:center; gap: 12px;">
                 <img src="logo.jpg" alt="Logo" class="logo-header logo-animado">
                 <div style="text-align: left;">
-                    <h1 style="margin:0; font-size:1.1rem; line-height: 1.1; letter-spacing: 0.5px;">SISTEMA DE CONTROL<br><span style="font-weight:900; font-size: 1.3rem;">DE CATEQUESIS</span></h1>
+                    <h1 style="margin:0; font-size:1.1rem; line-height: 1.1; letter-spacing: 0.5px;">CATEQUESIS <span style="font-weight:900; font-size: 1.2rem;" class="hide-mobile">SISTEMA DE CONTROL</span></h1>
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap: 8px;">
@@ -400,13 +404,13 @@
         </div>
 
         <div class="grupo-bar" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-            <span><i class="fa-solid fa-users"></i> Grupo Activo:</span>
+            <span class="hide-mobile"><i class="fa-solid fa-users"></i> Grupo Activo:</span>
             <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
-            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo</button>
-            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="editarGrupoActual()"><i class="fa-solid fa-pen"></i> Editar Grupo</button>
-            <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()"><i class="fa-solid fa-eraser"></i> Vaciar Grupo</button>
-            <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()"><i class="fa-solid fa-trash"></i> Eliminar Grupo</button>
-            <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
+            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()" title="Nuevo Grupo"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Nuevo</span></button>
+            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="editarGrupoActual()" title="Editar Grupo"><i class="fa-solid fa-pen"></i><span class="hide-mobile"> Editar</span></button>
+            <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()" title="Vaciar Grupo"><i class="fa-solid fa-eraser"></i><span class="hide-mobile"> Vaciar</span></button>
+            <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()" title="Eliminar Grupo"><i class="fa-solid fa-trash"></i><span class="hide-mobile"> Eliminar</span></button>
+            <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;" title="Guardar"><i class="fa-solid fa-cloud-arrow-up"></i><span class="hide-mobile"> Guardar</span></button>
         </div>
 
         <nav>
@@ -1497,6 +1501,40 @@
 
 
         // ----- OTRAS MODALES -----
+        function abrirModalCumple() {
+            const lista = document.getElementById('lista-cumples');
+            lista.innerHTML = ``;
+            const grupo = sistemaDatos.grupos[grupoActual];
+            if(!grupo || !grupo.alumnos || grupo.alumnos.length === 0) {
+                lista.innerHTML = `<p style='text-align:center;'>No hay alumnos registrados.</p>`;
+            } else {
+                let html = ``;
+                let alumnosCumple = grupo.alumnos.filter(a => a.cumple).map(a => {
+                    return { ...a, mesDia: a.cumple.substring(5) };
+                }).sort((a,b) => a.mesDia.localeCompare(b.mesDia));
+
+                if(alumnosCumple.length === 0) {
+                    html = `<p style='text-align:center; color:gray;'>Ning n catequizando tiene registrada su fecha de nacimiento.</p>`;
+                } else {
+                    alumnosCumple.forEach(al => {
+                        let partes = al.cumple.split('-');
+                        let fechaLegible = partes[2] + `/` + partes[1] + `/` + partes[0];
+                        let num = al.celular && al.celular !== '-' ? al.celular.replace(/\D/g, '') : '';
+                        let btnW = num ? `<button class=\"btn btn-whatsapp\" style=\"padding: 5px 10px; font-size: 0.8rem;\" onclick=\"window.open('https://wa.me/?text= Feliz cumplea os !', '_blank')\"><i class=\"fa-brands fa-whatsapp\"></i></button>` : ``;
+                        html += `<div style=\"display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #f3f4f6; padding: 12px 0;\">
+                            <div>
+                                <strong style=\"display:block; font-size:1.05rem; color: #1e293b;\"></strong>
+                                <span style=\"color: #64748b; font-size:0.9rem;\"><i class=\"fa-solid fa-cake-candles\" style=\"color:#ec4899; margin-right:5px;\"></i> </span>
+                            </div>
+                            <div></div>
+                        </div>`;
+                    });
+                }
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-cumple').style.display = 'flex';
+        }
+
         function abrirModalDirectorio() {
             const tbody = document.getElementById('tabla-modal-directorio');
             tbody.innerHTML = "";
