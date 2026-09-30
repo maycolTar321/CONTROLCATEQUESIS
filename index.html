@@ -155,12 +155,14 @@
             .card { padding: 1rem; border-radius: 12px; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color); }
             main { padding: 0.5rem; }
             
-            /* Navegación Inferior (Bottom Tabs estilo WhatsApp/Instagram) */
+            /* Navegación Inferior (Floating Bottom Tabs estilo Modern iOS) */
             nav { 
-                position: fixed; bottom: 0; left: 0; right: 0; 
-                background: white; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
-                flex-direction: row !important; justify-content: space-between !important; 
-                padding: 5px 5px 15px 5px; z-index: 1000; border-radius: 0; margin: 0; overflow-x: hidden;
+                position: fixed; bottom: 15px; left: 15px; right: 15px; 
+                background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+                flex-direction: row !important; justify-content: space-around !important; 
+                padding: 10px 5px; z-index: 1000; border-radius: 20px; margin: 0; overflow-x: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.5);
             }
             nav button { 
                 flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.6rem; 
@@ -346,6 +348,7 @@
             </div>
 
             <button onclick="verificarLogin()"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+            <button onclick="abrirConfigBaseDatos()" style="background: transparent; color: var(--primary-color); box-shadow: none; padding: 0.5rem; margin-top: 10px; font-size: 0.9rem;"><i class="fa-solid fa-cloud"></i> Configurar Servidor en la Nube</button>
         </div>
     </div>
 
@@ -360,8 +363,9 @@
             <div style="background: #eff6ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 2rem;">
                 <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 1rem;"><i class="fa-solid fa-plus-circle"></i> Crear Nuevo Equipo</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="admin-nuevo-equipo" placeholder="Nombre del Equipo (Ej: ConfirmacionA)" style="flex: 1; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
-                    <input type="text" id="admin-nuevo-pass" placeholder="Contraseña Inicial" style="flex: 1; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
+                    <input type="text" id="admin-nuevo-equipo" placeholder="Nombre del Equipo (Ej: ConfirmacionA)" style="flex: 2; min-width: 200px; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
+                    <input type="text" id="admin-nuevo-gestion" placeholder="Gestión (Ej: 2026)" style="flex: 1; min-width: 100px; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
+                    <input type="text" id="admin-nuevo-pass" placeholder="Contraseña Inicial" style="flex: 1; min-width: 150px; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
                     <button class="btn" onclick="adminCrearEquipo()" style="white-space: nowrap;"><i class="fa-solid fa-check"></i> Crear</button>
                 </div>
             </div>
@@ -525,18 +529,7 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Catequizando</th>
-                                    <th>Asistencia</th>
-                                    <th>Revisión de Tarea</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-asistencia-dinamica"></tbody>
-                        </table>
-                    </div>
+                    <div id="lista-asistencia-dinamica" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;"></div>
                     <button class="btn" style="margin-top: 1.5rem; width: 100%; font-size: 1.1rem; padding: 1rem;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
                 </div>
             </section>
@@ -553,6 +546,10 @@
                         <div class="filter-group">
                             <label>Nombre del Catequizando *</label>
                             <input type="text" id="alumno-nombre" placeholder="Nombre completo del joven">
+                        </div>
+                        <div class="filter-group">
+                            <label>Fecha de Nacimiento</label>
+                            <input type="date" id="alumno-cumple">
                         </div>
                         <div class="filter-group">
                             <label>Celular del Catequizando</label>
@@ -644,7 +641,7 @@
                 </div>
             </section>
             <div style="text-align: center; margin-top: 2rem; padding: 1rem; color: var(--medium-gray); font-size: 0.75rem;">
-                <p style="margin: 0;"><strong>Control de Catequesis V.2</strong></p>
+                <p style="margin: 0;"><strong>Control de Catequesis V.3</strong></p>
                 <p style="margin: 5px 0 0 0;">Catequista: <strong id="footer-nombre-perfil">No configurado</strong></p>
                 <p style="margin: 3px 0 0 0; font-size: 0.7rem;" id="footer-cargo-perfil"></p>
             </div>
@@ -810,7 +807,7 @@
         
         // --- CONEXIÓN A LA NUBE DINÁMICA ---
         let urlParams = new URLSearchParams(window.location.search);
-        let GOOGLE_SCRIPT_URL = urlParams.get('db') || localStorage.getItem('google_script_url') || "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI";
+        let GOOGLE_SCRIPT_URL = urlParams.get('db') || localStorage.getItem('google_script_url') || "https://script.google.com/macros/s/AKfycbwVfQOsTh-YINX-UqTFD-yOT8JGCLqG0IZQGU0MDGfZrRziYMRkQnlGTQrERR0dnupZTA/exec";
         if(urlParams.get('db')) {
             localStorage.setItem('google_script_url', urlParams.get('db'));
             // Limpiar URL para que no se vea feo
@@ -829,7 +826,7 @@
         let equipoActualLogin = "";
 
         // ----- SISTEMA DE LOGIN PERSISTENTE -----
-        window.onload = function() {
+        window.onload = async function() {
             cargarPerfil();
             if(localStorage.getItem('catequesis_auth') === 'true' && localStorage.getItem('catequesis_equipo')) {
                 equipoActualLogin = localStorage.getItem('catequesis_equipo');
@@ -838,6 +835,24 @@
                 cargarDatosNube();
             } else {
                 localStorage.removeItem('catequesis_auth');
+                if(GOOGLE_SCRIPT_URL !== "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                    try {
+                        const response = await fetch(GOOGLE_SCRIPT_URL);
+                        const data = await response.json();
+                        if (data.equipos) {
+                            const inputContainer = document.getElementById('input-equipo').parentElement;
+                            let html = `<select id="input-equipo" style="margin-bottom: 0; padding: 10px; border-radius: 8px; border: 1px solid #93c5fd; width: 100%;"><option value="">-- Selecciona tu Equipo --</option>`;
+                            for(let eq in data.equipos) {
+                                html += `<option value="${eq}">${eq}</option>`;
+                            }
+                            html += `<option value="admin">⚙️ Administrador del Sistema</option>`;
+                            html += `</select>`;
+                            inputContainer.innerHTML = `<label style="font-weight: bold; font-size: 0.85rem; color: var(--dark-gray); margin-bottom: 5px; display: block;">Nombre de tu Equipo:</label>` + html;
+                        }
+                    } catch(e) {
+                        console.log("No se pudo cargar la lista de equipos en login", e);
+                    }
+                }
             }
         };
 
@@ -852,6 +867,23 @@
                 input.type = 'password';
                 icon.classList.remove('fa-eye-slash');
                 icon.classList.add('fa-eye');
+            }
+        }
+
+        function abrirConfigBaseDatos() {
+            const actual = localStorage.getItem('google_script_url') || "";
+            const nueva = prompt("Pega aquí el enlace (Web App URL) que te generó Google Apps Script. Esto conectará tu app a la nube para que tú y tus ayudantes compartan los datos:", actual);
+            if (nueva !== null) {
+                if (nueva.trim() === "") {
+                    localStorage.removeItem('google_script_url');
+                    GOOGLE_SCRIPT_URL = "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI";
+                    alert("Desconectado de la nube. Ahora estás usando el Modo Local.");
+                } else {
+                    localStorage.setItem('google_script_url', nueva.trim());
+                    GOOGLE_SCRIPT_URL = nueva.trim();
+                    alert("¡URL guardada exitosamente! Tu app ahora está conectada a la nube.");
+                    location.reload(); // Recargar para intentar cargar los equipos en la lista
+                }
             }
         }
 
@@ -929,7 +961,15 @@
             showLoading(true);
             try {
                 if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
-                     alert("Necesitas configurar el Google Script URL para usar el panel de administrador de forma compartida.");
+                     adminDatos = { equipos: {} };
+                     for (let i = 0; i < localStorage.length; i++) {
+                         const key = localStorage.key(i);
+                         if (key.startsWith('catequesis_db_')) {
+                              const nombre = key.replace('catequesis_db_', '');
+                              adminDatos.equipos[nombre] = JSON.parse(localStorage.getItem(key));
+                         }
+                     }
+                     renderizarEquiposAdmin();
                 } else {
                     const response = await fetch(GOOGLE_SCRIPT_URL);
                     adminDatos = await response.json();
@@ -948,13 +988,15 @@
             let count = 0;
             for(let eq in adminDatos.equipos) {
                 count++;
-                const clave = adminDatos.equipos[eq].password || "Sin clave";
-                const gruposCount = adminDatos.equipos[eq].grupos ? Object.keys(adminDatos.equipos[eq].grupos).length : 0;
+                const equipoInfo = adminDatos.equipos[eq];
+                const clave = equipoInfo.password || "Sin clave";
+                const gestion = equipoInfo.info ? equipoInfo.info.gestion : "No especificada";
+                const gruposCount = equipoInfo.grupos ? Object.keys(equipoInfo.grupos).length : 0;
                 container.innerHTML += `
                     <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                         <div>
                             <h4 style="margin:0; color: var(--dark-gray); font-size: 1.1rem;">${eq}</h4>
-                            <p style="margin:0; color: var(--medium-gray); font-size: 0.9rem;">Contraseña: <strong>${clave}</strong> | Grupos: ${gruposCount}</p>
+                            <p style="margin:0; color: var(--medium-gray); font-size: 0.9rem;">Contraseña: <strong>${clave}</strong> | Gestión: ${gestion} | Grupos: ${gruposCount}</p>
                         </div>
                     </div>
                 `;
@@ -965,15 +1007,28 @@
         async function adminCrearEquipo() {
             const nombre = document.getElementById('admin-nuevo-equipo').value.trim();
             const pass = document.getElementById('admin-nuevo-pass').value.trim();
+            const gestion = document.getElementById('admin-nuevo-gestion') ? document.getElementById('admin-nuevo-gestion').value.trim() : new Date().getFullYear();
+            
             if(!nombre || !pass) { alert("Ingresa nombre y contraseña"); return; }
             if(adminDatos.equipos && adminDatos.equipos[nombre]) { alert("Este equipo ya existe"); return; }
             
             showLoading(true);
             const nuevoEquipoData = {
                 password: pass,
+                info: { gestion: gestion },
                 grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } },
                 notas: []
             };
+
+            if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                 localStorage.setItem('catequesis_db_' + nombre, JSON.stringify(nuevoEquipoData));
+                 document.getElementById('admin-nuevo-equipo').value = "";
+                 document.getElementById('admin-nuevo-pass').value = "";
+                 alert(`Equipo '${nombre}' creado localmente.`);
+                 showLoading(false);
+                 cargarPanelAdmin();
+                 return;
+            }
 
             const payload = {
                 action: "merge_equipo",
@@ -990,10 +1045,14 @@
                 });
                 document.getElementById('admin-nuevo-equipo').value = "";
                 document.getElementById('admin-nuevo-pass').value = "";
-                alert(`Equipo '${nombre}' creado exitosamente.`);
-                cargarPanelAdmin(); // Recargar
+                alert(`Equipo '${nombre}' creado exitosamente en la nube.`);
+                
+                // Esperar 2.5 segundos para que Google Sheets termine de guardar antes de recargar
+                setTimeout(() => {
+                    cargarPanelAdmin();
+                }, 2500);
             } catch(e) {
-                alert("Error creando equipo.");
+                alert("Error creando equipo en la nube.");
                 showLoading(false);
             }
         }
@@ -1705,41 +1764,43 @@
             actualizarListaTareas();
             actualizarSelectorTareasAsistencia();
 
-            const tbodyAsist = document.getElementById('tabla-asistencia-dinamica');
+            const tbodyAsist = document.getElementById('lista-asistencia-dinamica');
             tbodyAsist.innerHTML = "";
             if(grupo.alumnos.length === 0) {
-                tbodyAsist.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 2rem;">No hay catequizandos inscritos en este grupo.</td></tr>`;
+                tbodyAsist.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--medium-gray);">No hay catequizandos inscritos en este grupo.</div>`;
             } else {
                 grupo.alumnos.forEach((al, index) => {
                     let advertencia = al.salud && al.salud.trim() !== '' ? ` <i class="fa-solid fa-notes-medical" style="color:var(--danger-color); margin-left: 5px;" title="Requiere cuidado médico especial"></i>` : '';
                     let initial = al.nombre.charAt(0).toUpperCase();
 
                     tbodyAsist.innerHTML += `
-                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
-                            <td style="padding: 1rem;">
-                                <div style="display:flex; align-items:center; gap: 12px;">
-                                    <div style="background:linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:white; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.1rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;">${initial}</div> 
-                                    <div style="font-size: 1.05rem;"><strong>${al.nombre}</strong>${advertencia}</div>
-                                </div>
-                            </td>
-                            <td style="padding: 1rem; vertical-align:middle;">
-                                <div style="display:flex; gap: 4px; flex-wrap: wrap; background: var(--bg-color); padding: 4px; border-radius: 8px;">
-                                    <button class="btn-asis active" style="flex:1; background: var(--success-color); color:white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Presente', ${index})">P</button>
-                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Retraso', ${index})">R</button>
-                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Falta Justificada', ${index})">FJ</button>
-                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Falta Injustificada', ${index})">FI</button>
+                        <div class="asis-card" style="background: white; border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display:flex; align-items:center; gap: 12px;">
+                                <div style="background:linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:white; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;">${initial}</div> 
+                                <div style="font-size: 1.1rem;"><strong>${al.nombre}</strong>${advertencia}</div>
+                            </div>
+                            
+                            <div>
+                                <label style="font-size: 0.8rem; color: var(--medium-gray); margin-bottom: 5px; display: block; font-weight: bold;">Asistencia:</label>
+                                <div style="display:flex; gap: 6px; background: var(--bg-color); padding: 5px; border-radius: 8px;">
+                                    <button class="btn-asis active" style="flex:1; background: var(--success-color); color:white; border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'asis', 'Presente', ${index})">P</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'asis', 'Retraso', ${index})">R</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'asis', 'Falta Justificada', ${index})">FJ</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'asis', 'Falta Injustificada', ${index})">FI</button>
                                 </div>
                                 <input type="hidden" class="select-asis" value="Presente">
-                                <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso..." style="margin-top:8px;">
-                            </td>
-                            <td style="padding: 1rem; vertical-align:middle; width: 140px;">
-                                <div style="display:flex; gap: 4px; flex-wrap: wrap; background: var(--bg-color); padding: 4px; border-radius: 8px;">
-                                    <button class="btn-tarea active" style="flex:1; background: var(--primary-color); color:white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'tarea', 'Entregado', ${index})"><i class="fa-solid fa-check"></i></button>
-                                    <button class="btn-tarea" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'tarea', 'No Presentó', ${index})"><i class="fa-solid fa-xmark"></i></button>
+                                <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso..." style="margin-top:8px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 8px; display: none;">
+                            </div>
+
+                            <div style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                                <label style="font-size: 0.8rem; color: var(--medium-gray); margin-bottom: 5px; display: block; font-weight: bold;">Revisión de Tarea:</label>
+                                <div style="display:flex; gap: 6px; background: var(--bg-color); padding: 5px; border-radius: 8px;">
+                                    <button class="btn-tarea active" style="flex:1; background: var(--primary-color); color:white; border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'tarea', 'Entregado', ${index})"><i class="fa-solid fa-check"></i></button>
+                                    <button class="btn-tarea" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.9rem;" onclick="setEstado(this, 'tarea', 'No Presentó', ${index})"><i class="fa-solid fa-xmark"></i></button>
                                 </div>
                                 <input type="hidden" class="select-tarea" value="Entregado">
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                     `;
                 });
             }
@@ -1792,7 +1853,7 @@
                 else btn.style.background = 'var(--danger-color)'; // Faltas
 
                 const inputMotivo = document.getElementById(`motivo-${index}`);
-                if (valor === 'Falta Justificada' || valor === 'Retraso') {
+                if (valor !== 'Presente') {
                     inputMotivo.style.display = 'block';
                 } else {
                     inputMotivo.style.display = 'none';
@@ -1813,6 +1874,7 @@
 
         function agregarAlumno() {
             const nombre = document.getElementById('alumno-nombre').value.trim();
+            const cumple = document.getElementById('alumno-cumple').value;
             const celular = document.getElementById('alumno-celular').value.trim();
             const direccion = document.getElementById('alumno-direccion').value.trim();
             const tutor = document.getElementById('alumno-tutor').value.trim();
@@ -1835,7 +1897,7 @@
             if(!tutor) { alert("¡El nombre del Tutor/Responsable es importante!"); return; }
 
             const nuevoAlumno = {
-                nombre: nombre, celular: celular || '-', direccion: direccion || '-', tutor: tutor, telefono: tel || '-', salud: saludText
+                nombre: nombre, cumple: cumple || '', celular: celular || '-', direccion: direccion || '-', tutor: tutor, telefono: tel || '-', salud: saludText
             };
 
             if (editandoAlumnoIndex > -1) {
@@ -1851,6 +1913,7 @@
             }
 
             document.getElementById('alumno-nombre').value = '';
+            document.getElementById('alumno-cumple').value = '';
             document.getElementById('alumno-celular').value = '';
             document.getElementById('alumno-direccion').value = '';
             document.getElementById('alumno-tutor').value = '';
@@ -1872,6 +1935,7 @@
         function editarAlumno(idx) {
             const al = sistemaDatos.grupos[grupoActual].alumnos[idx];
             document.getElementById('alumno-nombre').value = al.nombre;
+            document.getElementById('alumno-cumple').value = al.cumple || '';
             document.getElementById('alumno-celular').value = al.celular !== '-' ? al.celular : '';
             document.getElementById('alumno-direccion').value = al.direccion !== '-' ? al.direccion : '';
             document.getElementById('alumno-tutor').value = al.tutor;
@@ -1948,7 +2012,7 @@
             const fecha = document.getElementById('fecha-sesion').value;
             const tareaNombre = document.getElementById('selector-tarea-actual').value;
             
-            const filas = document.querySelectorAll('#tabla-asistencia-dinamica tr');
+            const filas = document.querySelectorAll('#lista-asistencia-dinamica .asis-card');
             if(filas.length === 0 || sistemaDatos.grupos[grupoActual].alumnos.length === 0) return;
 
             sistemaDatos.grupos[grupoActual].alumnos.forEach((al, index) => {
@@ -2221,6 +2285,31 @@
             document.getElementById('stat-faltas').innerText = faltas;
             document.getElementById('stat-tareas-pendientes').innerText = tar;
             document.getElementById('stat-inscritos').innerText = grupo.alumnos ? grupo.alumnos.length : 0;
+
+            // ----- LOGICA DE CUMPLEA OS -----
+            const cumpleContainer = document.getElementById('cumpleanos-container');
+            if (cumpleContainer) {
+                cumpleContainer.innerHTML = '';
+                if (grupo.alumnos) {
+                    const hoy = new Date();
+                    const mesHoy = (hoy.getMonth() + 1).toString().padStart(2, '0');
+                    const diaHoy = hoy.getDate().toString().padStart(2, '0');
+                    const hoyMMDD = `-`;
+
+                    grupo.alumnos.forEach(al => {
+                        if (al.cumple) {
+                            const cumpleMMDD = al.cumple.substring(5);
+                            if (cumpleMMDD === hoyMMDD) {
+                                let saludoCumple = ` Feliz cumplea os ! Que Dios te bendiga inmensamente hoy en tu d a y siempre te gu e. Con mucho cari o, tu catequista.`;
+                                let num = al.celular && al.celular !== '-' ? al.celular.replace(/\D/g, '') : '';
+                                let btn = num ? `<button class=\"btn btn-whatsapp\" style=\"margin-top: 10px; padding: 10px 20px; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\" onclick=\"window.open('https://wa.me/?text=', '_blank')\"><i class=\"fa-brands fa-whatsapp\"></i> Felicitar por WhatsApp</button>` : `<p style=\"font-size:0.9rem; opacity:0.8; margin-top: 10px;\">(El joven no tiene n mero de celular registrado)</p>`;
+                                
+                                cumpleContainer.innerHTML += `<div style=\"background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); padding: 1.5rem; border-radius: 15px; border: 2px dashed #f472b6; margin-bottom: 1.5rem; text-align: center; color: #db2777; box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.2);\"><h3 style=\"margin-top:0; font-size: 1.6rem; margin-bottom: 5px;\"><i class=\"fa-solid fa-cake-candles fa-bounce\"></i>  Hoy es el cumplea os de !</h3><p style=\"margin-bottom: 15px; color: #be185d; font-size: 1.1rem;\">Celebremos este d a tan especial envi ndole nuestras felicitaciones.</p></div>`;
+                            }
+                        }
+                    });
+                }
+            }
         }
         // ----- INSTALACIÓN PWA Y SERVICE WORKER -----
         let deferredPrompt;
