@@ -177,6 +177,7 @@
             .grupo-bar select { grid-column: 1 / -1; width: 100% !important; padding: 10px; font-size: 1rem; margin: 0; }
             .grupo-bar button { padding: 8px !important; margin: 0 !important; font-size: 0.8rem; justify-content: center; flex: 1; white-space: nowrap; width: 100%; }
             .grupo-bar button i { font-size: 0.9rem; margin-right: 4px; }
+            .grupo-bar .btn-full-width { grid-column: 1 / -1; margin-top: 5px !important; }
             
             /* Adaptación de Tablas a Tarjetas (Cards) */
             .table-responsive { border: none; overflow: hidden; }
@@ -343,7 +344,10 @@
                     <h1 style="margin:0; font-size:1.1rem; line-height: 1.1; letter-spacing: 0.5px;">SISTEMA DE CONTROL<br><span style="font-weight:900; font-size: 1.3rem;">DE CATEQUESIS</span></h1>
                 </div>
             </div>
-            <button class="btn-logout" onclick="cerrarSesion()" style="position:static;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="hide-mobile">Cerrar Sesión</span></button>
+            <div style="display:flex; align-items:center; gap: 8px;">
+                <button class="btn-logout" onclick="abrirPerfil()" style="position:static; background: rgba(255,255,255,0.15) !important;" title="Mi Perfil"><i class="fa-solid fa-user-circle"></i></button>
+                <button class="btn-logout" onclick="cerrarSesion()" style="position:static;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="hide-mobile">Cerrar Sesión</span></button>
+            </div>
         </header>
 
         <div id="install-banner" style="display: none; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 15px; text-align: center; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; box-shadow: inset 0 -3px 5px rgba(0,0,0,0.1);">
@@ -358,9 +362,10 @@
             <span><i class="fa-solid fa-users"></i> Grupo Activo:</span>
             <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
             <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo</button>
+            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="renombrarGrupoActual()"><i class="fa-solid fa-pen"></i> Renombrar</button>
             <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()"><i class="fa-solid fa-eraser"></i> Vaciar Grupo</button>
             <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()"><i class="fa-solid fa-trash"></i> Eliminar Grupo</button>
-            <button class="btn-sincronizar" onclick="sincronizarConNube()" style="margin-left:auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
+            <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
         </div>
 
         <nav>
@@ -501,6 +506,8 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
                         <button class="btn btn-info" style="font-size: 0.8rem; padding: 4px 8px; opacity: 0.7; background-color: #64748b; border: none;" onclick="cargarDatosDePrueba()"><i class="fa-solid fa-vial"></i> Cargar Pruebas</button>
+                        <button class="btn" style="font-size: 0.8rem; padding: 4px 8px; background-color: #8b5cf6; border: none; color: white; border-radius: 6px;" onclick="restaurarMisJovenes()"><i class="fa-solid fa-users-bolt"></i> Restaurar Mis Jóvenes</button>
+
 
                     </div>
                     <p style="color: var(--medium-gray); margin-bottom: 1.5rem;">Registra los datos completos del joven para tener su información de contacto y salud.</p>
@@ -600,8 +607,8 @@
             </section>
             <div style="text-align: center; margin-top: 2rem; padding: 1rem; color: var(--medium-gray); font-size: 0.75rem;">
                 <p style="margin: 0;"><strong>Control de Catequesis V.1</strong></p>
-                <p style="margin: 5px 0 0 0;">Desarrollado por: <strong>Maycol Anghelo Avila Zenteno</strong></p>
-                <p style="margin: 3px 0 0 0; font-size: 0.7rem;">(Lic. Publicidad y Marketing | Diseñador Gráfico)</p>
+                <p style="margin: 5px 0 0 0;">Catequista: <strong id="footer-nombre-perfil">Maycol Anghelo Avila Zenteno</strong></p>
+                <p style="margin: 3px 0 0 0; font-size: 0.7rem;" id="footer-cargo-perfil">(Lic. Publicidad y Marketing | Diseñador Gráfico)</p>
             </div>
         </main>
     </div>
@@ -633,6 +640,62 @@
             <div style="text-align: right; margin-top: 1.5rem;">
                 <button class="btn btn-info" onclick="cerrarModalDirectorio()">Cerrar Directorio</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR GRUPO -->
+    <div id="modal-crear-grupo" class="modal">
+        <div class="modal-content" style="max-width: 450px; padding: 2rem;">
+            <h2><i class="fa-solid fa-users"></i> Crear Nuevo Grupo</h2>
+            <p style="color: var(--medium-gray); font-size: 0.9rem; margin-bottom: 1.5rem;">Crea un nuevo grupo de catequesis. Podrás añadir a los jóvenes desde la pestaña "Catequizandos & Fichas" más adelante.</p>
+            
+            <div style="margin-bottom: 1rem; text-align: left;">
+                <label style="font-weight: bold; color: var(--dark-gray);">Nombre del Grupo:</label>
+                <input type="text" id="nuevo-grupo-nombre" placeholder="Ej: Grupo 4" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+            </div>
+            
+            <div class="form-grid" style="margin-bottom: 1rem;">
+                <div class="filter-group">
+                    <label style="font-weight: bold; color: var(--dark-gray);">Nivel / Año:</label>
+                    <select id="nuevo-grupo-nivel" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <option value="Primer Año">Primer Año</option>
+                        <option value="Segundo Año">Segundo Año</option>
+                        <option value="Confirmación">Confirmación</option>
+                        <option value="Iniciación">Iniciación</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label style="font-weight: bold; color: var(--dark-gray);">Gestión:</label>
+                    <input type="text" id="nuevo-grupo-gestion" placeholder="Ej: 2026-2027" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; text-align: left;">
+                <label style="font-weight: bold; color: var(--dark-gray);">Catequista Encargado:</label>
+                <input type="text" id="nuevo-grupo-catequista" placeholder="Ej: Maycol Avila" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+            </div>
+            
+            <button class="btn" style="width: 100%; padding: 12px; font-size: 1.1rem; background-color: var(--primary-color);" onclick="guardarNuevoGrupo()">Crear Grupo</button>
+            <button class="btn btn-warning" style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 10px;" onclick="document.getElementById('modal-crear-grupo').style.display='none'">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL PERFIL CATEQUISTA -->
+    <div id="modal-perfil" class="modal">
+        <div class="modal-content" style="max-width: 400px; padding: 2rem;">
+            <h2><i class="fa-solid fa-user-circle"></i> Configurar Perfil</h2>
+            <p style="color: var(--medium-gray); font-size: 0.9rem; margin-bottom: 1.5rem;">Configura tus datos para que los reportes y mensajes de WhatsApp se firmen automáticamente con tu nombre. Esto permite que cualquier catequista use su propia copia de la aplicación.</p>
+            <div style="margin-bottom: 1rem; text-align: left;">
+                <label style="font-weight: bold; color: var(--dark-gray);">Nombre del Catequista:</label>
+                <input type="text" id="perfil-nombre" placeholder="Ej: Maycol Avila" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+            </div>
+            <div style="margin-bottom: 1.5rem; text-align: left;">
+                <label style="font-weight: bold; color: var(--dark-gray);">Cargo o Título (Opcional):</label>
+                <input type="text" id="perfil-cargo" placeholder="Ej: Lic. en Publicidad y Mkt" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
+            </div>
+            <button class="btn" style="width: 100%; padding: 12px; font-size: 1.1rem; background-color: var(--primary-color);" onclick="guardarPerfil()">Guardar Perfil</button>
+            <button class="btn btn-warning" style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 10px;" onclick="cerrarPerfil()" id="btn-cerrar-perfil">Cerrar</button>
         </div>
     </div>
 
@@ -712,6 +775,7 @@
 
         // ----- SISTEMA DE LOGIN PERSISTENTE -----
         window.onload = function() {
+            cargarPerfil();
             if(localStorage.getItem('catequesis_auth') === 'true') {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
@@ -738,9 +802,59 @@
             }
         }
 
-        // ----- CARGAR SEGUNDO AÑO (SOLICITUD ESPECIAL) -----
-        function cargarJovenesSegundoAno() {
-            if(!confirm("¿Deseas agregar a las 22 jóvenes de 2do Año directamente al grupo que tienes activo ahora mismo?")) return;
+        // ----- SISTEMA DE PERFIL DEL CATEQUISTA -----
+        let perfilCatequista = { nombre: "Maycol Anghelo Avila Zenteno", cargo: "Lic. Publicidad y Marketing | Diseñador Gráfico" };
+        
+        function cargarPerfil() {
+            const guardado = localStorage.getItem('catequesis_perfil');
+            if(guardado) {
+                perfilCatequista = JSON.parse(guardado);
+            }
+            // Update UI elements if necessary
+            document.getElementById('footer-nombre-perfil').innerText = perfilCatequista.nombre || "Nombre no configurado";
+            document.getElementById('footer-cargo-perfil').innerText = perfilCatequista.cargo ? `(${perfilCatequista.cargo})` : "";
+        }
+
+        function abrirPerfil() {
+            document.getElementById('perfil-nombre').value = perfilCatequista.nombre || "";
+            document.getElementById('perfil-cargo').value = perfilCatequista.cargo || "";
+            document.getElementById('modal-perfil').style.display = 'flex';
+        }
+
+        function cerrarPerfil() {
+            document.getElementById('modal-perfil').style.display = 'none';
+        }
+
+        function guardarPerfil() {
+            const n = document.getElementById('perfil-nombre').value.trim();
+            const c = document.getElementById('perfil-cargo').value.trim();
+            if(!n) { alert("Por favor ingresa tu nombre."); return; }
+            perfilCatequista = { nombre: n, cargo: c };
+            localStorage.setItem('catequesis_perfil', JSON.stringify(perfilCatequista));
+            cargarPerfil();
+            cerrarPerfil();
+            alert("¡Tu perfil se ha guardado! A partir de ahora todos los PDFs y mensajes saldrán a tu nombre.");
+        }
+
+        // ----- RESTAURAR GRUPO 4 CON JOVENES -----
+        function restaurarMisJovenes() {
+            if(!confirm("¿Deseas crear automáticamente el 'Grupo 4 - Segundo Año (2026)' con las 22 jóvenes de tus fotos?")) return;
+            
+            const nombreFinal = "Grupo 4 - Segundo Año (2026)";
+            
+            // 1. Crear el grupo si no existe
+            if(!sistemaDatos.grupos[nombreFinal]) {
+                sistemaDatos.grupos[nombreFinal] = { 
+                    alumnos: [], 
+                    registros: [], 
+                    listaTareas: [],
+                    metadata: { nivel: "Segundo Año", gestion: "2026", catequista: "Maycol Anghelo Avila Zenteno" }
+                };
+            }
+            
+            // 2. Establecer como activo
+            grupoActual = nombreFinal;
+            localStorage.setItem('catequesis_grupo_actual', grupoActual);
             
             const nombres = [
                 "Daniela Zenteno Mendoza", "Niki Arteaga", "Jhossely Castillo", "Gisela Anahí Composono", "Ayelen Choque",
@@ -751,7 +865,7 @@
             ];
             
             let agregados = 0;
-            const grupo = sistemaDatos.grupos[grupoActual];
+            const grupo = sistemaDatos.grupos[nombreFinal];
             
             nombres.forEach(nombre => {
                 // Verificar si ya existe para evitar duplicados
@@ -769,13 +883,11 @@
                 }
             });
             
-            if(agregados > 0) {
-                alert(`¡Éxito! Se añadieron ${agregados} jóvenes al ${grupoActual}. Los que ya estaban no se duplicaron.`);
-                sincronizarConNube();
-                actualizarInterfazGrupo();
-            } else {
-                alert("Todos los nombres ya estaban registrados en este grupo, no se añadió ninguno nuevo.");
-            }
+            alert(`¡Éxito! El grupo "${nombreFinal}" ha sido restaurado con ${grupo.alumnos.length} jóvenes en total.`);
+            sincronizarConNube();
+            actualizarSelectorGrupos();
+            actualizarInterfazGrupo();
+            renderizarDashboard();
         }
 
         // ----- CARGAR DATOS DE PRUEBA -----
@@ -1127,17 +1239,77 @@
         }
 
         function crearNuevoGrupo() {
-            let nombre = prompt("Nombre del nuevo grupo de catequesis:");
-            if(nombre) {
-                nombre = nombre.trim();
-                if(sistemaDatos.grupos[nombre]) { alert("Este grupo ya existe."); return; }
-                sistemaDatos.grupos[nombre] = { alumnos: [], registros: [], listaTareas: [] };
-                grupoActual = nombre;
+            document.getElementById('nuevo-grupo-nombre').value = "";
+            document.getElementById('nuevo-grupo-gestion').value = new Date().getFullYear().toString();
+            document.getElementById('nuevo-grupo-catequista').value = perfilCatequista.nombre || "";
+            document.getElementById('modal-crear-grupo').style.display = 'flex';
+        }
+
+        function guardarNuevoGrupo() {
+            let nombre = document.getElementById('nuevo-grupo-nombre').value.trim();
+            const nivel = document.getElementById('nuevo-grupo-nivel').value;
+            const gestion = document.getElementById('nuevo-grupo-gestion').value.trim();
+            const cateq = document.getElementById('nuevo-grupo-catequista').value.trim();
+
+            if(!nombre) {
+                alert("Por favor, ingresa el nombre del grupo.");
+                return;
+            }
+
+            // Construimos un nombre único e informativo
+            const nombreFinal = `${nombre} - ${nivel} (${gestion})`;
+
+            if(sistemaDatos.grupos[nombreFinal] || sistemaDatos.grupos[nombre]) { 
+                alert("¡Este grupo ya existe! (Intenta cambiar el nombre, año o nivel)."); 
+                return; 
+            }
+
+            sistemaDatos.grupos[nombreFinal] = { 
+                alumnos: [], 
+                registros: [], 
+                listaTareas: [],
+                metadata: { nivel: nivel, gestion: gestion, catequista: cateq }
+            };
+
+            grupoActual = nombreFinal;
+            localStorage.setItem('catequesis_grupo_actual', grupoActual);
+            sincronizarConNube();
+            actualizarSelectorGrupos();
+            actualizarInterfazGrupo();
+            renderizarDashboard();
+
+            document.getElementById('modal-crear-grupo').style.display = 'none';
+            alert(`¡Grupo "${nombreFinal}" creado con éxito!\n\nVe a la pestaña "Catequizandos & Fichas" para empezar a añadir a los jóvenes.`);
+        }
+
+        function renombrarGrupoActual() {
+            let nuevoNombre = prompt(`Cambiar el nombre del grupo "${grupoActual}" (Ej: Grupo 4 - Segundo Año):\n\n¡OJO! Esto mantendrá a todos los jóvenes y datos intactos, solo cambiará el nombre del grupo.`, grupoActual);
+            if(nuevoNombre !== null) {
+                nuevoNombre = nuevoNombre.trim();
+                if(nuevoNombre === "") {
+                    alert("El nombre no puede estar vacío.");
+                    return;
+                }
+                if(nuevoNombre === grupoActual) return;
+                
+                if(sistemaDatos.grupos[nuevoNombre]) {
+                    alert("¡Error! Ya existe otro grupo con ese mismo nombre.");
+                    return;
+                }
+                
+                // Transferir datos al nuevo nombre
+                sistemaDatos.grupos[nuevoNombre] = sistemaDatos.grupos[grupoActual];
+                delete sistemaDatos.grupos[grupoActual];
+                
+                // Cambiar variables de sesión
+                grupoActual = nuevoNombre;
                 localStorage.setItem('catequesis_grupo_actual', grupoActual);
+                
                 sincronizarConNube();
                 actualizarSelectorGrupos();
                 actualizarInterfazGrupo();
                 renderizarDashboard();
+                alert(`¡El grupo ha sido renombrado exitosamente a "${nuevoNombre}"!`);
             }
         }
 
@@ -1589,7 +1761,8 @@
             }
 
             // 3. Generar mensaje final con bendición y nombre del catequista
-            let mensaje = `${saludo} estimado/a tutor ${alumnoInfo.tutor}. Que Dios le bendiga.\n\nLe habla su catequista, *Maycol Avila*. El motivo de este mensaje es que ${textoMotivo}\n\n¡Paz y Bien!`;
+            let nombreCat = grupo.metadata?.catequista || perfilCatequista.nombre;
+            let mensaje = `${saludo} estimado/a tutor ${alumnoInfo.tutor}. Que Dios le bendiga.\n\nLe habla su catequista, *${nombreCat}*. El motivo de este mensaje es que ${textoMotivo}\n\n¡Paz y Bien!`;
 
             const url = `https://wa.me/${celularCorto}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, '_blank');
@@ -1686,7 +1859,7 @@
                     <h1 style="color: #1e3a8a; margin:0; font-size: 28px;">CONTROL DE CATEQUESIS V.1</h1>
                     <h2 style="color: #334155; margin: 5px 0;">${titulo}</h2>
                     <p style="color: #64748b; font-size: 14px; margin: 5px 0;"><strong>Grupo:</strong> ${grupoActual} | <strong>Fecha de Reporte:</strong> ${new Date().toLocaleDateString()}</p>
-                    <p style="color: #94a3b8; font-size: 10px; margin: 10px 0 0 0; text-transform: uppercase; letter-spacing: 0.5px;">Desarrollado por: Maycol Anghelo Avila Zenteno (Lic. Publicidad y Marketing | Diseñador Gráfico)</p>
+                    <p style="color: #94a3b8; font-size: 10px; margin: 10px 0 0 0; text-transform: uppercase; letter-spacing: 0.5px;">Catequista: ${grupo.metadata?.catequista || perfilCatequista.nombre} ${perfilCatequista.cargo ? `(${perfilCatequista.cargo})` : ''}</p>
                 </div>
                 <div style="display:flex; justify-content:space-around; margin-bottom: 25px; font-weight:bold; background:#f8fafc; padding:15px; border:1px solid #cbd5e1; border-radius:8px; color: #334155;">
                     <span style="color: #3b82f6;">Asistencia Promedio: ${pct}%</span>
