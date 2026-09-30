@@ -145,11 +145,10 @@
                 background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
                 color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 0 !important; margin-bottom: 10px !important;
             }
-            header h1 { font-size: 1rem !important; gap: 8px; margin: 0; display:flex; align-items:center; }
-            header p { display: block !important; font-size: 0.65rem !important; opacity: 0.95; margin-top: 3px !important; line-height:1.2; }
-            header .logo-header { width: 32px !important; height: 32px !important; }
-            .btn-logout { margin: 0; padding: 8px; width: auto; font-size: 0; border-radius: 8px; background: rgba(255,255,255,0.2) !important; }
-            .btn-logout i { font-size: 1.2rem; }
+            header h1 { font-size: 1.1rem !important; margin: 0; display: block !important; } /* Removing display:flex from h1 fixes text break */
+            header .logo-header { width: 36px !important; height: 36px !important; }
+            .btn-logout { margin: 0; padding: 8px 10px; width: auto; font-size: 0; border-radius: 8px; background: rgba(255,255,255,0.2) !important; flex-shrink: 0; }
+            .btn-logout i { font-size: 1.3rem; }
             .hide-mobile { display: none; }
             
             #app-container { margin: 0; padding: 0 0 70px 0; } /* Espacio para el nav de abajo */
@@ -160,22 +159,23 @@
             nav { 
                 position: fixed; bottom: 0; left: 0; right: 0; 
                 background: white; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
-                flex-direction: row !important; justify-content: space-around !important; 
-                padding: 5px 0 15px 0; z-index: 1000; border-radius: 0; margin: 0; overflow: visible;
+                flex-direction: row !important; justify-content: space-between !important; 
+                padding: 5px 5px 15px 5px; z-index: 1000; border-radius: 0; margin: 0; overflow-x: hidden;
             }
             nav button { 
-                flex-direction: column; gap: 4px; padding: 8px 5px; font-size: 0.65rem; 
+                flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 0.6rem; 
                 background: transparent !important; color: var(--medium-gray); border: none !important; 
-                flex: 1; justify-content: center; text-transform: none; 
+                flex: 1; justify-content: center; align-items: center; text-transform: none; 
+                min-width: 0; white-space: normal; line-height: 1.1; text-align: center;
             }
-            nav button i { font-size: 1.3rem; margin-bottom: 2px; }
+            nav button i { font-size: 1.2rem; margin-bottom: 2px; }
             nav button.active { color: var(--primary-color) !important; font-weight: bold; border-top: 3px solid var(--primary-color) !important; padding-top: 5px; border-bottom: none !important;}
             
-            /* Mejoras en Top Bar (Selector de Grupos compacto en 1 fila) */
-            .grupo-bar { flex-wrap: nowrap !important; align-items: center !important; gap: 8px; padding: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .grupo-bar > span { display: inline-block; font-size: 0.85rem; font-weight: bold; white-space: nowrap; flex: 0 0 auto; }
-            .grupo-bar select { width: auto; flex: 0 0 auto; min-width: 110px; font-size: 0.95rem; padding: 8px; margin: 0; }
-            .grupo-bar button { padding: 8px 12px !important; margin: 0 !important; font-size: 0.8rem; justify-content: center; flex: 0 0 auto; white-space: nowrap; }
+            /* Mejoras en Top Bar (Selector de Grupos en Grid limpio) */
+            .grupo-bar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; width: 100%; box-sizing: border-box; }
+            .grupo-bar > span { grid-column: 1 / -1; margin-bottom: -5px; font-size: 0.85rem; font-weight: bold; color: var(--dark-gray); }
+            .grupo-bar select { grid-column: 1 / -1; width: 100% !important; padding: 10px; font-size: 1rem; margin: 0; }
+            .grupo-bar button { padding: 8px !important; margin: 0 !important; font-size: 0.8rem; justify-content: center; flex: 1; white-space: nowrap; width: 100%; }
             .grupo-bar button i { font-size: 0.9rem; margin-right: 4px; }
             
             /* Adaptación de Tablas a Tarjetas (Cards) */
