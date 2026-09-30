@@ -492,6 +492,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
                         <button class="btn btn-info" style="font-size: 0.8rem; padding: 4px 8px; opacity: 0.7; background-color: #64748b; border: none;" onclick="cargarDatosDePrueba()"><i class="fa-solid fa-vial"></i> Cargar Pruebas</button>
+                        <button class="btn" style="font-size: 0.8rem; padding: 4px 8px; background-color: #8b5cf6; border: none; color: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onclick="cargarJovenesSegundoAno()"><i class="fa-solid fa-users-bolt"></i> Cargar 2do Año (Rápido)</button>
                     </div>
                     <p style="color: var(--medium-gray); margin-bottom: 1.5rem;">Registra los datos completos del joven para tener su información de contacto y salud.</p>
                     
@@ -720,6 +721,46 @@
             if(confirm("¿Estás seguro de cerrar sesión? Tendrás que ingresar tu contraseña nuevamente.")) {
                 localStorage.removeItem('catequesis_auth');
                 location.reload(); 
+            }
+        }
+
+        // ----- CARGAR SEGUNDO AÑO (SOLICITUD ESPECIAL) -----
+        function cargarJovenesSegundoAno() {
+            if(!confirm("¿Deseas agregar a las 22 jóvenes de 2do Año directamente al grupo que tienes activo ahora mismo?")) return;
+            
+            const nombres = [
+                "Daniela Zenteno Mendoza", "Niki Arteaga", "Jhossely Castillo", "Gisela Anahí Composono", "Ayelen Choque",
+                "Aracell Choque", "Maria Mancilla", "Yasmin Ayde Almazán Cardozo", "Milagro Rueda", "Angeles Mayte Ortega Jerez",
+                "Shaiel Rollano Vasquez", "Jazmin Sanchez", "Helen Guisela Choque Galean", "Emelyn Nayeli Llanos Rodriguez", "Paola Caihuara Huanca",
+                "Jorge Antonio Rodriguez Choque", "Jose Antonio Soto", "José Marca", "Kely Gimena Figueroa Ninaja", "Angelita Nicol Aparza",
+                "Leydi Mariscal", "Mari Evelin"
+            ];
+            
+            let agregados = 0;
+            const grupo = sistemaDatos.grupos[grupoActual];
+            
+            nombres.forEach(nombre => {
+                // Verificar si ya existe para evitar duplicados
+                const existe = grupo.alumnos.some(al => al.nombre.toLowerCase() === nombre.toLowerCase());
+                if(!existe) {
+                    grupo.alumnos.push({
+                        nombre: nombre,
+                        celular: "-",
+                        direccion: "-",
+                        tutor: "Por definir",
+                        telefono: "-",
+                        salud: ""
+                    });
+                    agregados++;
+                }
+            });
+            
+            if(agregados > 0) {
+                alert(`¡Éxito! Se añadieron ${agregados} jóvenes al ${grupoActual}. Los que ya estaban no se duplicaron.`);
+                sincronizarConNube();
+                actualizarInterfazGrupo();
+            } else {
+                alert("Todos los nombres ya estaban registrados en este grupo, no se añadió ninguno nuevo.");
             }
         }
 
