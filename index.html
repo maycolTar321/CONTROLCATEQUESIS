@@ -362,7 +362,7 @@
             <span><i class="fa-solid fa-users"></i> Grupo Activo:</span>
             <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
             <button class="btn-crear-grupo" onclick="crearNuevoGrupo()"><i class="fa-solid fa-plus"></i> Nuevo</button>
-            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="renombrarGrupoActual()"><i class="fa-solid fa-pen"></i> Renombrar</button>
+            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="editarGrupoActual()"><i class="fa-solid fa-pen"></i> Editar Grupo</button>
             <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()"><i class="fa-solid fa-eraser"></i> Vaciar Grupo</button>
             <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()"><i class="fa-solid fa-trash"></i> Eliminar Grupo</button>
             <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar en Drive</button>
@@ -504,11 +504,7 @@
             <section id="alumnos" class="section">
                 <div class="card" style="background-color: #f8fafc; border: 2px solid var(--border-color);">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
-                        <button class="btn btn-info" style="font-size: 0.8rem; padding: 4px 8px; opacity: 0.7; background-color: #64748b; border: none;" onclick="cargarDatosDePrueba()"><i class="fa-solid fa-vial"></i> Cargar Pruebas</button>
-                        <button class="btn" style="font-size: 0.8rem; padding: 4px 8px; background-color: #8b5cf6; border: none; color: white; border-radius: 6px;" onclick="restaurarMisJovenes()"><i class="fa-solid fa-users-bolt"></i> Restaurar Mis Jóvenes</button>
-
-
+                        <h2 style="font-size: 1.2rem; margin:0;"><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
                     </div>
                     <p style="color: var(--medium-gray); margin-bottom: 1.5rem;">Registra los datos completos del joven para tener su información de contacto y salud.</p>
                     
@@ -1238,10 +1234,30 @@
             document.getElementById('modal-directorio').style.display = 'none';
         }
 
+        let editandoGrupoAnterior = null;
+
         function crearNuevoGrupo() {
+            editandoGrupoAnterior = null;
             document.getElementById('nuevo-grupo-nombre').value = "";
+            document.getElementById('nuevo-grupo-nivel').value = "Primer Año";
             document.getElementById('nuevo-grupo-gestion').value = new Date().getFullYear().toString();
             document.getElementById('nuevo-grupo-catequista').value = perfilCatequista.nombre || "";
+            document.getElementById('modal-crear-grupo').querySelector('h2').innerHTML = '<i class="fa-solid fa-users"></i> Crear Nuevo Grupo';
+            document.getElementById('modal-crear-grupo').style.display = 'flex';
+        }
+
+        function editarGrupoActual() {
+            editandoGrupoAnterior = grupoActual;
+            const meta = sistemaDatos.grupos[grupoActual].metadata || {};
+            
+            // Intentar extraer el nombre corto si el nombre final tiene el formato "Nombre - Nivel (Gestión)"
+            let nombreCorto = grupoActual.split(' - ')[0] || grupoActual;
+            
+            document.getElementById('nuevo-grupo-nombre').value = nombreCorto;
+            document.getElementById('nuevo-grupo-nivel').value = meta.nivel || "Primer Año";
+            document.getElementById('nuevo-grupo-gestion').value = meta.gestion || new Date().getFullYear().toString();
+            document.getElementById('nuevo-grupo-catequista').value = meta.catequista || perfilCatequista.nombre || "";
+            document.getElementById('modal-crear-grupo').querySelector('h2').innerHTML = '<i class="fa-solid fa-pen"></i> Editar Grupo Actual';
             document.getElementById('modal-crear-grupo').style.display = 'flex';
         }
 
@@ -1259,57 +1275,55 @@
             // Construimos un nombre único e informativo
             const nombreFinal = `${nombre} - ${nivel} (${gestion})`;
 
-            if(sistemaDatos.grupos[nombreFinal] || sistemaDatos.grupos[nombre]) { 
-                alert("¡Este grupo ya existe! (Intenta cambiar el nombre, año o nivel)."); 
-                return; 
-            }
-
-            sistemaDatos.grupos[nombreFinal] = { 
-                alumnos: [], 
-                registros: [], 
-                listaTareas: [],
-                metadata: { nivel: nivel, gestion: gestion, catequista: cateq }
-            };
-
-            grupoActual = nombreFinal;
-            localStorage.setItem('catequesis_grupo_actual', grupoActual);
-            sincronizarConNube();
-            actualizarSelectorGrupos();
-            actualizarInterfazGrupo();
-            renderizarDashboard();
-
-            document.getElementById('modal-crear-grupo').style.display = 'none';
-            alert(`¡Grupo "${nombreFinal}" creado con éxito!\n\nVe a la pestaña "Catequizandos & Fichas" para empezar a añadir a los jóvenes.`);
-        }
-
-        function renombrarGrupoActual() {
-            let nuevoNombre = prompt(`Cambiar el nombre del grupo "${grupoActual}" (Ej: Grupo 4 - Segundo Año):\n\n¡OJO! Esto mantendrá a todos los jóvenes y datos intactos, solo cambiará el nombre del grupo.`, grupoActual);
-            if(nuevoNombre !== null) {
-                nuevoNombre = nuevoNombre.trim();
-                if(nuevoNombre === "") {
-                    alert("El nombre no puede estar vacío.");
-                    return;
-                }
-                if(nuevoNombre === grupoActual) return;
-                
-                if(sistemaDatos.grupos[nuevoNombre]) {
-                    alert("¡Error! Ya existe otro grupo con ese mismo nombre.");
+            // Si estamos editando y el nombre no cambió, o si el nombre nuevo ya existe (y no somos nosotros mismos)
+            if (editandoGrupoAnterior) {
+                if(nombreFinal !== editandoGrupoAnterior && sistemaDatos.grupos[nombreFinal]) {
+                    alert("¡Error! Ya existe otro grupo con ese mismo nombre y nivel.");
                     return;
                 }
                 
-                // Transferir datos al nuevo nombre
-                sistemaDatos.grupos[nuevoNombre] = sistemaDatos.grupos[grupoActual];
-                delete sistemaDatos.grupos[grupoActual];
+                // Si cambió el nombre final, transferimos los datos
+                if(nombreFinal !== editandoGrupoAnterior) {
+                    sistemaDatos.grupos[nombreFinal] = sistemaDatos.grupos[editandoGrupoAnterior];
+                    delete sistemaDatos.grupos[editandoGrupoAnterior];
+                }
                 
-                // Cambiar variables de sesión
-                grupoActual = nuevoNombre;
+                // Actualizamos metadatos
+                sistemaDatos.grupos[nombreFinal].metadata = { nivel: nivel, gestion: gestion, catequista: cateq };
+                
+                grupoActual = nombreFinal;
                 localStorage.setItem('catequesis_grupo_actual', grupoActual);
-                
                 sincronizarConNube();
                 actualizarSelectorGrupos();
                 actualizarInterfazGrupo();
                 renderizarDashboard();
-                alert(`¡El grupo ha sido renombrado exitosamente a "${nuevoNombre}"!`);
+
+                document.getElementById('modal-crear-grupo').style.display = 'none';
+                alert(`¡Los datos del grupo se han actualizado correctamente!`);
+
+            } else {
+                // Creación de grupo nuevo
+                if(sistemaDatos.grupos[nombreFinal]) { 
+                    alert("¡Este grupo ya existe! (Intenta cambiar el nombre, año o nivel)."); 
+                    return; 
+                }
+
+                sistemaDatos.grupos[nombreFinal] = { 
+                    alumnos: [], 
+                    registros: [], 
+                    listaTareas: [],
+                    metadata: { nivel: nivel, gestion: gestion, catequista: cateq }
+                };
+
+                grupoActual = nombreFinal;
+                localStorage.setItem('catequesis_grupo_actual', grupoActual);
+                sincronizarConNube();
+                actualizarSelectorGrupos();
+                actualizarInterfazGrupo();
+                renderizarDashboard();
+
+                document.getElementById('modal-crear-grupo').style.display = 'none';
+                alert(`¡Grupo "${nombreFinal}" creado con éxito!\n\nVe a la pestaña "Catequizandos & Fichas" para empezar a añadir a los jóvenes.`);
             }
         }
 
