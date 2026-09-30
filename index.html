@@ -22,25 +22,25 @@
 
     <style>
         :root {
-            /* Paleta Plomo y Guindo (Maroon) */
-            --primary-color: #7f1d1d; /* Guindo oscuro profundo */
-            --secondary-color: #b91c1c; /* Guindo brillante / Rojo oscuro */
-            --dark-gray: #334155; /* Plomo oscuro */
-            --medium-gray: #64748b; /* Plomo medio */
-            --light-gray: #e2e8f0; /* Plomo claro */
+            /* Paleta Moderna Índigo/Azul y Pizarra */
+            --primary-color: #2563eb; /* Azul brillante vibrante */
+            --secondary-color: #4f46e5; /* Índigo profundo */
+            --dark-gray: #1e293b; /* Pizarra oscura */
+            --medium-gray: #64748b; /* Pizarra media */
+            --light-gray: #e2e8f0; /* Pizarra clara */
             
-            --success-color: #059669;
-            --warning-color: #d97706;
-            --danger-color: #dc2626; /* Rojo para alertas */
+            --success-color: #10b981; /* Verde esmeralda */
+            --warning-color: #f59e0b; /* Ambar */
+            --danger-color: #ef4444; /* Rojo suave vibrante */
             
-            --bg-color: #f8fafc; /* Fondo general ultra claro */
+            --bg-color: #f1f5f9; /* Fondo general azulado muy claro */
             --card-bg: #ffffff;
             --text-color: #0f172a;
             --border-color: #cbd5e1;
             
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -326,13 +326,50 @@
 
     <!-- PANTALLA DE LOGIN -->
     <div id="login-overlay">
-        <div class="login-card">
+        <div class="login-card" style="padding: 2.5rem 2rem;">
             <img src="logo.jpg" alt="Logo Control de Catequesis" class="logo-login">
-            <h1>Control de Catequesis</h1>
-            <p>Acceso seguro para el Catequista</p>
-            <p class="error-msg" id="login-error">Contraseña incorrecta.</p>
-            <input type="password" id="input-password" placeholder="Ingresa tu contraseña" onkeypress="if(event.key === 'Enter') verificarLogin()">
-            <button onclick="verificarLogin()"><i class="fa-solid fa-lock-open"></i> Entrar al Sistema</button>
+            <h1 style="font-size: 1.5rem;">Control de Catequesis</h1>
+            <p>Ingresa los datos de tu equipo</p>
+            <p class="error-msg" id="login-error">Datos incorrectos.</p>
+            
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-weight: bold; font-size: 0.85rem; color: var(--dark-gray); margin-bottom: 5px; display: block;">Nombre de tu Equipo:</label>
+                <input type="text" id="input-equipo" placeholder="Ej: Confirmacion1" style="margin-bottom: 0;" onkeypress="if(event.key === 'Enter') document.getElementById('input-password').focus()">
+            </div>
+            
+            <div style="text-align: left; margin-bottom: 1.5rem; position: relative;">
+                <label style="font-weight: bold; font-size: 0.85rem; color: var(--dark-gray); margin-bottom: 5px; display: block;">Contraseña:</label>
+                <div style="position: relative;">
+                    <input type="password" id="input-password" placeholder="Tu contraseña" style="margin-bottom: 0; padding-right: 40px;" onkeypress="if(event.key === 'Enter') verificarLogin()">
+                    <i class="fa-solid fa-eye" id="toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--medium-gray);" onclick="togglePasswordVisibility()"></i>
+                </div>
+            </div>
+
+            <button onclick="verificarLogin()"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+        </div>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div id="admin-panel" style="display: none; padding: 2rem; background: var(--bg-color); min-height: 100vh;">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--primary-color); margin: 0;"><i class="fa-solid fa-user-shield"></i> Panel de Administrador</h1>
+                <button class="btn" style="background: var(--danger-color);" onclick="cerrarSesionAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+            </div>
+
+            <div style="background: #eff6ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 2rem;">
+                <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 1rem;"><i class="fa-solid fa-plus-circle"></i> Crear Nuevo Equipo</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="admin-nuevo-equipo" placeholder="Nombre del Equipo (Ej: ConfirmacionA)" style="flex: 1; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
+                    <input type="text" id="admin-nuevo-pass" placeholder="Contraseña Inicial" style="flex: 1; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px;">
+                    <button class="btn" onclick="adminCrearEquipo()" style="white-space: nowrap;"><i class="fa-solid fa-check"></i> Crear</button>
+                </div>
+            </div>
+
+            <h3 style="color: var(--dark-gray);"><i class="fa-solid fa-users-gear"></i> Equipos Registrados</h3>
+            <div id="admin-lista-equipos" style="margin-top: 1rem;">
+                <!-- Aquí se cargarán los equipos dinámicamente -->
+            </div>
         </div>
     </div>
 
@@ -393,16 +430,20 @@
                 </div>
                 
                 <div class="stats-grid" id="stats-para-pdf">
+                    <div class="stat-card" style="border-left-color: var(--primary-color);">
+                        <h3><i class="fa-solid fa-users" style="color:var(--primary-color);"></i> Total Inscritos</h3>
+                        <div class="number" id="stat-inscritos">0</div>
+                    </div>
                     <div class="stat-card success">
-                        <h3>Asistencia Promedio</h3>
+                        <h3><i class="fa-solid fa-chart-pie" style="color:var(--success-color);"></i> Asistencia Promedio</h3>
                         <div class="number" id="stat-asistencia">100%</div>
                     </div>
                     <div class="stat-card warning">
-                        <h3>Faltas Totales</h3>
+                        <h3><i class="fa-solid fa-user-xmark" style="color:var(--warning-color);"></i> Faltas Totales</h3>
                         <div class="number" id="stat-faltas">0</div>
                     </div>
                     <div class="stat-card danger">
-                        <h3>Tareas No Entregadas</h3>
+                        <h3><i class="fa-solid fa-file-circle-xmark" style="color:var(--danger-color);"></i> Tareas No Entregadas</h3>
                         <div class="number" id="stat-tareas-pendientes">0</div>
                     </div>
                 </div>
@@ -536,28 +577,29 @@
                                 <option value="Sí">Sí, requiere atención especial</option>
                             </select>
                         </div>
-                        <div id="salud-detalles" style="display: none; grid-column: 1 / -1; background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 1rem;">
-                            <div class="form-grid" style="margin-bottom: 0;">
+                        <div id="salud-detalles" style="display: none; grid-column: 1 / -1; background: #eff6ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #bfdbfe; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1); margin-bottom: 1rem; position: relative;">
+                            <div style="position: absolute; top: -12px; left: 20px; background: #3b82f6; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;"><i class="fa-solid fa-notes-medical"></i> Registro Médico</div>
+                            <div class="form-grid" style="margin-bottom: 0; margin-top: 10px;">
                                 <div class="filter-group form-full">
-                                    <label>Descripción de la enfermedad o alergia:</label>
-                                    <input type="text" id="alumno-enfermedad" placeholder="Ej: Asma, Alergia al polvo...">
+                                    <label style="color: #1e3a8a;">Descripción de la enfermedad o alergia:</label>
+                                    <input type="text" id="alumno-enfermedad" placeholder="Ej: Asma, Alergia al polvo..." style="border-color: #93c5fd;">
                                 </div>
                                 <div class="filter-group">
-                                    <label>¿Qué medicamento(s) toma?</label>
-                                    <input type="text" id="alumno-medicamento" placeholder="Ej: Salbutamol">
+                                    <label style="color: #1e3a8a;">¿Qué medicamento(s) toma?</label>
+                                    <input type="text" id="alumno-medicamento" placeholder="Ej: Salbutamol" style="border-color: #93c5fd;">
                                 </div>
                                 <div class="filter-group form-full">
-                                    <label><i class="fa-regular fa-clock"></i> Horarios de Medicación (Elige las horas si toma varias veces al día):</label>
-                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                        <input type="time" id="alumno-horario-1" style="flex: 1; min-width: 100px;" title="Toma 1">
-                                        <input type="time" id="alumno-horario-2" style="flex: 1; min-width: 100px;" title="Toma 2">
-                                        <input type="time" id="alumno-horario-3" style="flex: 1; min-width: 100px;" title="Toma 3">
-                                        <input type="text" id="alumno-horario-extra" placeholder="Aclaración (Ej: En ayunas)" style="flex: 2; min-width: 150px;">
+                                    <label style="color: #1e3a8a;"><i class="fa-regular fa-clock"></i> Horarios de Medicación (Elige las horas si toma varias veces al día):</label>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                                        <input type="time" id="alumno-horario-1" style="flex: 1; min-width: 100px; border:none; background:#f8fafc;" title="Toma 1">
+                                        <input type="time" id="alumno-horario-2" style="flex: 1; min-width: 100px; border:none; background:#f8fafc;" title="Toma 2">
+                                        <input type="time" id="alumno-horario-3" style="flex: 1; min-width: 100px; border:none; background:#f8fafc;" title="Toma 3">
+                                        <input type="text" id="alumno-horario-extra" placeholder="Aclaración (Ej: En ayunas)" style="flex: 2; min-width: 150px; border:none; background:#f8fafc;">
                                     </div>
                                 </div>
                                 <div class="filter-group form-full">
-                                    <label><i class="fa-solid fa-hand-holding-medical" style="color:var(--danger-color)"></i> Cuidados Especiales:</label>
-                                    <input type="text" id="alumno-cuidados" placeholder="Ej: Avisar a los padres si se agita mucho">
+                                    <label style="color: #b91c1c;"><i class="fa-solid fa-hand-holding-medical"></i> Cuidados Especiales:</label>
+                                    <input type="text" id="alumno-cuidados" placeholder="Ej: Avisar a los padres si se agita mucho" style="border-color: #fca5a5;">
                                 </div>
                             </div>
                         </div>
@@ -602,9 +644,9 @@
                 </div>
             </section>
             <div style="text-align: center; margin-top: 2rem; padding: 1rem; color: var(--medium-gray); font-size: 0.75rem;">
-                <p style="margin: 0;"><strong>Control de Catequesis V.1</strong></p>
-                <p style="margin: 5px 0 0 0;">Catequista: <strong id="footer-nombre-perfil">Maycol Anghelo Avila Zenteno</strong></p>
-                <p style="margin: 3px 0 0 0; font-size: 0.7rem;" id="footer-cargo-perfil">(Lic. Publicidad y Marketing | Diseñador Gráfico)</p>
+                <p style="margin: 0;"><strong>Control de Catequesis V.2</strong></p>
+                <p style="margin: 5px 0 0 0;">Catequista: <strong id="footer-nombre-perfil">No configurado</strong></p>
+                <p style="margin: 3px 0 0 0; font-size: 0.7rem;" id="footer-cargo-perfil"></p>
             </div>
         </main>
     </div>
@@ -679,9 +721,9 @@
 
     <!-- MODAL PERFIL CATEQUISTA -->
     <div id="modal-perfil" class="modal">
-        <div class="modal-content" style="max-width: 400px; padding: 2rem;">
+        <div class="modal-content" style="max-width: 450px; padding: 2rem;">
             <h2><i class="fa-solid fa-user-circle"></i> Configurar Perfil</h2>
-            <p style="color: var(--medium-gray); font-size: 0.9rem; margin-bottom: 1.5rem;">Configura tus datos para que los reportes y mensajes de WhatsApp se firmen automáticamente con tu nombre. Esto permite que cualquier catequista use su propia copia de la aplicación.</p>
+            <p style="color: var(--medium-gray); font-size: 0.9rem; margin-bottom: 1.5rem;">Configura tus datos para que los reportes y mensajes de WhatsApp se firmen automáticamente con tu nombre.</p>
             <div style="margin-bottom: 1rem; text-align: left;">
                 <label style="font-weight: bold; color: var(--dark-gray);">Nombre del Catequista:</label>
                 <input type="text" id="perfil-nombre" placeholder="Ej: Maycol Avila" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -690,7 +732,14 @@
                 <label style="font-weight: bold; color: var(--dark-gray);">Cargo o Título (Opcional):</label>
                 <input type="text" id="perfil-cargo" placeholder="Ej: Lic. en Publicidad y Mkt" style="width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; border: 1px solid var(--border-color); border-radius: 8px;">
             </div>
-            <button class="btn" style="width: 100%; padding: 12px; font-size: 1.1rem; background-color: var(--primary-color);" onclick="guardarPerfil()">Guardar Perfil</button>
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--primary-color);"><i class="fa-solid fa-cloud"></i> Sincronización (Opcional)</h3>
+            <p style="color: var(--medium-gray); font-size: 0.85rem; margin-bottom: 1rem;">Para compartir el sistema con otros catequistas del grupo y no borrar datos, pega aquí el enlace de Google Apps Script.</p>
+            <div style="margin-bottom: 1.5rem; text-align: left;">
+                <input type="url" id="perfil-db" placeholder="https://script.google.com/macros/s/..." style="width: 100%; padding: 10px; font-size: 0.9rem; border: 1px solid var(--border-color); border-radius: 8px;">
+            </div>
+
+            <button class="btn" style="width: 100%; padding: 12px; font-size: 1.1rem; background-color: var(--primary-color);" onclick="guardarPerfil()">Guardar Configuración</button>
             <button class="btn btn-warning" style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 10px;" onclick="cerrarPerfil()" id="btn-cerrar-perfil">Cerrar</button>
         </div>
     </div>
@@ -758,8 +807,16 @@
         // CONFIGURACIÓN: CONTRASEÑA Y URL DE GOOGLE APPS SCRIPT
         // =========================================================================
         const PASSWORD_ACCESO = "5230"; 
-        const GOOGLE_SCRIPT_URL = "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI"; 
         
+        // --- CONEXIÓN A LA NUBE DINÁMICA ---
+        let urlParams = new URLSearchParams(window.location.search);
+        let GOOGLE_SCRIPT_URL = urlParams.get('db') || localStorage.getItem('google_script_url') || "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI";
+        if(urlParams.get('db')) {
+            localStorage.setItem('google_script_url', urlParams.get('db'));
+            // Limpiar URL para que no se vea feo
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         let sistemaDatos = {
             grupos: {
                 "Grupo 1": { alumnos: [], registros: [], listaTareas: [] }
@@ -769,30 +826,187 @@
         let grupoActual = "Grupo 1";
         let quillEditor = null; // Variable global para el editor Quill
 
+        let equipoActualLogin = "";
+
         // ----- SISTEMA DE LOGIN PERSISTENTE -----
         window.onload = function() {
             cargarPerfil();
-            if(localStorage.getItem('catequesis_auth') === 'true') {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-                cargarDatosNube();
-            }
-        };
-
-        function verificarLogin() {
-            const pass = document.getElementById('input-password').value;
-            if (pass === PASSWORD_ACCESO) {
-                localStorage.setItem('catequesis_auth', 'true');
+            if(localStorage.getItem('catequesis_auth') === 'true' && localStorage.getItem('catequesis_equipo')) {
+                equipoActualLogin = localStorage.getItem('catequesis_equipo');
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 cargarDatosNube();
             } else {
-                document.getElementById('login-error').style.display = 'block';
+                localStorage.removeItem('catequesis_auth');
+            }
+        };
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('input-password');
+            const icon = document.getElementById('toggle-password');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         }
 
+        async function verificarLogin() {
+            const equipo = document.getElementById('input-equipo').value.trim();
+            const pass = document.getElementById('input-password').value;
+            const errorMsg = document.getElementById('login-error');
+            errorMsg.style.display = 'none';
+
+            if (equipo === "") {
+                errorMsg.innerText = "Por favor, ingresa el nombre de tu equipo.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // MODO ADMINISTRADOR
+            if (equipo.toLowerCase() === "admin" && pass === "admin5230") {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                cargarPanelAdmin();
+                return;
+            }
+
+            // MODO USUARIO NORMAL (Verificar en la nube)
+            showLoading(true);
+            try {
+                let isValid = false;
+                if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                    // Modo Local
+                    const local = localStorage.getItem('catequesis_db_' + equipo);
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (parsed.password && parsed.password === pass) isValid = true;
+                        else if (!parsed.password && pass === PASSWORD_ACCESO) isValid = true; // Legacy fallback
+                    } else {
+                        errorMsg.innerText = "El equipo no existe en el almacenamiento local.";
+                    }
+                } else {
+                    // Modo Nube
+                    const response = await fetch(GOOGLE_SCRIPT_URL);
+                    const data = await response.json();
+                    
+                    if (data.equipos && data.equipos[equipo]) {
+                        if (data.equipos[equipo].password === pass) {
+                            isValid = true;
+                        } else {
+                            errorMsg.innerText = "Contraseña incorrecta para este equipo.";
+                        }
+                    } else {
+                        errorMsg.innerText = "El equipo no existe. Pide al Administrador que lo cree.";
+                    }
+                }
+
+                if (isValid) {
+                    equipoActualLogin = equipo;
+                    localStorage.setItem('catequesis_equipo', equipo);
+                    localStorage.setItem('catequesis_auth', 'true');
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    cargarDatosNube();
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                errorMsg.innerText = "Error de conexión. Verifica tu internet.";
+                errorMsg.style.display = 'block';
+            }
+            showLoading(false);
+        }
+
+        // --- FUNCIONES DEL ADMINISTRADOR ---
+        let adminDatos = {};
+        
+        async function cargarPanelAdmin() {
+            showLoading(true);
+            try {
+                if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
+                     alert("Necesitas configurar el Google Script URL para usar el panel de administrador de forma compartida.");
+                } else {
+                    const response = await fetch(GOOGLE_SCRIPT_URL);
+                    adminDatos = await response.json();
+                    if(!adminDatos.equipos) adminDatos.equipos = {};
+                    renderizarEquiposAdmin();
+                }
+            } catch(e) {
+                alert("Error cargando base de datos.");
+            }
+            showLoading(false);
+        }
+
+        function renderizarEquiposAdmin() {
+            const container = document.getElementById('admin-lista-equipos');
+            container.innerHTML = "";
+            let count = 0;
+            for(let eq in adminDatos.equipos) {
+                count++;
+                const clave = adminDatos.equipos[eq].password || "Sin clave";
+                const gruposCount = adminDatos.equipos[eq].grupos ? Object.keys(adminDatos.equipos[eq].grupos).length : 0;
+                container.innerHTML += `
+                    <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h4 style="margin:0; color: var(--dark-gray); font-size: 1.1rem;">${eq}</h4>
+                            <p style="margin:0; color: var(--medium-gray); font-size: 0.9rem;">Contraseña: <strong>${clave}</strong> | Grupos: ${gruposCount}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            if(count === 0) container.innerHTML = "<p>No hay equipos creados aún.</p>";
+        }
+
+        async function adminCrearEquipo() {
+            const nombre = document.getElementById('admin-nuevo-equipo').value.trim();
+            const pass = document.getElementById('admin-nuevo-pass').value.trim();
+            if(!nombre || !pass) { alert("Ingresa nombre y contraseña"); return; }
+            if(adminDatos.equipos && adminDatos.equipos[nombre]) { alert("Este equipo ya existe"); return; }
+            
+            showLoading(true);
+            const nuevoEquipoData = {
+                password: pass,
+                grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } },
+                notas: []
+            };
+
+            const payload = {
+                action: "merge_equipo",
+                equipo: nombre,
+                data: nuevoEquipoData
+            };
+            
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                document.getElementById('admin-nuevo-equipo').value = "";
+                document.getElementById('admin-nuevo-pass').value = "";
+                alert(`Equipo '${nombre}' creado exitosamente.`);
+                cargarPanelAdmin(); // Recargar
+            } catch(e) {
+                alert("Error creando equipo.");
+                showLoading(false);
+            }
+        }
+
+        function cerrarSesionAdmin() {
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.getElementById('input-equipo').value = "";
+            document.getElementById('input-password').value = "";
+        }
+
         function cerrarSesion() {
-            if(confirm("¿Estás seguro de cerrar sesión? Tendrás que ingresar tu contraseña nuevamente.")) {
+            if(confirm("¿Estás seguro de cerrar sesión? Tendrás que ingresar al equipo nuevamente.")) {
                 localStorage.removeItem('catequesis_auth');
                 location.reload(); 
             }
@@ -814,6 +1028,7 @@
         function abrirPerfil() {
             document.getElementById('perfil-nombre').value = perfilCatequista.nombre || "";
             document.getElementById('perfil-cargo').value = perfilCatequista.cargo || "";
+            document.getElementById('perfil-db').value = localStorage.getItem('google_script_url') || "";
             document.getElementById('modal-perfil').style.display = 'flex';
         }
 
@@ -824,12 +1039,22 @@
         function guardarPerfil() {
             const n = document.getElementById('perfil-nombre').value.trim();
             const c = document.getElementById('perfil-cargo').value.trim();
-            if(!n) { alert("Por favor ingresa tu nombre."); return; }
+            const db = document.getElementById('perfil-db').value.trim();
+            
+            if(db) {
+                localStorage.setItem('google_script_url', db);
+                GOOGLE_SCRIPT_URL = db;
+            } else {
+                localStorage.removeItem('google_script_url');
+                GOOGLE_SCRIPT_URL = "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI";
+            }
+
             perfilCatequista = { nombre: n, cargo: c };
             localStorage.setItem('catequesis_perfil', JSON.stringify(perfilCatequista));
             cargarPerfil();
             cerrarPerfil();
-            alert("¡Tu perfil se ha guardado! A partir de ahora todos los PDFs y mensajes saldrán a tu nombre.");
+            alert("¡Configuración guardada correctamente!");
+            if(db) cargarDatosNube();
         }
 
         // ----- RESTAURAR GRUPO 4 CON JOVENES -----
@@ -935,8 +1160,18 @@
 
         async function cargarDatosNube() {
             if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") {
-                const local = localStorage.getItem('catequesis_db');
+                const local = localStorage.getItem('catequesis_db_' + equipoActualLogin);
                 if(local) sistemaDatos = JSON.parse(local);
+                else sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
+                
+                // Rescatar datos antiguos si los hay (solo una vez por equipo)
+                const legacy = localStorage.getItem('catequesis_db');
+                if (legacy && !localStorage.getItem('migrated_' + equipoActualLogin)) {
+                     const legacyData = JSON.parse(legacy);
+                     if (legacyData.grupos) sistemaDatos = legacyData;
+                     localStorage.setItem('migrated_' + equipoActualLogin, 'true');
+                }
+
                 migrarDatosAntiguos();
                 inicializarApp();
                 return;
@@ -946,12 +1181,16 @@
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await response.json();
-                if(Object.keys(data).length > 0) {
+                if(data.equipos && data.equipos[equipoActualLogin]) {
+                    sistemaDatos = data.equipos[equipoActualLogin];
+                } else if(data.grupos && !data.equipos) {
                     sistemaDatos = data;
+                } else {
+                    sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
                 }
             } catch (e) {
                 console.error("Error al cargar de la nube", e);
-                const local = localStorage.getItem('catequesis_db');
+                const local = localStorage.getItem('catequesis_db_' + equipoActualLogin);
                 if(local) sistemaDatos = JSON.parse(local);
             }
             migrarDatosAntiguos();
@@ -974,15 +1213,9 @@
                     });
                 }
             }
-            // Migrar Notas: de un solo String (textarea) a un Array de objetos post-it
             if(typeof sistemaDatos.notas === 'string') {
                 if(sistemaDatos.notas.trim() !== '') {
-                    sistemaDatos.notas = [{
-                        id: Date.now(),
-                        titulo: "Nota Recuperada",
-                        contenido: `<p>${sistemaDatos.notas.replace(/\n/g, '<br>')}</p>`,
-                        fecha: new Date().toLocaleDateString()
-                    }];
+                    sistemaDatos.notas = [{ id: Date.now(), titulo: "Nota Recuperada", contenido: `<p>${sistemaDatos.notas.replace(/\n/g, '<br>')}</p>`, fecha: new Date().toLocaleDateString() }];
                 } else {
                     sistemaDatos.notas = [];
                 }
@@ -992,19 +1225,22 @@
         }
 
         async function sincronizarConNube() {
-            // Nota importante: Ya no guardamos el .value de un textarea único.
-            // Las notas ya se guardan en el array al hacer clic en "Guardar Nota".
-            localStorage.setItem('catequesis_db', JSON.stringify(sistemaDatos));
+            localStorage.setItem('catequesis_db_' + equipoActualLogin, JSON.stringify(sistemaDatos));
 
             if(GOOGLE_SCRIPT_URL === "URL_DE_TU_SCRIPT_DE_GOOGLE_AQUI") return; 
 
             showLoading(true);
             try {
+                const payload = {
+                    action: "merge_equipo",
+                    equipo: equipoActualLogin,
+                    data: sistemaDatos
+                };
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(sistemaDatos)
+                    body: JSON.stringify(payload)
                 });
                 showLoading(false);
             } catch (e) {
@@ -1487,19 +1723,21 @@
                                 </div>
                             </td>
                             <td style="padding: 1rem; vertical-align:middle;">
-                                <select class="select-asis presente" onchange="verificarMotivo(this, ${index}); actualizarColorSelect(this, 'asis')">
-                                    <option value="Presente">Presente</option>
-                                    <option value="Retraso">Retraso</option>
-                                    <option value="Falta Justificada">Falta con Justificación</option>
-                                    <option value="Falta Injustificada">Falta sin Justificación</option>
-                                </select>
-                                <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso...">
+                                <div style="display:flex; gap: 4px; flex-wrap: wrap; background: var(--bg-color); padding: 4px; border-radius: 8px;">
+                                    <button class="btn-asis active" style="flex:1; background: var(--success-color); color:white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Presente', ${index})">P</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Retraso', ${index})">R</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Falta Justificada', ${index})">FJ</button>
+                                    <button class="btn-asis" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'asis', 'Falta Injustificada', ${index})">FI</button>
+                                </div>
+                                <input type="hidden" class="select-asis" value="Presente">
+                                <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso..." style="margin-top:8px;">
                             </td>
-                            <td style="padding: 1rem; vertical-align:middle;">
-                                <select class="select-tarea entregado" onchange="actualizarColorSelect(this, 'tarea')">
-                                    <option value="Entregado">Presentó Tarea</option>
-                                    <option value="No Presentó">No Presentó Tarea</option>
-                                </select>
+                            <td style="padding: 1rem; vertical-align:middle; width: 140px;">
+                                <div style="display:flex; gap: 4px; flex-wrap: wrap; background: var(--bg-color); padding: 4px; border-radius: 8px;">
+                                    <button class="btn-tarea active" style="flex:1; background: var(--primary-color); color:white; border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'tarea', 'Entregado', ${index})"><i class="fa-solid fa-check"></i></button>
+                                    <button class="btn-tarea" style="flex:1; background: transparent; color: var(--medium-gray); border:none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight:bold; font-size:0.85rem;" onclick="setEstado(this, 'tarea', 'No Presentó', ${index})"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <input type="hidden" class="select-tarea" value="Entregado">
                             </td>
                         </tr>
                     `;
@@ -1534,26 +1772,35 @@
             }
         }
 
-        function actualizarColorSelect(selectElem, tipo) {
-            selectElem.classList.remove('presente', 'retraso', 'falta', 'entregado', 'nopresento');
-            if (tipo === 'asis') {
-                const val = selectElem.value;
-                if (val === 'Presente') selectElem.classList.add('presente');
-                else if (val === 'Retraso') selectElem.classList.add('retraso');
-                else selectElem.classList.add('falta');
-            } else {
-                if (selectElem.value === 'Entregado') selectElem.classList.add('entregado');
-                else selectElem.classList.add('nopresento');
-            }
-        }
+        function setEstado(btn, tipo, valor, index) {
+            const container = btn.parentElement;
+            const buttons = container.querySelectorAll(tipo === 'asis' ? '.btn-asis' : '.btn-tarea');
+            buttons.forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = 'var(--medium-gray)';
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            btn.style.color = 'white';
+            
+            // Set input hidden value
+            container.nextElementSibling.value = valor;
 
-        function verificarMotivo(selectElement, index) {
-            const inputMotivo = document.getElementById(`motivo-${index}`);
-            if (selectElement.value === 'Falta Justificada' || selectElement.value === 'Retraso') {
-                inputMotivo.style.display = 'block';
+            if(tipo === 'asis') {
+                if(valor === 'Presente') btn.style.background = 'var(--success-color)';
+                else if(valor === 'Retraso') btn.style.background = 'var(--warning-color)';
+                else btn.style.background = 'var(--danger-color)'; // Faltas
+
+                const inputMotivo = document.getElementById(`motivo-${index}`);
+                if (valor === 'Falta Justificada' || valor === 'Retraso') {
+                    inputMotivo.style.display = 'block';
+                } else {
+                    inputMotivo.style.display = 'none';
+                    inputMotivo.value = ''; 
+                }
             } else {
-                inputMotivo.style.display = 'none';
-                inputMotivo.value = ''; 
+                if(valor === 'Entregado') btn.style.background = 'var(--primary-color)';
+                else btn.style.background = 'var(--danger-color)';
             }
         }
 
@@ -1973,6 +2220,7 @@
             document.getElementById('stat-asistencia').innerText = pct + '%';
             document.getElementById('stat-faltas').innerText = faltas;
             document.getElementById('stat-tareas-pendientes').innerText = tar;
+            document.getElementById('stat-inscritos').innerText = grupo.alumnos ? grupo.alumnos.length : 0;
         }
         // ----- INSTALACIÓN PWA Y SERVICE WORKER -----
         let deferredPrompt;
