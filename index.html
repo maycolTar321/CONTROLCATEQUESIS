@@ -22,9 +22,9 @@
 
     <style>
         :root {
-            /* Paleta Plomo y Azul */
-            --primary-color: #1e3a8a; /* Azul oscuro profundo */
-            --secondary-color: #3b82f6; /* Azul brillante */
+            /* Paleta Plomo y Guindo (Maroon) */
+            --primary-color: #7f1d1d; /* Guindo oscuro profundo */
+            --secondary-color: #b91c1c; /* Guindo brillante / Rojo oscuro */
             --dark-gray: #334155; /* Plomo oscuro */
             --medium-gray: #64748b; /* Plomo medio */
             --light-gray: #e2e8f0; /* Plomo claro */
@@ -173,8 +173,8 @@
             
             /* Mejoras en Top Bar (Selector de Grupos compacto en 1 fila) */
             .grupo-bar { flex-wrap: nowrap !important; align-items: center !important; gap: 8px; padding: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .grupo-bar > span { display: none; } /* Ocultar texto "Grupo Activo" */
-            .grupo-bar select { width: auto; flex: 0 0 auto; min-width: 120px; font-size: 0.95rem; padding: 8px; margin: 0; }
+            .grupo-bar > span { display: inline-block; font-size: 0.85rem; font-weight: bold; white-space: nowrap; flex: 0 0 auto; }
+            .grupo-bar select { width: auto; flex: 0 0 auto; min-width: 110px; font-size: 0.95rem; padding: 8px; margin: 0; }
             .grupo-bar button { padding: 8px 12px !important; margin: 0 !important; font-size: 0.8rem; justify-content: center; flex: 0 0 auto; white-space: nowrap; }
             .grupo-bar button i { font-size: 0.9rem; margin-right: 4px; }
             
@@ -304,6 +304,16 @@
         
         /* Ajustes menores de Quill */
         .ql-editor { font-size: 1rem; font-family: 'Inter', sans-serif; }
+        
+        @keyframes pulse-logo {
+            0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0.7)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0)); }
+        }
+        .logo-animado {
+            animation: pulse-logo 3s infinite ease-in-out;
+            border-radius: 8px; /* Assuming the logo is square with rounded corners */
+        }
     </style>
 </head>
 <body>
@@ -327,11 +337,10 @@
 
     <div id="app-container">
         <header style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap: 15px;">
-                <img src="logo.jpg" alt="Logo" class="logo-header">
+            <div style="display:flex; align-items:center; gap: 12px;">
+                <img src="logo.jpg" alt="Logo" class="logo-header logo-animado">
                 <div style="text-align: left;">
-                    <h1 style="margin:0; font-size:1.5rem; display:flex; align-items:center; gap:10px;">CONTROL DE CATEQUESIS <span style="font-size:0.8rem; font-weight:normal; background:rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px;">V.1</span></h1>
-                    <p style="margin:5px 0 0 0; font-size:0.85rem; opacity:0.9;">Desarrollado por: <strong>Maycol Anghelo Avila Zenteno</strong> (Lic. Publicidad y Mkt | Diseñador Gráfico)</p>
+                    <h1 style="margin:0; font-size:1.1rem; line-height: 1.1; letter-spacing: 0.5px;">SISTEMA DE CONTROL<br><span style="font-weight:900; font-size: 1.3rem;">DE CATEQUESIS</span></h1>
                 </div>
             </div>
             <button class="btn-logout" onclick="cerrarSesion()" style="position:static;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="hide-mobile">Cerrar Sesión</span></button>
@@ -492,7 +501,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <h2><i class="fa-solid fa-address-card"></i> Ficha de Inscripción</h2>
                         <button class="btn btn-info" style="font-size: 0.8rem; padding: 4px 8px; opacity: 0.7; background-color: #64748b; border: none;" onclick="cargarDatosDePrueba()"><i class="fa-solid fa-vial"></i> Cargar Pruebas</button>
-                        <button class="btn" style="font-size: 0.8rem; padding: 4px 8px; background-color: #8b5cf6; border: none; color: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onclick="cargarJovenesSegundoAno()"><i class="fa-solid fa-users-bolt"></i> Cargar 2do Año (Rápido)</button>
+
                     </div>
                     <p style="color: var(--medium-gray); margin-bottom: 1.5rem;">Registra los datos completos del joven para tener su información de contacto y salud.</p>
                     
@@ -589,6 +598,11 @@
                     </div>
                 </div>
             </section>
+            <div style="text-align: center; margin-top: 2rem; padding: 1rem; color: var(--medium-gray); font-size: 0.75rem;">
+                <p style="margin: 0;"><strong>Control de Catequesis V.1</strong></p>
+                <p style="margin: 5px 0 0 0;">Desarrollado por: <strong>Maycol Anghelo Avila Zenteno</strong></p>
+                <p style="margin: 3px 0 0 0; font-size: 0.7rem;">(Lic. Publicidad y Marketing | Diseñador Gráfico)</p>
+            </div>
         </main>
     </div>
 
@@ -1519,7 +1533,27 @@
             });
 
             sincronizarConNube();
-            alert("¡Asistencia y Tareas guardadas exitosamente!");
+            
+            // Comprobar si hay jóvenes en riesgo (3 o más faltas)
+            let alertasRiesgo = [];
+            sistemaDatos.grupos[grupoActual].alumnos.forEach((al) => {
+                let countFaltas = sistemaDatos.grupos[grupoActual].registros.filter(r => r.alumno === al.nombre && r.asistencia.includes('Falta')).length;
+                const registroHoy = sistemaDatos.grupos[grupoActual].registros.find(r => r.alumno === al.nombre && r.fecha === fecha);
+                if (registroHoy && registroHoy.asistencia.includes('Falta') && countFaltas >= 3) {
+                    alertasRiesgo.push({nombre: al.nombre, faltas: countFaltas});
+                }
+            });
+
+            if (alertasRiesgo.length > 0) {
+                let listaNombres = alertasRiesgo.map(a => `- ${a.nombre} (${a.faltas} faltas)`).join('\n');
+                let msg = `⚠️ ¡ALERTA DE RIESGO!\n\nLos siguientes jóvenes han alcanzado 3 o más faltas y están en riesgo de baja:\n${listaNombres}\n\n¿Deseas enviar un WhatsApp URGENTE al tutor del primer joven en la lista (${alertasRiesgo[0].nombre}) ahora mismo?`;
+                if(confirm(msg)) {
+                    avisarTutorWhatsApp(alertasRiesgo[0].nombre, 'riesgo', alertasRiesgo[0].faltas);
+                }
+            } else {
+                alert("¡Asistencia y Tareas guardadas exitosamente!");
+            }
+            
             document.querySelectorAll('nav button')[0].click(); // Ir a dashboard
         }
 
@@ -1550,6 +1584,8 @@
                 textoMotivo = `quería informarle que el catequizando *${alumnoInfo.nombre}* no asistió a la sesión de hoy (${detalle}). Le pido conversar con el joven y justificar la falta si hubo algún inconveniente.`;
             } else if(tipoAviso === 'tarea') {
                 textoMotivo = `quería informarle que *${alumnoInfo.nombre}* NO PRESENTÓ la tarea asignada (${detalle}). Le ruego su apoyo en casa para que se ponga al día.`;
+            } else if(tipoAviso === 'riesgo') {
+                textoMotivo = `me comunico URGENTEMENTE con usted porque *${alumnoInfo.nombre}* ha acumulado *${detalle} faltas* y se encuentra en riesgo de perder el año de catequesis. Le ruego se comunique conmigo a la brevedad.`;
             }
 
             // 3. Generar mensaje final con bendición y nombre del catequista
