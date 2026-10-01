@@ -146,7 +146,8 @@
                 color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 0 !important; margin-bottom: 10px !important;
             }
             header h1 { font-size: 1.1rem !important; margin: 0; display: block !important; } /* Removing display:flex from h1 fixes text break */
-            header .logo-header { width: 36px !important; height: 36px !important; }
+            header { padding: 8px 15px !important; }
+            header .logo-header { width: 32px !important; height: 32px !important; background: transparent !important; padding: 0 !important; }
             .btn-logout { margin: 0; padding: 8px 10px; width: auto; font-size: 0; border-radius: 8px; background: rgba(255,255,255,0.2) !important; flex-shrink: 0; }
             .btn-logout i { font-size: 1.3rem; }
             .hide-mobile { display: none; }
@@ -414,6 +415,8 @@
             <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()" title="Vaciar Grupo"><i class="fa-solid fa-eraser"></i> Vaciar</button>
             <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()" title="Eliminar Grupo"><i class="fa-solid fa-trash"></i> Eliminar</button>
             <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;" title="Guardar"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar</button>
+            <button class="btn-crear-grupo" style="background:#64748b;" onclick="abrirPerfil()" title="Mi Perfil"><i class="fa-solid fa-user-circle"></i> Perfil</button>
+            <button class="btn-crear-grupo" style="background:#334155;" onclick="cerrarSesion()" title="Cerrar Sesi n"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
         </div>
 
         <nav>
@@ -1314,50 +1317,7 @@
             }
         }
 
-        window.addEventListener('load', function() {
-            if (localStorage.getItem('catequesis_restaurado') !== 'true') {
-                let datos = JSON.parse(localStorage.getItem('catequesis_data') || '{}');
-                if (!datos.equipos) datos.equipos = {};
-                datos.equipos["grupo 4"] = {
-                    password: "5230",
-                    info: { gestion: "2026" },
-                    grupos: {
-                        "Grupo 1": {
-                            alumnos: [{
-                                nombre: "Maycol Anghelo Avila Zenteno",
-                                cumple: "1989-09-30",
-                                celular: "77173169",
-                                direccion: "TARIJA barrio Juan Pablo ii",
-                                tutor: "Melissa Villanueva Aramayo",
-                                telefono: "67396562",
-                                salud: "Enfermedad: Dolor muscular | Medicamento: Tramadol | Horario/Cuidados: 18:33 y Solo una vez al dia"
-                            }],
-                            registros: [],
-                            listaTareas: []
-                        }
-                    },
-                    notas: []
-                };
-                localStorage.setItem('catequesis_data', JSON.stringify(datos));
-                localStorage.setItem('catequesis_restaurado', 'true');
-                alert(" Magia! He restaurado a tu joven Maycol del grupo 4. Por favor, aseg rate de haber configurado tu NUEVO enlace de servidor y luego presiona 'Guardar en Drive'.");
-                location.reload();
-            }
-        });
-
-        window.addEventListener('load', function() {
-    if (localStorage.getItem('catequesis_restaurado_completo') !== 'true') {
-        let datos = JSON.parse(localStorage.getItem('catequesis_data') || '{}');
-        if (!datos.equipos) datos.equipos = {};
-        const alumnosRaw = [{'nombre': 'Jos  Antonio Soto', 'edad': '16', 'celular': '64341207', 'padrino': 'Si'}, {'nombre': 'Jhossely Castillo', 'edad': '16', 'celular': '61852635', 'padrino': 'Si'}, {'nombre': 'Jos  Manuel Marca Villca', 'edad': '16', 'celular': '63802878', 'padrino': 'Si'}, {'nombre': 'Kely Gimena Figueroa Ninaja', 'edad': '17', 'celular': '63772546', 'padrino': 'Si'}, {'nombre': 'Paola Caihuara huanca', 'edad': '15', 'celular': '67962277', 'padrino': 'Si'}, {'nombre': 'Emelyn Nayeli Llanos Rodriguez', 'edad': '16', 'celular': '69306589', 'padrino': 'Si'}, {'nombre': 'Daniela Zenteno Mendoza', 'edad': '17', 'celular': '75147887', 'padrino': 'Si'}, {'nombre': 'Mar a Evelyn Mancilla Rivera', 'edad': '16', 'celular': '72966953', 'padrino': 'Si'}, {'nombre': 'Shaiel Ximena Rollano Vasquez', 'edad': '15', 'celular': '72962054', 'padrino': 'Si'}, {'nombre': 'Helen Guisela Choque Galean', 'edad': '16', 'celular': '72952990', 'padrino': 'Si'}, {'nombre': 'Carla Nicol Arteaga Fern ndez', 'edad': '16', 'celular': '63040834', 'padrino': 'Si'}, {'nombre': 'Jazmin Mayte Sanchez Diaz', 'edad': '15', 'celular': '73357857', 'padrino': 'Si'}, {'nombre': 'Maira Araceli choque viza', 'edad': '18', 'celular': '67961968', 'padrino': 'Si'}, {'nombre': 'Nicol ayelen choque viza', 'edad': '15', 'celular': '71895872', 'padrino': 'No'}, {'nombre': 'Yasmin Ayde Almazan Cardozo', 'edad': '14', 'celular': '73489425', 'padrino': 'Si'}, {'nombre': 'Gisela anah  camposano', 'edad': '15', 'celular': '64309596', 'padrino': 'No'}, {'nombre': 'Jorge Antonio Rodr guez Choque', 'edad': '16', 'celular': '72999815', 'padrino': 'Si'}, {'nombre': 'Jhossely Jhissel Castillo Apaza', 'edad': '16', 'celular': '61852635', 'padrino': 'Si'}, {'nombre': 'Milagro Nelida Mendoza', 'edad': '15', 'celular': '74521780', 'padrino': 'No'}];
-        let alumnosMapeados = alumnosRaw.map(a => ({nombre: a.nombre, cumple: '', celular: a.celular, direccion: '-', tutor: 'Edad: ' + a.edad + ' | Padrino: ' + a.padrino, telefono: '-', salud: 'Ninguna'}));
-        datos.equipos['g4'] = {password: '5230', info: { gestion: '2026' }, grupos: { 'Grupo 1': { alumnos: alumnosMapeados, registros: [], listaTareas: [] } }, notas: [] };
-        localStorage.setItem('catequesis_data', JSON.stringify(datos));
-        localStorage.setItem('catequesis_restaurado_completo', 'true');
-        alert(' Magia completada! He restaurado los 19 j venes en tu equipo g4.  Revisa tu lista!');
-        location.reload();
-    }
-});
+        
 
         function inicializarApp() {
             if (!sistemaDatos.grupos) sistemaDatos.grupos = {"Grupo 1": {alumnos:[], registros:[], listaTareas: []}};
