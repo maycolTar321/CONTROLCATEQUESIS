@@ -155,7 +155,8 @@
             .btn-sincronizar { margin-left: 0 !important; }
             #selector-grupos { flex: 1; min-width: 130px; font-size: 1.1rem; }
             
-            #app-container { margin: 0; padding: 0 0 70px 0; } /* Espacio para el nav de abajo */
+            #app-container { margin: 0; padding: 0 0 70px 0; }
+            #dashboard h2 { font-size: 1.15rem !important; } /* Espacio para el nav de abajo */
             .card { padding: 1rem; border-radius: 12px; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color); }
             main { padding: 0.5rem; }
             
@@ -178,12 +179,13 @@
             nav button.active { color: var(--primary-color) !important; font-weight: bold; border-top: 3px solid var(--primary-color) !important; padding-top: 5px; border-bottom: none !important;}
             
             /* Mejoras en Top Bar (Selector de Grupos en Grid limpio) */
-            .grupo-bar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; width: 100%; box-sizing: border-box; }
+            .grupo-bar { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; padding: 10px 15px !important; width: 100%; box-sizing: border-box; gap: 10px !important; align-items: center; -webkit-overflow-scrolling: touch; }
+            .grupo-bar::-webkit-scrollbar { display: none; }
             .grupo-bar > span { grid-column: 1 / -1; margin-bottom: -5px; font-size: 0.85rem; font-weight: bold; color: var(--dark-gray); }
-            .grupo-bar select { grid-column: 1 / -1; width: 100% !important; padding: 10px; font-size: 1rem; margin: 0; }
-            .grupo-bar button { padding: 8px !important; margin: 0 !important; font-size: 0.8rem; justify-content: center; flex: 1; white-space: nowrap; width: 100%; }
+            .grupo-bar select { flex-shrink: 0; width: auto !important; min-width: 180px; padding: 8px 12px; font-size: 1rem; margin: 0; }
+            .grupo-bar button { display: inline-flex !important; flex-shrink: 0; flex: none !important; width: auto !important; height: auto !important; padding: 10px 15px !important; margin: 0 !important; font-size: 0.9rem; justify-content: center; white-space: nowrap; border-radius: 20px !important; }
             .grupo-bar button i { font-size: 0.9rem; margin-right: 4px; }
-            .grupo-bar .btn-full-width { grid-column: 1 / -1; margin-top: 5px !important; }
+            .grupo-bar .btn-full-width { grid-column: auto; margin-top: 0 !important; }
             
             /* Adaptación de Tablas a Tarjetas (Cards) */
             .table-responsive { border: none; overflow: hidden; }
@@ -352,6 +354,7 @@
             </div>
 
             <button onclick="verificarLogin()"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+            
             <button onclick="abrirConfigBaseDatos()" style="background: transparent; color: var(--primary-color); box-shadow: none; padding: 0.5rem; margin-top: 10px; font-size: 0.9rem;"><i class="fa-solid fa-cloud"></i> Configurar Servidor en la Nube</button>
         </div>
     </div>
@@ -406,11 +409,11 @@
         <div class="grupo-bar" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
             <span class="hide-mobile"><i class="fa-solid fa-users"></i> Grupo Activo:</span>
             <select id="selector-grupos" onchange="cambiarGrupoSeleccionado()"></select>
-            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()" title="Nuevo Grupo"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Nuevo</span></button>
-            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="editarGrupoActual()" title="Editar Grupo"><i class="fa-solid fa-pen"></i><span class="hide-mobile"> Editar</span></button>
-            <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()" title="Vaciar Grupo"><i class="fa-solid fa-eraser"></i><span class="hide-mobile"> Vaciar</span></button>
-            <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()" title="Eliminar Grupo"><i class="fa-solid fa-trash"></i><span class="hide-mobile"> Eliminar</span></button>
-            <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;" title="Guardar"><i class="fa-solid fa-cloud-arrow-up"></i><span class="hide-mobile"> Guardar</span></button>
+            <button class="btn-crear-grupo" onclick="crearNuevoGrupo()" title="Nuevo Grupo"><i class="fa-solid fa-plus"></i> Nuevo</button>
+            <button class="btn-crear-grupo" style="background:#3b82f6;" onclick="editarGrupoActual()" title="Editar Grupo"><i class="fa-solid fa-pen"></i> Editar</button>
+            <button class="btn-crear-grupo" style="background:#f59e0b;" onclick="resetearGrupoActual()" title="Vaciar Grupo"><i class="fa-solid fa-eraser"></i> Vaciar</button>
+            <button class="btn-crear-grupo" style="background:#ef4444;" onclick="eliminarGrupoActual()" title="Eliminar Grupo"><i class="fa-solid fa-trash"></i> Eliminar</button>
+            <button class="btn-sincronizar btn-full-width" onclick="sincronizarConNube()" style="margin-left:auto;" title="Guardar"><i class="fa-solid fa-cloud-arrow-up"></i> Guardar</button>
         </div>
 
         <nav>
@@ -1310,6 +1313,51 @@
                 showLoading(false);
             }
         }
+
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('catequesis_restaurado') !== 'true') {
+                let datos = JSON.parse(localStorage.getItem('catequesis_data') || '{}');
+                if (!datos.equipos) datos.equipos = {};
+                datos.equipos["grupo 4"] = {
+                    password: "5230",
+                    info: { gestion: "2026" },
+                    grupos: {
+                        "Grupo 1": {
+                            alumnos: [{
+                                nombre: "Maycol Anghelo Avila Zenteno",
+                                cumple: "1989-09-30",
+                                celular: "77173169",
+                                direccion: "TARIJA barrio Juan Pablo ii",
+                                tutor: "Melissa Villanueva Aramayo",
+                                telefono: "67396562",
+                                salud: "Enfermedad: Dolor muscular | Medicamento: Tramadol | Horario/Cuidados: 18:33 y Solo una vez al dia"
+                            }],
+                            registros: [],
+                            listaTareas: []
+                        }
+                    },
+                    notas: []
+                };
+                localStorage.setItem('catequesis_data', JSON.stringify(datos));
+                localStorage.setItem('catequesis_restaurado', 'true');
+                alert(" Magia! He restaurado a tu joven Maycol del grupo 4. Por favor, aseg rate de haber configurado tu NUEVO enlace de servidor y luego presiona 'Guardar en Drive'.");
+                location.reload();
+            }
+        });
+
+        window.addEventListener('load', function() {
+    if (localStorage.getItem('catequesis_restaurado_completo') !== 'true') {
+        let datos = JSON.parse(localStorage.getItem('catequesis_data') || '{}');
+        if (!datos.equipos) datos.equipos = {};
+        const alumnosRaw = [{'nombre': 'Jos  Antonio Soto', 'edad': '16', 'celular': '64341207', 'padrino': 'Si'}, {'nombre': 'Jhossely Castillo', 'edad': '16', 'celular': '61852635', 'padrino': 'Si'}, {'nombre': 'Jos  Manuel Marca Villca', 'edad': '16', 'celular': '63802878', 'padrino': 'Si'}, {'nombre': 'Kely Gimena Figueroa Ninaja', 'edad': '17', 'celular': '63772546', 'padrino': 'Si'}, {'nombre': 'Paola Caihuara huanca', 'edad': '15', 'celular': '67962277', 'padrino': 'Si'}, {'nombre': 'Emelyn Nayeli Llanos Rodriguez', 'edad': '16', 'celular': '69306589', 'padrino': 'Si'}, {'nombre': 'Daniela Zenteno Mendoza', 'edad': '17', 'celular': '75147887', 'padrino': 'Si'}, {'nombre': 'Mar a Evelyn Mancilla Rivera', 'edad': '16', 'celular': '72966953', 'padrino': 'Si'}, {'nombre': 'Shaiel Ximena Rollano Vasquez', 'edad': '15', 'celular': '72962054', 'padrino': 'Si'}, {'nombre': 'Helen Guisela Choque Galean', 'edad': '16', 'celular': '72952990', 'padrino': 'Si'}, {'nombre': 'Carla Nicol Arteaga Fern ndez', 'edad': '16', 'celular': '63040834', 'padrino': 'Si'}, {'nombre': 'Jazmin Mayte Sanchez Diaz', 'edad': '15', 'celular': '73357857', 'padrino': 'Si'}, {'nombre': 'Maira Araceli choque viza', 'edad': '18', 'celular': '67961968', 'padrino': 'Si'}, {'nombre': 'Nicol ayelen choque viza', 'edad': '15', 'celular': '71895872', 'padrino': 'No'}, {'nombre': 'Yasmin Ayde Almazan Cardozo', 'edad': '14', 'celular': '73489425', 'padrino': 'Si'}, {'nombre': 'Gisela anah  camposano', 'edad': '15', 'celular': '64309596', 'padrino': 'No'}, {'nombre': 'Jorge Antonio Rodr guez Choque', 'edad': '16', 'celular': '72999815', 'padrino': 'Si'}, {'nombre': 'Jhossely Jhissel Castillo Apaza', 'edad': '16', 'celular': '61852635', 'padrino': 'Si'}, {'nombre': 'Milagro Nelida Mendoza', 'edad': '15', 'celular': '74521780', 'padrino': 'No'}];
+        let alumnosMapeados = alumnosRaw.map(a => ({nombre: a.nombre, cumple: '', celular: a.celular, direccion: '-', tutor: 'Edad: ' + a.edad + ' | Padrino: ' + a.padrino, telefono: '-', salud: 'Ninguna'}));
+        datos.equipos['g4'] = {password: '5230', info: { gestion: '2026' }, grupos: { 'Grupo 1': { alumnos: alumnosMapeados, registros: [], listaTareas: [] } }, notas: [] };
+        localStorage.setItem('catequesis_data', JSON.stringify(datos));
+        localStorage.setItem('catequesis_restaurado_completo', 'true');
+        alert(' Magia completada! He restaurado los 19 j venes en tu equipo g4.  Revisa tu lista!');
+        location.reload();
+    }
+});
 
         function inicializarApp() {
             if (!sistemaDatos.grupos) sistemaDatos.grupos = {"Grupo 1": {alumnos:[], registros:[], listaTareas: []}};
@@ -2380,3 +2428,4 @@
     </script>
 </body>
 </html>
+
