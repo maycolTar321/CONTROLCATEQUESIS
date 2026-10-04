@@ -4716,10 +4716,14 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 }
 </style>
 
-<style id="boton-verde-igual-antena">
-/* Igualar botón Guardar al botón Antena */
-.grupo-bar .topbar-save,
-.grupo-bar > .topbar-save {
+<style id="forzar-guardar-igual-antena-absoluto">
+/* Igualar botón Guardar (verde) EXACTAMENTE al botón Antena en todas las pantallas */
+
+/* 1. PC / Escritorio (40px) */
+#app-container .grupo-bar .topbar-save {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     flex: 0 0 40px !important;
     width: 40px !important;
     min-width: 40px !important;
@@ -4730,31 +4734,23 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
     padding: 0 !important;
     margin: 0 !important;
     border-radius: 12px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 0 !important;
-    box-shadow: none !important;
+    box-sizing: border-box !important;
 }
 
-/* Ocultar la palabra "Guardar" y dejar solo la nube */
-.grupo-bar .topbar-save span,
-.grupo-bar > .topbar-save span {
+#app-container .grupo-bar .topbar-save span {
     display: none !important;
 }
 
-.grupo-bar .topbar-save i,
-.grupo-bar > .topbar-save i {
+#app-container .grupo-bar .topbar-save i {
     display: block !important;
-    font-size: 1rem !important;
     margin: 0 !important;
+    font-size: 1rem !important;
     line-height: 1 !important;
 }
 
-/* Ajustes para celulares (mismo tamaño que la antena en móvil) */
+/* 2. Tablets y Celulares (36px) */
 @media (max-width: 900px) {
-    .grupo-bar .topbar-save,
-    .grupo-bar > .topbar-save {
+    #app-container .grupo-bar .topbar-save {
         flex: 0 0 36px !important;
         width: 36px !important;
         min-width: 36px !important;
@@ -4764,11 +4760,14 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
         max-height: 36px !important;
         border-radius: 10px !important;
     }
+    #app-container .grupo-bar .topbar-save i {
+        font-size: 0.95rem !important;
+    }
 }
 
+/* 3. Celulares pequeños (34px) */
 @media (max-width: 380px) {
-    .grupo-bar .topbar-save,
-    .grupo-bar > .topbar-save {
+    #app-container .grupo-bar .topbar-save {
         flex: 0 0 34px !important;
         width: 34px !important;
         min-width: 34px !important;
@@ -4779,4 +4778,5 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
         border-radius: 9px !important;
     }
 }
+
 </style>
