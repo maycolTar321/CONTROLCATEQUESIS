@@ -2551,6 +2551,162 @@
 
         // Cerrar modales tocando el fondo
         document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; }));
-    </script>
+    
+        <!-- ================================================================
+             SINCRONIZACIÓN EN TIEMPO REAL - CAPA ADITIVA
+             No reemplaza ni elimina ninguna función existente.
+             Lee la nube periódicamente y actualiza el equipo cuando detecta
+             una versión remota más reciente. Los cambios locales se envían
+             automáticamente sin necesitar pulsar "Guardar".
+             ================================================================ -->
+        <script>
+        (function() {
+            let __rtTimer = null;
+            let __rtRunning = false;
+            let __rtLastRemote = 0;
+            let __rtLastLocal = 0;
+            let __rtPending = false;
+
+            function __rtActivo() {
+                return typeof nubeActiva === 'function' &&
+                       nubeActiva() &&
+                       typeof equipoActualLogin !== 'undefined' &&
+                       !!equipoActualLogin &&
+                       typeof sistemaDatos !== 'undefined' &&
+                       !!sistemaDatos;
+            }
+
+            async function __rtEnviarLocal() {
+                if (!__rtActivo() || __rtPending) return;
+                __rtPending = true;
+                try {
+                    const marca = Number(sistemaDatos._actualizado || 0);
+                    if (marca > __rtLastRemote) {
+                        guardarEquipoLocal(equipoActualLogin, sistemaDatos);
+                        await postNube({
+                            action: "merge_equipo",
+                            equipo: equipoActualLogin,
+                            data: sistemaDatos
+                        });
+                        __rtLastLocal = marca;
+                    }
+                } catch (e) {
+                    console.warn("Sincronización realtime (envío):", e);
+                } finally {
+                    __rtPending = false;
+                }
+            }
+
+            async function __rtRecibirRemoto() {
+                if (!__rtActivo() || __rtRunning) return;
+                __rtRunning = true;
+                try {
+                    const nube = await fetchNube();
+                    if (!nube || !nube.equipos) return;
+
+                    const k = buscarEquipoEnObjeto(nube.equipos, equipoActualLogin);
+                    if (!k) {
+                        await __rtEnviarLocal();
+                        return;
+                    }
+
+                    const remoto = nube.equipos[k];
+                    const tRemoto = Number(remoto && remoto._actualizado || 0);
+                    const tLocal = Number(sistemaDatos && sistemaDatos._actualizado || 0);
+
+                    if (tRemoto > tLocal) {
+                        const passwordLocal = sistemaDatos && sistemaDatos.password;
+                        sistemaDatos = remoto;
+                        if (!sistemaDatos.password && passwordLocal) {
+                            sistemaDatos.password = passwordLocal;
+                        }
+
+                        __rtLastRemote = tRemoto;
+                        guardarEquipoLocal(equipoActualLogin, sistemaDatos);
+
+                        if (typeof migrarDatosAntiguos === 'function') migrarDatosAntiguos();
+                        if (typeof actualizarSelectorGrupos === 'function') actualizarSelectorGrupos();
+                        if (typeof actualizarInterfazGrupo === 'function') actualizarInterfazGrupo();
+                        if (typeof renderizarDashboard === 'function') renderizarDashboard();
+                        if (typeof actualizarListaTareas === 'function') actualizarListaTareas();
+                        if (typeof actualizarListaReuniones === 'function') actualizarListaReuniones();
+                        if (typeof renderizarNotas === 'function') renderizarNotas();
+                        if (typeof actualizarSelectorTareasAsistencia === 'function') actualizarSelectorTareasAsistencia();
+                    } else if (tLocal > tRemoto) {
+                        await __rtEnviarLocal();
+                    } else {
+                        __rtLastRemote = Math.max(__rtLastRemote, tRemoto);
+                    }
+                } catch (e) {
+                    console.warn("Sincronización realtime (recepción):", e);
+                } finally {
+                    __rtRunning = false;
+                }
+            }
+
+            function __rtMarcarCambio() {
+                if (!__rtActivo()) return;
+                const ahora = Date.now();
+                if (Number(sistemaDatos._actualizado || 0) < ahora) {
+                    sistemaDatos._actualizado = ahora;
+                    guardarEquipoLocal(equipoActualLogin, sistemaDatos);
+                }
+                __rtLastLocal = Number(sistemaDatos._actualizado || ahora);
+                __rtEnviarLocal();
+            }
+
+            function __rtIniciar() {
+                if (__rtTimer) clearInterval(__rtTimer);
+                __rtTimer = setInterval(__rtRecibirRemoto, 1000);
+                setTimeout(__rtRecibirRemoto, 150);
+            }
+
+            window.addEventListener('online', function() {
+                __rtRecibirRemoto();
+                __rtEnviarLocal();
+            });
+
+            window.addEventListener('focus', function() {
+                __rtRecibirRemoto();
+            });
+
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) __rtRecibirRemoto();
+            });
+
+            /*
+             * Detecta cambios del modelo de datos sin tocar las funciones
+             * originales. El snapshot se compara cada 500 ms; cuando cambia,
+             * se asigna una nueva marca temporal y se envía inmediatamente.
+             */
+            let __rtSnapshot = "";
+
+            setInterval(function() {
+                if (!__rtActivo() || __rtPending) return;
+                try {
+                    const actual = JSON.stringify(sistemaDatos);
+                    if (__rtSnapshot && actual !== __rtSnapshot) {
+                        __rtMarcarCambio();
+                    }
+                    __rtSnapshot = actual;
+                } catch (e) {}
+            }, 500);
+
+            /*
+             * Cuando la aplicación termina de cargar datos, tomamos el
+             * snapshot inicial y arrancamos el canal realtime.
+             */
+            const __rtBoot = setInterval(function() {
+                if (__rtActivo()) {
+                    try {
+                        __rtSnapshot = JSON.stringify(sistemaDatos);
+                    } catch (e) {}
+                    __rtIniciar();
+                    clearInterval(__rtBoot);
+                }
+            }, 500);
+        })();
+        </script>
+</script>
 </body>
 </html>
