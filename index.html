@@ -1227,14 +1227,6 @@ td,th{border-color:var(--ui-border)!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
-
-<style id="tomar-lista-clean-overrides">
-.attendance-page{overflow:visible}.attendance-head-clean{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.attendance-head-clean h2{margin:0}.attendance-head-clean .section-intro{margin:.35rem 0 0}.attendance-date-btn{white-space:nowrap}.lista-collapsible{animation:listaOpen .16s ease}@keyframes listaOpen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.lista-top-tools{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:10px 0}.lista-tool-group,.attendance-toolbar{position:relative}.btn-compact{min-height:40px!important;padding:8px 12px!important}.btn-compact span{font-size:.72rem;margin-left:4px;opacity:.8}.lista-tool-group .task-picker{position:absolute;z-index:30;top:48px;left:0;width:min(720px,calc(100vw - 40px));box-shadow:0 18px 40px rgba(0,0,0,.35)}.attendance-toolbar{padding:0!important;border:0!important;background:transparent!important;backdrop-filter:none!important}.attendance-toolbar #acciones-rapidas-lista{position:absolute;z-index:30;right:0;top:48px;width:min(620px,calc(100vw - 40px));padding:10px;border:1px solid var(--line-soft);border-radius:14px;background:#111b2d;box-shadow:0 18px 40px rgba(0,0,0,.35)}
-.attendance-counts-clean{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.attendance-counts-clean .attendance-pill{min-width:auto!important;flex:0 0 auto!important;padding:6px 10px;border-radius:999px;font-size:.76rem}.lista-legend-clean{display:flex;gap:12px;flex-wrap:wrap;color:var(--medium-gray);font-size:.74rem;margin:8px 0 12px}.lista-legend-clean b{color:var(--text-color);margin-right:3px}.attendance-list-clean{display:flex!important;flex-direction:column;gap:7px!important}.asis-card-clean{display:grid!important;grid-template-columns:minmax(180px,1fr) auto auto;align-items:center;gap:10px!important;padding:9px 11px!important;border-radius:12px!important;background:rgba(15,23,42,.38)!important}.asis-person-clean{display:flex;align-items:center;gap:9px;min-width:0}.asis-person-clean .avatar{width:34px;height:34px;min-width:34px;font-size:.85rem}.asis-name-clean{min-width:0;display:flex;flex-direction:column}.asis-name-clean strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.asis-name-clean small{font-size:.68rem;color:var(--medium-gray);margin-top:1px}.asis-main-controls{display:flex;align-items:center;gap:7px}.seg-clean{display:flex!important;gap:3px!important}.seg-clean button{min-width:38px!important;height:36px!important;padding:5px 8px!important;border-radius:8px!important}.asis-motivo-clean{display:none;width:150px!important;margin:0!important;padding:7px 9px!important;font-size:.78rem!important}.asis-task-clean{display:flex;align-items:center;gap:7px}.asis-task-label{font-size:.7rem;color:var(--medium-gray);white-space:nowrap}.seg-task-clean button{min-width:34px!important;width:34px!important}.attendance-save-clean{width:100%;margin-top:14px!important;padding:.8rem!important}.lista-empty-clean{padding:2rem;text-align:center;color:var(--medium-gray);border:1px dashed var(--border-color);border-radius:14px}
-@media(max-width:850px){.asis-card-clean{grid-template-columns:minmax(150px,1fr) auto}.asis-task-clean{grid-column:2;justify-self:end}.asis-main-controls{justify-self:end}.asis-motivo-clean{width:120px!important}}
-@media(max-width:600px){.attendance-head-clean{align-items:flex-start}.attendance-head-clean .section-intro{font-size:.76rem}.attendance-date-btn{font-size:0!important;width:42px;min-width:42px;padding:9px!important}.attendance-date-btn i{font-size:1rem}.lista-top-tools{position:relative}.lista-tool-group .task-picker,.attendance-toolbar #acciones-rapidas-lista{position:fixed;left:12px;right:12px;top:calc(100px + env(safe-area-inset-top));width:auto;max-height:70vh;overflow:auto}.asis-card-clean{grid-template-columns:1fr;gap:8px!important}.asis-person-clean{width:100%}.asis-main-controls{width:100%;display:grid;grid-template-columns:1fr;gap:6px}.seg-clean{width:100%}.seg-clean button{flex:1}.asis-motivo-clean{width:100%!important}.asis-task-clean{width:100%;justify-content:space-between;grid-column:auto}.seg-task-clean{width:auto}.attendance-counts-clean{display:grid;grid-template-columns:1fr 1fr}.attendance-counts-clean .attendance-pill{width:100%;text-align:center}.lista-legend-clean{font-size:.68rem;gap:8px}.attendance-list-clean{gap:6px!important}}
-</style>
 </head>
 <body>
 
@@ -1562,15 +1554,14 @@ td,th{border-color:var(--ui-border)!important}
                     <div class="activity-form-grid">
                         <div class="activity-main-field"><label>Nombre de la actividad</label><input id="fin-nueva-actividad" placeholder="Ej: Retiro espiritual, paseo, convivencia, materiales..."></div>
                         <div><label>Costo por catequizando (Bs)</label><input type="number" id="fin-nuevo-precio" min="0" step="0.01" placeholder="0,00"></div>
-                        <div><label>Fecha</label><input type="date" id="fin-nueva-fecha"></div>
-                        <div class="activity-extra-date-field" id="fin-extra-date-wrap" style="display:none"><label>Segunda fecha</label><input type="date" id="fin-nueva-fecha-fin"></div>
-                        <div class="activity-extra-date-action"><label>&nbsp;</label><button type="button" class="btn btn-slate btn-compact" id="btn-agregar-fecha-actividad" onclick="alternarSegundaFechaActividad()"><i class="fa-solid fa-calendar-plus"></i> Agregar otra fecha</button></div>
+                        <div><label>Fecha de inicio</label><input type="date" id="fin-nueva-fecha"></div>
+                        <div><label>Fecha de finalización</label><input type="date" id="fin-nueva-fecha-fin"></div>
                         <div><label>Hora de inicio</label><input type="time" id="fin-nueva-inicio"></div>
                         <div><label>Hora de finalización</label><input type="time" id="fin-nueva-fin"></div>
                         <div><label>Estado</label><select id="fin-nueva-estado"><option value="planificada">Planificada</option><option value="confirmada">Confirmada</option><option value="realizada">Realizada</option><option value="cancelada">Cancelada</option></select></div>
                         <div class="activity-description-field"><label>Descripción / detalles</label><textarea id="fin-nueva-descripcion" rows="3" placeholder="Lugar, materiales, transporte, responsables, indicaciones para los padres..."></textarea></div>
                     </div>
-                    <div class="activity-create-footer"><small><i class="fa-solid fa-circle-info"></i> La segunda fecha es opcional. Úsala solo para actividades que duran más de un día.</small><button class="btn" onclick="agregarActividadFinanzas()"><i class="fa-solid fa-plus"></i> Crear actividad</button></div>
+                    <div class="activity-create-footer"><small><i class="fa-solid fa-circle-info"></i> Para actividades de varios días, indica la fecha de finalización. Los horarios son opcionales.</small><button class="btn" onclick="agregarActividadFinanzas()"><i class="fa-solid fa-plus"></i> Crear actividad</button></div>
                     </div>
                 </div>
                 <div class="card collapsible-card">
@@ -1604,45 +1595,51 @@ td,th{border-color:var(--ui-border)!important}
 
             <!-- TOMAR LISTA -->
             <section id="asistencia" class="section">
-                <div class="card attendance-page">
-                    <div class="attendance-head-clean">
-                        <div><h2><i class="fa-solid fa-clipboard-check"></i> Tomar lista</h2><p class="section-intro">Primero completa los datos de esta sesión y las tareas a revisar. Después registra la asistencia.</p></div>
-                        <div class="attendance-head-actions">
-                            <button class="btn btn-primary attendance-date-btn" type="button" onclick="togglePanelLista('datos-sesion-lista',this)"><i class="fa-solid fa-calendar-day"></i> <span>Datos de hoy</span></button>
-                            <button type="button" class="btn btn-slate btn-compact" onclick="togglePanelLista('selector-tarea-actual',this)"><i class="fa-solid fa-list-check"></i> Tareas <span id="resumen-tareas-corto">0</span></button>
-                        </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-clipboard-check"></i> Registrar Asistencia del Día</h2>
+                    <div class="session-summary-box">
+                        <div><label>Fecha de Sesión:</label><input type="date" id="fecha-sesion"></div>
+                        <div><label>Tema de la sesión:</label><input type="text" id="tema-sesion" placeholder="Ej: Los Sacramentos — Bautismo"></div>
+                        <div class="full"><label>Observaciones generales:</label><input type="text" id="observaciones-sesion" placeholder="Ej: Se explicó el tema, quedaron dudas, se dejó actividad..."></div>
+                        <div><label>Próxima sesión:</label><input type="date" id="proxima-sesion"></div>
+                        <div><label>Objetivo / compromiso:</label><input type="text" id="compromiso-sesion" placeholder="Ej: Traer Biblia y completar actividad"></div>
                     </div>
-                    <div id="datos-sesion-lista" class="lista-collapsible" style="display:none;">
-                        <div class="session-summary-box session-today-only">
-                            <div><label>Fecha de la sesión</label><input type="date" id="fecha-sesion"></div>
-                            <div><label>Tema de hoy</label><input type="text" id="tema-sesion" placeholder="Ej: Los Sacramentos — Bautismo"></div>
-                            <div class="full"><label>Observaciones de hoy</label><input type="text" id="observaciones-sesion" placeholder="Ej: dudas, acuerdos o detalles de esta sesión..."></div>
-                        </div>
-                    </div>
-                    <div class="lista-top-tools">
-                        <div class="lista-tool-group">
-                            <div id="selector-tarea-actual" class="task-picker lista-collapsible" style="display:none;">
-                                <div class="task-picker-tools"><input type="search" id="buscar-tarea-sesion" placeholder="Buscar tarea..." oninput="filtrarTareasSesion()" autocomplete="off"><button type="button" class="btn btn-info" onclick="seleccionarTodasLasTareasSesion()"><i class="fa-solid fa-check-double"></i> Todas</button><button type="button" class="btn btn-slate" onclick="limpiarTareasSesion()"><i class="fa-solid fa-eraser"></i> Limpiar</button></div>
-                                <div id="lista-tareas-sesion" class="task-picker-list"></div><div class="task-picker-summary"><span id="resumen-tareas-sesion">Sin tareas seleccionadas</span><span>El estado se aplicará a todas.</span></div><div id="tareas-seleccionadas-chips" class="v4-task-selected"></div>
-                            </div>
-                        </div>
-                        <div class="attendance-toolbar no-print">
-                            <button class="btn btn-slate btn-compact" type="button" onclick="togglePanelLista('acciones-rapidas-lista',this)"><i class="fa-solid fa-bolt"></i> Acciones</button>
-                            <div id="acciones-rapidas-lista" class="lista-collapsible quick-actions" style="display:none;">
-                                <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
-                                <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
-                                <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
-                                <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
-                                <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última</button>
-                                <button class="btn btn-info" type="button" onclick="marcarTodasTareasEstado('Entregado')"><i class="fa-solid fa-check"></i> Tareas entregadas</button>
-                                <button class="btn btn-danger" type="button" onclick="marcarTodasTareasEstado('No Presentó')"><i class="fa-solid fa-xmark"></i> Tareas pendientes</button>
+                    <div class="filters-container filters-grid">
+                        <div style="grid-column:1/-1;">
+                            <label>Selecciona una o varias tareas del día:</label>
+                            <div id="selector-tarea-actual" class="task-picker">
+                                <div class="task-picker-tools">
+                                    <input type="search" id="buscar-tarea-sesion" placeholder="Buscar tarea..." oninput="filtrarTareasSesion()" autocomplete="off">
+                                    <button type="button" class="btn btn-info" onclick="seleccionarTodasLasTareasSesion()"><i class="fa-solid fa-check-double"></i> Todas</button>
+                                    <button type="button" class="btn btn-slate" onclick="limpiarTareasSesion()"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                                </div>
+                                <div id="lista-tareas-sesion" class="task-picker-list"></div>
+                                <div class="task-picker-summary"><span id="resumen-tareas-sesion">Sin tareas seleccionadas</span><span>El estado de tarea se aplicará a todas.</span></div>
+                                <div id="tareas-seleccionadas-chips" class="v4-task-selected"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="attendance-counts attendance-counts-clean" id="resumen-asistencia-actual"><span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span></div>
-                    <div class="lista-legend-clean"><span><b>P</b> Presente</span><span><b>R</b> Retraso</span><span><b>FJ</b> Falta justificada</span><span><b>FI</b> Falta injustificada</span></div>
-                    <div id="lista-asistencia-dinamica" class="attendance-list-clean"></div>
-                    <button class="btn btn-primary attendance-save-clean" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar sesión</button>
+                    <p style="color: var(--medium-gray); font-size: 0.85rem; margin-bottom: 10px;">
+                        <b style="color:#6ee7b7">P</b> = Presente · <b style="color:#fcd34d">R</b> = Retraso · <b style="color:#fca5a5">FJ</b> = Falta Justificada · <b style="color:#fca5a5">FI</b> = Falta Injustificada
+                    </p>
+                    <div class="attendance-toolbar no-print">
+                    <div class="session-tools">
+                        <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
+                        <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
+                        <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
+                        <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
+                        <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última sesión</button>
+                    </div>
+                    <div class="attendance-counts" id="resumen-asistencia-actual">
+                        <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
+                    </div>
+                    </div>
+                    <div class="quick-actions no-print">
+                        <button class="btn btn-info" type="button" onclick="marcarTodasTareasEstado('Entregado')"><i class="fa-solid fa-check"></i> Todos presentaron tarea</button>
+                        <button class="btn btn-danger" type="button" onclick="marcarTodasTareasEstado('No Presentó')"><i class="fa-solid fa-xmark"></i> Nadie presentó tarea</button>
+                    </div>
+                    <div id="lista-asistencia-dinamica" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;"></div>
+                    <button class="btn" style="margin-top: 1.5rem; width: 100%; font-size: 1.05rem; padding: 1rem;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
                 </div>
             </section>
 
@@ -1865,7 +1862,7 @@ td,th{border-color:var(--ui-border)!important}
                         <div><label>Fecha</label><input type="date" id="temario-fecha"></div>
                         <div style="flex:2"><label>Tema</label><input type="text" id="temario-titulo" placeholder="Ej: Los Sacramentos"></div>
                         <div style="flex:2"><label>Descripción / actividad</label><input type="text" id="temario-descripcion" placeholder="Actividad, tarea, material..."></div>
-                        <button id="btn-guardar-temario" class="btn" onclick="agregarTemaTemario()"><i class="fa-solid fa-plus"></i> Agregar</button><button id="btn-cancelar-edicion-temario" class="btn btn-slate" onclick="cancelarEdicionTemaTemario()" style="display:none"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                        <button class="btn" onclick="agregarTemaTemario()"><i class="fa-solid fa-plus"></i> Agregar</button>
                     </div>
                 </div>
                 <div class="card">
@@ -3120,7 +3117,6 @@ td,th{border-color:var(--ui-border)!important}
         const resumen=document.getElementById('resumen-tareas-sesion');
         const seleccion=tareas.filter((t,i)=>tareasSeleccionadasSesion.map(String).includes(String(t.id||('legacy_'+i))));
         if(resumen) resumen.innerHTML=seleccion.length?`<strong style="color:var(--accent)">${seleccion.length}</strong> tarea${seleccion.length===1?'':'s'} seleccionada${seleccion.length===1?'':'s'}: ${escHtml(seleccion.map(t=>typeof t==='string'?t:t.nombre).join(' · '))}`:'Sin tareas seleccionadas (sesión sin tarea)';
-        const corto=document.getElementById('resumen-tareas-corto'); if(corto) corto.textContent=seleccion.length;
         const chips=document.getElementById('tareas-seleccionadas-chips');
         if(chips) chips.innerHTML=seleccion.length?seleccion.map((t,i)=>{const id=String(t.id||('legacy_'+i));const nombre=typeof t==='string'?t:t.nombre;return `<span class="v4-task-chip" onclick="toggleTareaSesion('${jsStr(id)}',false)" title="Quitar tarea">${escHtml(nombre)} <i class="fa-solid fa-xmark"></i></span>`}).join(''):'<span style="color:var(--medium-gray);font-size:.82rem">Las tareas seleccionadas aparecerán aquí. Tócalas para quitarlas.</span>';
         actualizarTextosTareas();
@@ -3230,14 +3226,35 @@ td,th{border-color:var(--ui-border)!important}
         // --- Tomar lista ---
         const contAsis = document.getElementById('lista-asistencia-dinamica');
         if (grupo.alumnos.length === 0) {
-            contAsis.innerHTML = `<div class="lista-empty-clean">No hay catequizandos inscritos en este grupo. Ve a <b>Fichas</b> para inscribirlos.</div>`;
+            contAsis.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--medium-gray); grid-column: 1/-1;">No hay catequizandos inscritos en este grupo. Ve a <b>Fichas</b> para inscribirlos.</div>`;
         } else {
             contAsis.innerHTML = grupo.alumnos.map((al, index) => {
-                const adv = al.salud && al.salud.trim() !== '' ? ` <i class="fa-solid fa-notes-medical" style="color:var(--danger-color);" title="Requiere cuidado médico"></i>` : '';
-                return `<div class="asis-card asis-card-clean">
-                    <div class="asis-person-clean"><div class="avatar">${escHtml(al.nombre.charAt(0).toUpperCase())}</div><div class="asis-name-clean"><strong>${escHtml(al.nombre)}</strong>${adv}<small>Asistencia</small></div></div>
-                    <div class="asis-main-controls"><div class="seg seg-clean"><button style="background:var(--success-color);color:white;" onclick="setEstado(this,'asis','Presente',${index})" title="Presente">P</button><button onclick="setEstado(this,'asis','Retraso',${index})" title="Retraso">R</button><button onclick="setEstado(this,'asis','Falta Justificada',${index})" title="Falta Justificada">FJ</button><button onclick="setEstado(this,'asis','Falta Injustificada',${index})" title="Falta Injustificada">FI</button></div><input type="hidden" class="select-asis" value="Presente"><input type="text" class="input-motivo asis-motivo-clean" id="motivo-${index}" placeholder="Motivo (opcional)"></div>
-                    <div class="asis-task-clean"><span class="asis-task-label"><i class="fa-solid fa-check-double"></i> Tarea</span><div class="seg seg-clean seg-task-clean"><button style="background:var(--primary-color);color:white;" onclick="setEstado(this,'tarea','Entregado',${index})" title="Presentó"><i class="fa-solid fa-check"></i></button><button onclick="setEstado(this,'tarea','No Presentó',${index})" title="No presentó"><i class="fa-solid fa-xmark"></i></button></div><input type="hidden" class="select-tarea" value="Entregado"></div>
+                const adv = al.salud && al.salud.trim() !== '' ? ` <i class="fa-solid fa-notes-medical" style="color:var(--danger-color); margin-left: 5px;" title="Requiere cuidado médico"></i>` : '';
+                return `
+                <div class="asis-card">
+                    <div style="display:flex; align-items:center; gap: 12px;">
+                        <div class="avatar">${escHtml(al.nombre.charAt(0).toUpperCase())}</div>
+                        <div style="font-size: 1.02rem;"><strong>${escHtml(al.nombre)}</strong>${adv}</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem;">Asistencia:</label>
+                        <div class="seg">
+                            <button style="background: var(--success-color); color:white;" onclick="setEstado(this, 'asis', 'Presente', ${index})" title="Presente">P</button>
+                            <button onclick="setEstado(this, 'asis', 'Retraso', ${index})" title="Retraso">R</button>
+                            <button onclick="setEstado(this, 'asis', 'Falta Justificada', ${index})" title="Falta Justificada">FJ</button>
+                            <button onclick="setEstado(this, 'asis', 'Falta Injustificada', ${index})" title="Falta Injustificada">FI</button>
+                        </div>
+                        <input type="hidden" class="select-asis" value="Presente">
+                        <input type="text" class="input-motivo" id="motivo-${index}" placeholder="Motivo de permiso o retraso...">
+                    </div>
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                        <label class="lbl-tarea-dia" style="font-size: 0.78rem;">Revisión de Tarea:</label>
+                        <div class="seg">
+                            <button style="background: var(--primary-color); color:white;" onclick="setEstado(this, 'tarea', 'Entregado', ${index})" title="Presentó"><i class="fa-solid fa-check"></i> Presentó</button>
+                            <button onclick="setEstado(this, 'tarea', 'No Presentó', ${index})" title="No presentó"><i class="fa-solid fa-xmark"></i> No presentó</button>
+                        </div>
+                        <input type="hidden" class="select-tarea" value="Entregado">
+                    </div>
                 </div>`;
             }).join('');
         }
@@ -3515,13 +3532,6 @@ td,th{border-color:var(--ui-border)!important}
         actualizarInterfazGrupo();
         sincronizarConNube(false);
         toast('✔ Catequizando eliminado');
-    }
-
-    function togglePanelLista(id, btn){
-        const el=document.getElementById(id); if(!el)return;
-        const abrir=el.style.display==='none' || !el.style.display;
-        el.style.display=abrir?'block':'none';
-        if(btn) btn.classList.toggle('is-open',abrir);
     }
 
     // =========================================================================
@@ -3841,105 +3851,6 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
 }
 </style>
 
-<script id="temario-edicion-v2">
-(function(){
-  let edicionTema = null;
-  function getBtn(){ return document.getElementById('btn-guardar-temario'); }
-  function setModoEdicion(on){
-    const btn=getBtn(), cancel=document.getElementById('btn-cancelar-edicion-temario');
-    if(!btn)return;
-    if(on){
-      btn.className='btn btn-info';
-      btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
-      btn.onclick=guardarEdicionTemaTemario;
-      if(cancel)cancel.style.display='inline-flex';
-    }else{
-      btn.className='btn';
-      btn.innerHTML='<i class="fa-solid fa-plus"></i> Agregar';
-      btn.onclick=agregarTemaTemario;
-      if(cancel)cancel.style.display='none';
-    }
-  }
-  window.editarTemaTemario=function(ano,id){
-    const tem=obtenerTemarioActual(), arr=tem[ano]||[];
-    const item=arr.find(x=>String(x.id)===String(id));
-    if(!item)return;
-    edicionTema={ano,id:String(id)};
-    const anoEl=document.getElementById('temario-ano'), fecha=document.getElementById('temario-fecha'), titulo=document.getElementById('temario-titulo'), desc=document.getElementById('temario-descripcion');
-    if(anoEl)anoEl.value=ano;
-    if(fecha)fecha.value=item.fecha||'';
-    if(titulo)titulo.value=item.titulo||'';
-    if(desc)desc.value=item.descripcion||'';
-    setModoEdicion(true);
-    const form=anoEl&&anoEl.closest('.temario-toolbar');
-    if(form)form.scrollIntoView({behavior:'smooth',block:'center'});
-    if(titulo){titulo.focus();titulo.select();}
-    toast('✏️ Editando tema');
-  };
-  window.cancelarEdicionTemaTemario=function(){
-    edicionTema=null;
-    ['temario-fecha','temario-titulo','temario-descripcion'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    const ano=document.getElementById('temario-ano');if(ano)ano.value='primerAno';
-    setModoEdicion(false);
-  };
-  window.guardarEdicionTemaTemario=function(){
-    if(!edicionTema)return;
-    const nuevoAno=document.getElementById('temario-ano').value;
-    const fecha=document.getElementById('temario-fecha').value;
-    const titulo=document.getElementById('temario-titulo').value.trim();
-    const descripcion=document.getElementById('temario-descripcion').value.trim();
-    if(!titulo){alert('Escribe el tema.');return;}
-    const tem=obtenerTemarioActual();
-    const viejoArr=tem[edicionTema.ano]||[];
-    const item=viejoArr.find(x=>String(x.id)===edicionTema.id);
-    if(!item)return;
-    const estado=item.completado===true;
-    item.fecha=fecha;
-    item.titulo=titulo;
-    item.descripcion=descripcion;
-    item.completado=estado;
-    if(nuevoAno!==edicionTema.ano){
-      const idx=viejoArr.indexOf(item);if(idx>=0)viejoArr.splice(idx,1);
-      if(!Array.isArray(tem[nuevoAno]))tem[nuevoAno]=[];
-      tem[nuevoAno].push(item);
-    }
-    sistemaDatos._actualizado=Date.now();
-    guardarEquipoLocal(equipoActualLogin,sistemaDatos);
-    edicionTema=null;
-    setModoEdicion(false);
-    ['temario-fecha','temario-titulo','temario-descripcion'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    renderizarTemario();
-    sincronizarConNube(true);
-    toast('✔ Tema actualizado y guardado');
-  };
-  const oldRender=window.renderizarTemario;
-  window.renderizarTemario=function(){
-    oldRender();
-    const cont=document.getElementById('lista-temario');if(!cont)return;
-    const ano=document.getElementById('temario-filtro-ano').value;
-    const items=(obtenerTemarioActual()[ano]||[]);
-    // Reemplazamos solamente las acciones de cada tarjeta para añadir editar.
-    cont.querySelectorAll('.temario-item').forEach(card=>{
-      const check=card.querySelector('.temario-check');if(!check)return;
-      const id=check.getAttribute('onchange')||'';
-      const m=id.match(/cambiarEstadoTemaTemario\('[^']*','([^']+)'/);
-      if(!m)return;
-      const temaId=m[1];
-      const actions=card.querySelector('.temario-item-head');if(!actions)return;
-      const del=actions.querySelector('.btn-danger');
-      if(del && !actions.querySelector('.btn-editar-tema')){
-        const b=document.createElement('button');
-        b.type='button';b.className='btn btn-info btn-editar-tema';b.style.cssText='padding:6px 9px;margin-right:6px';
-        b.title='Editar tema y fecha';b.innerHTML='<i class="fa-solid fa-pen"></i>';
-        b.onclick=function(){editarTemaTemario(ano,temaId)};
-        del.parentNode.insertBefore(b,del);
-      }
-    });
-  };
-  // Después de que la app cargue, mantenemos la edición disponible.
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){try{renderizarTemario()}catch(e){}},300);});
-})();
-</script>
 </body></html>`);w.document.close();
     }
     function imprimirTemario(){
@@ -4398,17 +4309,6 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
     }
     function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
     function fechaISOHoy(){return new Date().toISOString().slice(0,10);}
-    function alternarSegundaFechaActividad(){
-        const wrap=document.getElementById('fin-extra-date-wrap');
-        const btn=document.getElementById('btn-agregar-fecha-actividad');
-        const input=document.getElementById('fin-nueva-fecha-fin');
-        if(!wrap||!btn)return;
-        const abrir=wrap.style.display==='none'||!wrap.style.display;
-        wrap.style.display=abrir?'block':'none';
-        btn.innerHTML=abrir?'<i class="fa-solid fa-calendar-xmark"></i> Quitar segunda fecha':'<i class="fa-solid fa-calendar-plus"></i> Agregar otra fecha';
-        btn.classList.toggle('btn-warning',abrir);
-        if(!abrir&&input)input.value='';
-    }
     function agregarActividadFinanzas(){
         const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, fechaFin=document.getElementById('fin-nueva-fecha-fin')?.value||fecha, precio=Number(document.getElementById('fin-nuevo-precio').value||0), descripcion=(document.getElementById('fin-nueva-descripcion')?.value||'').trim(), inicio=document.getElementById('fin-nueva-inicio')?.value||'', fin=document.getElementById('fin-nueva-fin')?.value||'', estado=document.getElementById('fin-nueva-estado')?.value||'planificada';
         if(!nombre){alert('Escribe el nombre de la actividad.');return;}
@@ -4509,7 +4409,6 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
 })();
 </script>
 <style id="ux-fluid-clean-2026">
-.attendance-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.activity-extra-date-action{display:flex;flex-direction:column}.activity-extra-date-action .btn{min-height:52px}.session-today-only{grid-template-columns:repeat(2,minmax(0,1fr))}.session-today-only .full{grid-column:1/-1}@media(max-width:700px){.attendance-head-actions{width:100%}.attendance-head-actions .btn{flex:1;min-width:0}.session-today-only{grid-template-columns:1fr}.session-today-only .full{grid-column:auto}.activity-extra-date-action .btn{width:100%}}
 .collapsible-card{overflow:hidden}.collapsible-header{margin-bottom:0!important;align-items:center!important}.collapsible-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.collapsible-body{display:none;padding-top:18px;animation:collapseIn .16s ease-out}.collapsible-body.open{display:block}.collapse-toggle{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.collapse-toggle i{transition:transform .18s ease}.collapse-toggle[aria-expanded="true"] i{transform:rotate(180deg)}.inline-collapsible{margin-top:10px}.compact-collapsible{padding:14px 0 2px}.compact-form-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,220px) auto;gap:10px;align-items:end}.meeting-collapsible{margin-top:14px}@keyframes collapseIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}#fin-nueva-fecha-fin{min-height:52px}@media(max-width:760px){.collapsible-header{align-items:flex-start!important;flex-direction:column}.collapsible-head-actions{width:100%;justify-content:space-between}.compact-form-row{grid-template-columns:1fr}.compact-form-row .btn{width:100%}}@media(prefers-reduced-motion:reduce){.collapsible-body,.collapse-toggle i{animation:none;transition:none}}
 </style>
 <script id="ux-fluid-clean-js">
