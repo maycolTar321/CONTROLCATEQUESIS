@@ -969,6 +969,64 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 @media(max-width:900px){.grupo-bar .group-action,.grupo-bar .chip-pc{width:40px!important;min-width:40px!important}.grupo-bar>.topbar-save{min-width:40px!important;width:40px!important;padding:0!important}}
 
 @media(min-width:901px){.mobile-nav,.mobile-action-sheet{display:none!important}.topbar-save span{display:inline!important}}
+
+<style id="ajuste-barra-superior-compacta">
+/* Barra superior móvil: estado + guardar + más en una sola línea */
+@media(max-width:900px){
+  .grupo-bar{
+    grid-template-columns:minmax(0,1fr) auto auto auto !important;
+    gap:7px !important;
+    padding:8px 9px !important;
+  }
+  .grupo-bar #selector-grupos{
+    grid-column:1/-1 !important;
+    grid-row:1 !important;
+  }
+  .grupo-bar #estado-tiempo-real{
+    grid-column:2 !important;
+    grid-row:2 !important;
+    width:34px !important;
+    min-width:34px !important;
+    max-width:34px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 !important;
+    justify-content:center !important;
+    border-radius:10px !important;
+  }
+  .grupo-bar>.topbar-save{
+    grid-column:3 !important;
+    grid-row:2 !important;
+    width:34px !important;
+    min-width:34px !important;
+    max-width:34px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 !important;
+    border-radius:10px !important;
+  }
+  .grupo-bar>.mobile-group-more{
+    grid-column:4 !important;
+    grid-row:2 !important;
+    width:34px !important;
+    min-width:34px !important;
+    max-width:34px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 !important;
+    border-radius:10px !important;
+    justify-content:center !important;
+  }
+  .grupo-bar #estado-tiempo-real i,
+  .grupo-bar>.topbar-save i,
+  .grupo-bar>.mobile-group-more i{font-size:.9rem !important;margin:0 !important}
+}
+@media(max-width:480px){
+  .grupo-bar{grid-template-columns:minmax(0,1fr) 32px 32px 32px !important;gap:6px !important}
+  .grupo-bar #estado-tiempo-real,.grupo-bar>.topbar-save,.grupo-bar>.mobile-group-more{width:32px !important;min-width:32px !important;max-width:32px !important;height:32px !important;min-height:32px !important;border-radius:9px !important}
+  .grupo-bar #estado-tiempo-real i,.grupo-bar>.topbar-save i,.grupo-bar>.mobile-group-more i{font-size:.84rem !important}
+}
+</style>
 <style id="campos-texto-visibles">
 /* Todos los campos de escritura: texto siempre visible y foco sin verde */
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
