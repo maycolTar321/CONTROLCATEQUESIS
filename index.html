@@ -7,7 +7,86 @@
     <title>Control De Catequesis - Sistema de Catequesis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+    // =========================================================================
+    // FINANZAS / ACTIVIDADES — V5
+    // =========================================================================
+    function obtenerFinanzasActual(){
+        const g=sistemaDatos.grupos[grupoActual]; if(!g)return {actividades:[],movimientos:[]};
+        if(!g.finanzas)g.finanzas={actividades:[],movimientos:[]};
+        if(!Array.isArray(g.finanzas.actividades))g.finanzas.actividades=[];
+        if(!Array.isArray(g.finanzas.movimientos))g.finanzas.movimientos=[];
+        return g.finanzas;
+    }
+    function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function fechaISOHoy(){return new Date().toISOString().slice(0,10);}
+    function agregarActividadFinanzas(){
+        const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, precio=Number(document.getElementById('fin-nuevo-precio').value||0);
+        if(!nombre){alert('Escribe el nombre de la actividad.');return;}
+        f.actividades.push({id:'act_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),nombre,fecha,precio});
+        sincronizarConNube(false); document.getElementById('fin-nueva-actividad').value='';document.getElementById('fin-nueva-fecha').value='';document.getElementById('fin-nuevo-precio').value='';renderizarFinanzas();toast('✔ Actividad creada');
+    }
+    function registrarMovimientoFinanzas(){
+        const f=obtenerFinanzasActual(), persona=document.getElementById('fin-persona').value, actividadId=document.getElementById('fin-actividad').value, tipo=document.getElementById('fin-tipo').value, monto=Number(document.getElementById('fin-monto').value||0), fecha=document.getElementById('fin-fecha').value||fechaISOHoy(), metodo=document.getElementById('fin-metodo').value, observacion=document.getElementById('fin-observacion').value.trim();
+        if(!persona||!actividadId||!monto||monto<=0){alert('Completa persona, actividad y monto.');return;}
+        const act=f.actividades.find(a=>String(a.id)===String(actividadId)); if(!act){alert('Selecciona una actividad válida.');return;}
+        f.movimientos.push({id:'mov_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),persona,actividadId,actividadNombre:act.nombre,tipo,monto,fecha,metodo,observacion});
+        sincronizarConNube(false);document.getElementById('fin-monto').value='';document.getElementById('fin-observacion').value='';renderizarFinanzas();toast(tipo==='pago'?'✔ Pago registrado':'✔ Devolución registrada');
+    }
+    function eliminarMovimientoFinanzas(id){
+        if(!confirm('¿Eliminar este movimiento? Se recomienda hacer un respaldo antes.'))return;
+        const f=obtenerFinanzasActual();f.movimientos=f.movimientos.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
+    }
+    function eliminarActividadFinanzas(id){
+        const f=obtenerFinanzasActual(), usada=f.movimientos.some(x=>String(x.actividadId)===String(id));
+        if(usada){alert('No se puede borrar una actividad que ya tiene pagos/devoluciones. Puedes dejarla archivada.');return;}
+        if(!confirm('¿Eliminar esta actividad?'))return;f.actividades=f.actividades.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
+    }
+    function estadoPagoFinanzas(persona,act){
+        const f=obtenerFinanzasActual(), mov=f.movimientos.filter(x=>x.persona===persona&&String(x.actividadId)===String(act.id));
+        const pagos=mov.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=mov.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0), neto=pagos-dev, precio=Number(act.precio||0), saldo=precio-neto;
+        return {pagos,dev,neto,precio,saldo};
+    }
+    function renderizarFinanzas(){
+        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
+        const totalPagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), totalDev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
+        const pendiente=f.actividades.reduce((sum,a)=>sum+alumnos.reduce((s,al)=>{const e=estadoPagoFinanzas(al.nombre,a);return s+Math.max(0,e.saldo);},0),0);
+        document.getElementById('fin-kpi-cobrado').textContent=dineroBOB(totalPagos);document.getElementById('fin-kpi-devuelto').textContent=dineroBOB(totalDev);document.getElementById('fin-kpi-caja').textContent=dineroBOB(totalPagos-totalDev);document.getElementById('fin-kpi-pendiente').textContent=dineroBOB(pendiente);document.getElementById('fin-kpi-movimientos').textContent=f.movimientos.length;
+        const ps=document.getElementById('fin-persona');ps.innerHTML=alumnos.length?alumnos.map(a=>`<option value="${escHtml(a.nombre)}">${escHtml(a.nombre)}</option>`).join(''):'<option value="">No hay catequizandos</option>';
+        const as=document.getElementById('fin-actividad');as.innerHTML=f.actividades.length?f.actividades.map(a=>`<option value="${escHtml(a.id)}">${escHtml(a.nombre)} · ${dineroBOB(a.precio)}</option>`).join(''):'<option value="">Crea una actividad primero</option>';
+        const rows=[];
+        f.actividades.slice().reverse().forEach(a=>{
+            const det=alumnos.map(al=>({al,e:estadoPagoFinanzas(al.nombre,a)}));
+            const pag=det.filter(x=>x.e.neto>=x.e.precio&&x.e.precio>0).length, parc=det.filter(x=>x.e.neto>0&&x.e.neto<x.e.precio).length, pend=det.filter(x=>x.e.saldo>0).length;
+            rows.push(`<div style="border:1px solid var(--border-color);border-radius:14px;padding:14px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><strong>${escHtml(a.nombre)}</strong><small style="display:block;color:var(--medium-gray)">${a.fecha?formatearFecha(a.fecha):'Sin fecha'} · Costo ${dineroBOB(a.precio)}</small></div><button class="btn btn-danger" style="padding:5px 8px" onclick="eliminarActividadFinanzas('${jsStr(a.id)}')"><i class="fa-solid fa-trash"></i></button></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:.82rem"><span class="finance-status ok">Pagados: ${pag}</span><span class="finance-status warn">Parciales: ${parc}</span><span class="finance-status bad">Pendientes: ${pend}</span></div><div style="overflow:auto;margin-top:10px"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${det.map(x=>{const e=x.e;let st=e.precio===0?'Sin costo':e.saldo<=0?'Pagado':e.neto>0?'Parcial':'Pendiente';let cl=st==='Pagado'?'ok':st==='Parcial'?'warn':'bad';return `<tr><td>${escHtml(x.al.nombre)}</td><td>${dineroBOB(e.neto)}</td><td class="${e.saldo>0?'money-negative':'money-positive'}">${dineroBOB(Math.max(0,e.saldo))}</td><td><span class="finance-status ${cl}">${st}</span></td></tr>`}).join('')}</tbody></table></div></div>`);
+        });
+        document.getElementById('fin-resumen-actividades').innerHTML=rows.join('')||'<p style="color:var(--medium-gray)">Todavía no hay actividades. Crea la primera arriba.</p>';
+        const personaRows=alumnos.map(al=>{
+            let pag=0,dev=0,pend=0;
+            f.actividades.forEach(a=>{const e=estadoPagoFinanzas(al.nombre,a);pag+=e.pagos;dev+=e.dev;pend+=Math.max(0,e.saldo);});
+            return `<tr><td>${escHtml(al.nombre)}</td><td class="money-positive">${dineroBOB(pag)}</td><td class="money-negative">${dineroBOB(dev)}</td><td><b>${dineroBOB(pag-dev)}</b></td><td class="${pend>0?'money-negative':'money-positive'}">${dineroBOB(pend)}</td></tr>`;
+        });
+        document.getElementById('fin-tabla-personas').innerHTML=personaRows.join('')||'<tr><td colspan="5" style="color:var(--medium-gray)">No hay catequizandos.</td></tr>';
+        const mov=f.movimientos.slice().reverse();
+        document.getElementById('fin-tabla-movimientos').innerHTML=mov.length?mov.map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td class="${m.tipo==='pago'?'money-positive':'money-negative'}">${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td><td><button class="btn btn-info" style="padding:4px 7px" onclick="imprimirComprobanteFinanzas('${jsStr(m.id)}')" title="Imprimir comprobante"><i class="fa-solid fa-print"></i></button></td><td><button class="btn btn-danger" style="padding:4px 7px" onclick="eliminarMovimientoFinanzas('${jsStr(m.id)}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="9" style="color:var(--medium-gray)">No hay movimientos.</td></tr>';
+    }
+    function imprimirComprobanteFinanzas(id){
+        const f=obtenerFinanzasActual(),m=f.movimientos.find(x=>String(x.id)===String(id));if(!m)return;
+        const tipo=m.tipo==='pago'?'RECIBO DE PAGO':'CONSTANCIA DE DEVOLUCIÓN';
+        imprimirHTML(`<div style="max-width:650px;margin:auto;border:2px solid #0f766e;padding:28px;border-radius:12px"><h1 style="text-align:center">CONTROL DE CATEQUESIS</h1><h2 style="text-align:center">${tipo}</h2><hr><p><b>Persona:</b> ${escHtml(m.persona)}</p><p><b>Actividad:</b> ${escHtml(m.actividadNombre||'')}</p><p><b>Fecha:</b> ${escHtml(m.fecha||'')}</p><p><b>Método:</b> ${escHtml(m.metodo||'')}</p><p style="font-size:24px"><b>Monto: ${dineroBOB(m.monto)}</b></p><p><b>Observación:</b> ${escHtml(m.observacion||'-')}</p><br><p style="text-align:center;color:#64748b">Comprobante generado por el Sistema de Control de Catequesis.</p></div>`,tipo.replace(/ /g,'_')+'_'+m.persona);
+    }
+    function exportarFinanzasCSV(){
+        const f=obtenerFinanzasActual();csvDescargar('Finanzas_Catequesis_'+new Date().toISOString().slice(0,10)+'.csv',[['Fecha','Persona','Actividad','Tipo','Metodo','Monto Bs','Observacion'],...f.movimientos.map(m=>[m.fecha,m.persona,m.actividadNombre,m.tipo,m.metodo,m.monto,m.observacion||''])]);toast('✔ Finanzas exportadas');
+    }
+    function imprimirFinanzas(){
+        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
+        const pagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
+        const rows=f.movimientos.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td>${escHtml(m.tipo)}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td></tr>`).join('');
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Reporte de Finanzas y Actividades</h2><p><b>Grupo:</b> ${escHtml(grupoActual)} · <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p><p><b>Total cobrado:</b> ${dineroBOB(pagos)} &nbsp; <b>Devoluciones:</b> ${dineroBOB(dev)} &nbsp; <b>En caja:</b> ${dineroBOB(pagos-dev)}</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th></tr></thead><tbody>${rows||'<tr><td colspan="7">Sin movimientos</td></tr>'}</tbody></table>`,'Reporte_Finanzas_'+grupoActual);
+    }
+    document.addEventListener('DOMContentLoaded',()=>{const f=document.getElementById('fin-fecha');if(f)f.value=fechaISOHoy();});
+
+</script>
 
 <!-- Configuración para App de Celular (PWA) -->
 <link rel="manifest" href="manifest.json">
@@ -126,6 +205,20 @@
         display: flex; justify-content: center; align-items: center; gap: 8px;
     }
     .btn-outline:hover { background: rgba(61,212,138,0.1); border-color: var(--accent); }
+
+
+    /* FINANZAS V5/V4+ */
+    .finance-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+    .finance-kpi{padding:16px;border:1px solid var(--border-color);border-radius:16px;background:rgba(16,185,129,.06)}
+    .finance-kpi small{display:block;color:var(--medium-gray);text-transform:uppercase;font-size:.72rem;font-weight:800;letter-spacing:.5px}
+    .finance-kpi strong{display:block;font-size:1.65rem;margin-top:5px}
+    .finance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .finance-table{width:100%;border-collapse:collapse;font-size:.88rem}
+    .finance-table th,.finance-table td{padding:9px;border-bottom:1px solid var(--border-color);text-align:left}
+    .finance-table th{color:var(--medium-gray);font-size:.74rem;text-transform:uppercase}
+    .money-positive{color:#34d399;font-weight:800}.money-negative{color:#fb7185;font-weight:800}.money-neutral{color:var(--medium-gray);font-weight:700}
+    .finance-status{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:800}
+    .finance-status.ok{background:rgba(16,185,129,.14);color:#6ee7b7}.finance-status.warn{background:rgba(245,158,11,.14);color:#fcd34d}.finance-status.bad{background:rgba(239,68,68,.14);color:#fca5a5}
 
     /* ----- REGISTRO ----- */
     #registro-overlay {
@@ -338,7 +431,25 @@
     .temario-item h4{margin:0 0 4px;font-size:.98rem}.temario-item small{color:var(--medium-gray)}
     .temario-item p{margin-top:8px;color:var(--medium-gray);font-size:.84rem;line-height:1.45}
     .temario-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
-    .temario-toolbar>div{flex:1;min-width:150px}.multi-task{min-height:120px!important}
+    
+.temario-toolbar>div{flex:1;min-width:150px}.multi-task{min-height:120px!important}
+.task-picker{border:1px solid var(--border-color);background:rgba(15,23,42,.55);border-radius:14px;padding:10px}
+.task-picker-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:9px}
+.task-picker-tools input{flex:1;min-width:170px!important;margin:0!important}
+.task-picker-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:7px;max-height:230px;overflow:auto;padding:2px}
+.task-option{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--border-color);border-radius:11px;background:rgba(255,255,255,.025);cursor:pointer;transition:.15s}
+.task-option:hover{border-color:var(--accent);background:rgba(16,185,129,.08)}
+.task-option.selected{border-color:rgba(16,185,129,.65);background:rgba(16,185,129,.12)}
+.task-option input{width:18px!important;height:18px!important;margin:0!important;accent-color:var(--accent);cursor:pointer}
+.task-option-main{min-width:0;flex:1}.task-option-name{font-weight:700;font-size:.86rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-option-date{font-size:.72rem;color:var(--medium-gray)}
+.task-picker-summary{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--medium-gray);font-size:.76rem;margin-top:8px}
+.quick-actions{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 0}.quick-actions .btn{padding:7px 10px;font-size:.78rem}
+.session-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.session-tools .btn{flex:1;min-width:145px}
+.backup-box{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.backup-box .btn{flex:1;min-width:150px}
+@media(max-width:600px){.task-picker-list{grid-template-columns:1fr}.task-option{padding:12px}.session-tools .btn{min-width:100%}}
+
     .realtime-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.75rem;font-weight:700;background:rgba(148,163,184,.12);color:var(--medium-gray)}
     .realtime-status.ok{color:#6ee7b7;background:rgba(16,185,129,.12)}
     .realtime-status.off{color:#fcd34d;background:rgba(245,158,11,.12)}
@@ -432,6 +543,23 @@
         .registro-card { padding: 1.5rem; }
         .login-card { padding: 2rem 1.5rem; }
     }
+
+/* ===== NIVEL SUPER DIOS V4 ===== */
+.v4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
+.v4-kpi{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(30,41,59,.95),rgba(15,23,42,.95));border:1px solid rgba(148,163,184,.16);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.v4-kpi .v4-num{font-size:2rem;font-weight:900;margin-top:6px}.v4-kpi small{color:var(--medium-gray)}
+.v4-panel{background:rgba(15,23,42,.48);border:1px solid rgba(148,163,184,.14);border-radius:18px;padding:18px;margin-bottom:18px}
+.v4-agenda-item{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid rgba(148,163,184,.10)}
+.v4-agenda-item:last-child{border-bottom:0}.v4-dot{width:11px;height:11px;border-radius:50%;margin-top:6px;flex:0 0 auto;background:var(--accent)}
+.v4-risk{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;margin-bottom:8px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.16)}
+.v4-risk.warn{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.16)}
+.v4-good{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.16)}
+.v4-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:800;background:rgba(148,163,184,.10)}
+.v4-session{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(148,163,184,.12);border-radius:13px;margin-bottom:8px}
+.v4-session-actions{display:flex;gap:6px;flex-wrap:wrap}.v4-task-selected{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.v4-task-chip{padding:7px 10px;border-radius:999px;background:rgba(59,130,246,.13);border:1px solid rgba(59,130,246,.25);cursor:pointer}
+@media(max-width:700px){.v4-session{align-items:flex-start;flex-direction:column}.v4-session-actions{width:100%}.v4-session-actions .btn{flex:1}}
+
 </style>
 
 </head>
@@ -571,14 +699,17 @@
             <button class="tab-btn" onclick="switchTab(event, 'tareas')" title="Tareas y reuniones de padres"><i class="fa-solid fa-book-bible"></i><span class="lbl-pc">Tareas y Reuniones</span><span class="lbl-m">Tareas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'alumnos')" title="Inscribir y ver jóvenes"><i class="fa-solid fa-user-graduate"></i><span class="lbl-pc">Catequizandos y Fichas</span><span class="lbl-m">Fichas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'notas')" title="Tus apuntes"><i class="fa-solid fa-thumbtack"></i><span class="lbl-pc">Mis Notas</span><span class="lbl-m">Notas</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'herramientas')" title="Respaldo y diagnóstico"><i class="fa-solid fa-shield-halved"></i><span class="lbl-pc">Herramientas</span><span class="lbl-m">Backup</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control Nivel Súper Dios"><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'temario')" title="Temario de Primer y Segundo Año"><i class="fa-solid fa-list-check"></i><span class="lbl-pc">Temario / Checklist</span><span class="lbl-m">Temario</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'finanzas')" title="Pagos, devoluciones y actividades"><i class="fa-solid fa-money-bill-transfer"></i><span class="lbl-pc">Finanzas</span><span class="lbl-m">Pagos</span></button>
         </nav>
         <div class="sidebar-footer">
             <i class="fa-solid fa-circle-user" style="font-size:1.6rem; color: var(--accent); margin-bottom:6px;"></i><br>
             <strong id="footer-nombre-perfil">No configurado</strong><br>
             <span id="footer-cargo-perfil"></span><br>
             <span style="opacity:.7;">Equipo: <span id="footer-equipo"></span></span><br>
-            <span style="opacity:.5;">Control de Catequesis V.4</span>
+            <span style="opacity:.5;">Control de Catequesis V.4 Súper Dios</span>
         </div>
     </aside>
 
@@ -620,6 +751,7 @@
                         <button class="btn btn-danger" onclick="abrirModalPDF()"><i class="fa-solid fa-file-pdf"></i> Reporte PDF</button>
                         <button class="btn btn-slate" onclick="imprimirReporteActual()"><i class="fa-solid fa-print"></i> Imprimir</button>
                         <button class="btn btn-info" onclick="abrirModalDirectorio()"><i class="fa-solid fa-address-book"></i> Directorio / Salud</button>
+                        <button class="btn btn-slate" onclick="exportarRespaldoJSON()"><i class="fa-solid fa-database"></i> Backup</button>
                     </div>
                 </div>
 
@@ -693,6 +825,58 @@
                 </div>
             </section>
 
+            <!-- FINANZAS Y ACTIVIDADES -->
+            <section id="finanzas" class="section">
+                <div class="page-head">
+                    <h2><i class="fa-solid fa-money-bill-transfer"></i> Finanzas de Actividades</h2>
+                    <div class="acciones">
+                        <button class="btn btn-info" onclick="exportarFinanzasCSV()"><i class="fa-solid fa-file-csv"></i> Exportar</button>
+                        <button class="btn btn-slate" onclick="imprimirFinanzas()"><i class="fa-solid fa-print"></i> Imprimir caja</button>
+                    </div>
+                </div>
+                <div class="finance-kpis">
+                    <div class="finance-kpi"><small>Total cobrado</small><strong id="fin-kpi-cobrado">Bs 0,00</strong></div>
+                    <div class="finance-kpi"><small>Devoluciones</small><strong id="fin-kpi-devuelto">Bs 0,00</strong></div>
+                    <div class="finance-kpi"><small>En caja</small><strong id="fin-kpi-caja">Bs 0,00</strong></div>
+                    <div class="finance-kpi"><small>Pendiente por cobrar</small><strong id="fin-kpi-pendiente">Bs 0,00</strong></div>
+                    <div class="finance-kpi"><small>Movimientos</small><strong id="fin-kpi-movimientos">0</strong></div>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-calendar-plus"></i> Nueva actividad</h2>
+                    <div class="finance-grid">
+                        <div><label>Actividad</label><input id="fin-nueva-actividad" placeholder="Ej: Retiro, paseo, material, convivencia"></div>
+                        <div><label>Fecha</label><input type="date" id="fin-nueva-fecha"></div>
+                        <div><label>Costo por catequizando (Bs)</label><input type="number" id="fin-nuevo-precio" min="0" step="0.01" placeholder="0.00"></div>
+                    </div>
+                    <button class="btn" style="margin-top:12px" onclick="agregarActividadFinanzas()"><i class="fa-solid fa-plus"></i> Crear actividad</button>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-cash-register"></i> Registrar pago o devolución</h2>
+                    <div class="finance-grid">
+                        <div><label>Catequizando / persona</label><select id="fin-persona"></select></div>
+                        <div><label>Actividad</label><select id="fin-actividad"></select></div>
+                        <div><label>Tipo</label><select id="fin-tipo"><option value="pago">Pago recibido</option><option value="devolucion">Devolución</option></select></div>
+                        <div><label>Monto (Bs)</label><input type="number" id="fin-monto" min="0.01" step="0.01" placeholder="0.00"></div>
+                        <div><label>Fecha</label><input type="date" id="fin-fecha"></div>
+                        <div><label>Método</label><select id="fin-metodo"><option>Efectivo</option><option>QR</option><option>Transferencia</option><option>Depósito</option><option>Otro</option></select></div>
+                        <div style="grid-column:1/-1"><label>Observación / comprobante</label><input id="fin-observacion" placeholder="Ej: QR enviado, devolución por suspensión, recibo N°..." ></div>
+                    </div>
+                    <button class="btn" style="margin-top:12px" onclick="registrarMovimientoFinanzas()"><i class="fa-solid fa-floppy-disk"></i> Guardar movimiento</button>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-list"></i> Estado por actividad</h2>
+                    <div id="fin-resumen-actividades"></div>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-users-viewfinder"></i> Resumen por persona</h2>
+                    <div style="overflow:auto"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado</th><th>Devuelto</th><th>Neto</th><th>Pendiente</th></tr></thead><tbody id="fin-tabla-personas"></tbody></table></div>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-receipt"></i> Historial de pagos y devoluciones</h2>
+                    <div style="overflow:auto"><table class="finance-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th><th>Comprobante</th><th></th></tr></thead><tbody id="fin-tabla-movimientos"></tbody></table></div>
+                </div>
+            </section>
+
             <!-- TOMAR LISTA -->
             <section id="asistencia" class="section">
                 <div class="card">
@@ -704,17 +888,101 @@
                         </div>
                         <div style="grid-column: span 2;">
                             <label>Selecciona una o varias tareas del día:</label>
-                            <select id="selector-tarea-actual" class="multi-task" multiple onchange="actualizarTextosTareas()" title="Selecciona varias tareas">
-                                <option value="Ninguna">Ninguna / Sin Tarea</option>
-                            </select>
-                            <small style="color:var(--medium-gray);display:block;margin-top:6px;">Puedes seleccionar varias tareas; el estado se aplica a todas las seleccionadas.</small>
+                            <div id="selector-tarea-actual" class="task-picker">
+                                <div class="task-picker-tools">
+                                    <input type="search" id="buscar-tarea-sesion" placeholder="Buscar tarea..." oninput="filtrarTareasSesion()" autocomplete="off">
+                                    <button type="button" class="btn btn-info" onclick="seleccionarTodasLasTareasSesion()"><i class="fa-solid fa-check-double"></i> Todas</button>
+                                    <button type="button" class="btn btn-slate" onclick="limpiarTareasSesion()"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                                </div>
+                                <div id="lista-tareas-sesion" class="task-picker-list"></div>
+                                <div class="task-picker-summary"><span id="resumen-tareas-sesion">Sin tareas seleccionadas</span><span>El estado de tarea se aplicará a todas.</span></div>
+                                <div id="tareas-seleccionadas-chips" class="v4-task-selected"></div>
+                            </div>
                         </div>
                     </div>
                     <p style="color: var(--medium-gray); font-size: 0.85rem; margin-bottom: 10px;">
                         <b style="color:#6ee7b7">P</b> = Presente · <b style="color:#fcd34d">R</b> = Retraso · <b style="color:#fca5a5">FJ</b> = Falta Justificada · <b style="color:#fca5a5">FI</b> = Falta Injustificada
                     </p>
+                    <div class="session-tools no-print">
+                        <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
+                        <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
+                        <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
+                        <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
+                        <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última sesión</button>
+                    </div>
+                    <div class="quick-actions no-print">
+                        <button class="btn btn-info" type="button" onclick="marcarTodasTareasEstado('Entregado')"><i class="fa-solid fa-check"></i> Todos presentaron tarea</button>
+                        <button class="btn btn-danger" type="button" onclick="marcarTodasTareasEstado('No Presentó')"><i class="fa-solid fa-xmark"></i> Nadie presentó tarea</button>
+                    </div>
                     <div id="lista-asistencia-dinamica" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;"></div>
                     <button class="btn" style="margin-top: 1.5rem; width: 100%; font-size: 1.05rem; padding: 1rem;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
+                </div>
+            </section>
+
+            <!-- CENTRO DE CONTROL V4 -->
+            <section id="centro-v4" class="section">
+                <div class="page-head">
+                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control — Nivel Súper Dios V4</h2>
+                    <div class="acciones">
+                        <button class="btn btn-info" onclick="actualizarCentroV4()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+                        <button class="btn btn-slate" onclick="exportarAsistenciaCSV()"><i class="fa-solid fa-file-csv"></i> Asistencia CSV</button>
+                        <button class="btn btn-slate" onclick="exportarAlumnosCSV()"><i class="fa-solid fa-users"></i> Alumnos CSV</button>
+                    </div>
+                </div>
+                <div class="v4-grid">
+                    <div class="v4-kpi"><small><i class="fa-solid fa-user-check"></i> Asistencia estimada</small><div class="v4-num" id="v4-kpi-asistencia">0%</div></div>
+                    <div class="v4-kpi"><small><i class="fa-solid fa-triangle-exclamation"></i> En seguimiento</small><div class="v4-num" id="v4-kpi-riesgo">0</div></div>
+                    <div class="v4-kpi"><small><i class="fa-solid fa-calendar-days"></i> Sesiones registradas</small><div class="v4-num" id="v4-kpi-sesiones">0</div></div>
+                    <div class="v4-kpi"><small><i class="fa-solid fa-list-check"></i> Tareas pendientes</small><div class="v4-num" id="v4-kpi-tareas">0</div></div>
+                    <div class="v4-kpi"><small><i class="fa-solid fa-cake-candles"></i> Cumpleaños próximos</small><div class="v4-num" id="v4-kpi-cumples">0</div></div>
+                </div>
+
+                <div class="v4-panel">
+                    <h2><i class="fa-solid fa-calendar-check"></i> Agenda inteligente</h2>
+                    <p style="color:var(--medium-gray);margin-bottom:10px">Próximos 30 días: tareas, reuniones, temario y cumpleaños.</p>
+                    <div id="v4-agenda"></div>
+                </div>
+
+                <div class="v4-panel">
+                    <h2><i class="fa-solid fa-user-shield"></i> Semáforo de seguimiento</h2>
+                    <p style="color:var(--medium-gray);margin-bottom:12px">Detecta automáticamente faltas repetidas o baja asistencia para que ningún joven quede olvidado.</p>
+                    <div id="v4-riesgos"></div>
+                </div>
+
+                <div class="v4-panel">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de sesiones</h2>
+                    <p style="color:var(--medium-gray);margin-bottom:12px">Puedes consultar o eliminar una sesión completa. Antes de eliminar, el sistema descarga un respaldo automático.</p>
+                    <div id="v4-sesiones"></div>
+                </div>
+
+                <div class="v4-panel">
+                    <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Acciones inteligentes</h2>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn btn-info" onclick="abrirReporteIndividualRapido()"><i class="fa-solid fa-user-chart"></i> Reporte individual</button>
+                        <button class="btn btn-warning" onclick="mostrarPendientesV4()"><i class="fa-solid fa-bell"></i> Ver pendientes</button>
+                        <button class="btn btn-slate" onclick="limpiarRegistrosDuplicadosV4()"><i class="fa-solid fa-broom"></i> Detectar duplicados</button>
+                        <button class="btn btn-slate" onclick="crearRespaldoAutomaticoV4()"><i class="fa-solid fa-box-archive"></i> Respaldo automático</button>
+                    </div>
+                    <div id="v4-resultado-accion" style="margin-top:12px"></div>
+                </div>
+            </section>
+
+            <!-- HERRAMIENTAS Y RESPALDO -->
+            <section id="herramientas" class="section">
+                <div class="page-head"><h2><i class="fa-solid fa-shield-halved"></i> Seguridad y Herramientas</h2></div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-database"></i> Respaldo de datos</h2>
+                    <p style="color:var(--medium-gray);margin-bottom:12px;">Descarga una copia completa antes de hacer cambios importantes. También puedes restaurar una copia creada por esta aplicación.</p>
+                    <div class="backup-box">
+                        <button class="btn btn-info" onclick="exportarRespaldoJSON()"><i class="fa-solid fa-download"></i> Descargar respaldo</button>
+                        <button class="btn btn-warning" onclick="document.getElementById('input-restaurar-respaldo').click()"><i class="fa-solid fa-upload"></i> Restaurar respaldo</button>
+                        <input id="input-restaurar-respaldo" type="file" accept="application/json,.json" style="display:none" onchange="restaurarRespaldoJSON(event)">
+                    </div>
+                </div>
+                <div class="card">
+                    <h2><i class="fa-solid fa-bolt"></i> Diagnóstico rápido</h2>
+                    <div id="diagnostico-app" style="color:var(--medium-gray)">Pulsa para revisar.</div>
+                    <button class="btn" style="margin-top:10px" onclick="ejecutarDiagnosticoApp()"><i class="fa-solid fa-stethoscope"></i> Revisar sistema</button>
                 </div>
             </section>
 
@@ -1047,6 +1315,7 @@
     let grupoActual = "Grupo 1";
     let quillEditor = null;
     let equipoActualLogin = "";
+    let tareasSeleccionadasSesion = [];
 
     // =========================================================================
     // UTILIDADES
@@ -1387,8 +1656,17 @@
             if (!grupo.alumnos) grupo.alumnos = [];
             if (!grupo.registros) grupo.registros = [];
             if (!grupo.listaTareas) grupo.listaTareas = [];
+            grupo.listaTareas = grupo.listaTareas.map((t, i) => {
+                if (typeof t === 'string') return { id: 't_' + i + '_' + Date.now(), nombre: t, fecha: '' };
+                if (!t.id) t.id = 't_' + i + '_' + Date.now();
+                if (!t.nombre) t.nombre = 'Tarea sin nombre';
+                return t;
+            });
             if (!grupo.reuniones) grupo.reuniones = [];
             if (!grupo.temario || typeof grupo.temario !== 'object') grupo.temario = { primerAno: [], segundoAno: [] };
+            if (!grupo.finanzas || typeof grupo.finanzas !== 'object') grupo.finanzas = { actividades: [], movimientos: [] };
+            if (!Array.isArray(grupo.finanzas.actividades)) grupo.finanzas.actividades = [];
+            if (!Array.isArray(grupo.finanzas.movimientos)) grupo.finanzas.movimientos = [];
             if (!Array.isArray(grupo.temario.primerAno)) grupo.temario.primerAno = [];
             if (!Array.isArray(grupo.temario.segundoAno)) grupo.temario.segundoAno = [];
             grupo.alumnos = grupo.alumnos.map(al => {
@@ -1423,6 +1701,7 @@
         renderizarNotas();
         renderizarTemario();
         iniciarSincronizacionTiempoReal();
+        if(document.getElementById('centro-v4')) actualizarCentroV4();
 
         const tabGuardada = localStorage.getItem('catequesis_tab_actual');
         if (tabGuardada) {
@@ -1737,9 +2016,12 @@
         if (sectionId === 'dashboard') renderizarDashboard();
         if (sectionId === 'tareas') { actualizarListaTareas(); actualizarListaReuniones(); }
         if (sectionId === 'notas') renderizarNotas();
+        if (sectionId === 'centro-v4') actualizarCentroV4();
+        if (sectionId === 'finanzas') renderizarFinanzas();
     }
 
     function cambiarGrupoSeleccionado() {
+        tareasSeleccionadasSesion=[];
         grupoActual = document.getElementById('selector-grupos').value;
         localStorage.setItem('catequesis_grupo_actual', grupoActual);
         actualizarInterfazGrupo();
@@ -1851,7 +2133,7 @@
         const fechaInput = document.getElementById('nueva-tarea-fecha');
         const tareaNombre = input.value.trim();
         if (!tareaNombre) { input.focus(); return; }
-        sistemaDatos.grupos[grupoActual].listaTareas.push({ nombre: tareaNombre, fecha: formatearFecha(fechaInput.value) });
+        sistemaDatos.grupos[grupoActual].listaTareas.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), nombre: tareaNombre, fecha: formatearFecha(fechaInput.value) });
         input.value = ""; fechaInput.value = "";
         sincronizarConNube(false);
         actualizarListaTareas();
@@ -1880,20 +2162,51 @@
     }
 
     function actualizarSelectorTareasAsistencia(){
-        const selector=document.getElementById('selector-tarea-actual');if(!selector)return;
-        const prev=Array.from(selector.selectedOptions||[]).map(o=>o.value);selector.innerHTML='';
-        (sistemaDatos.grupos[grupoActual].listaTareas||[]).forEach(tarea=>{
-            const opt=document.createElement('option'),nombre=typeof tarea==='string'?tarea:tarea.nombre;
-            const fecha=typeof tarea==='object'&&tarea.fecha?` (Entrega: ${tarea.fecha})`:'';
-            opt.value=nombre;opt.innerText=nombre+fecha;opt.selected=prev.includes(nombre);selector.appendChild(opt);
+        const lista=document.getElementById('lista-tareas-sesion');if(!lista)return;
+        const tareas=sistemaDatos.grupos[grupoActual].listaTareas||[];
+        const idsValidos=tareas.map((t,i)=>String(t.id||('legacy_'+i)));
+        tareasSeleccionadasSesion=tareasSeleccionadasSesion.filter(id=>idsValidos.includes(String(id)));
+        const q=normalizarTextoBusqueda((document.getElementById('buscar-tarea-sesion')||{}).value||'');
+        const visibles=tareas.filter((t,i)=>{
+            const nombre=typeof t==='string'?t:t.nombre;
+            return !q||normalizarTextoBusqueda(nombre).includes(q);
         });
-        if(!Array.from(selector.selectedOptions).length){
-            const opt=document.createElement('option');opt.value='Ninguna';opt.innerText='Ninguna / Sin Tarea';opt.selected=true;selector.insertBefore(opt,selector.firstChild);
+        if(!tareas.length){
+            lista.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:18px;color:var(--medium-gray)"><i class="fa-solid fa-book-open"></i><br>No hay tareas creadas todavía. Ve a <b>Tareas</b> para crear una.</div>';
+        }else if(!visibles.length){
+            lista.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:18px;color:var(--medium-gray)">No se encontró esa tarea.</div>';
+        }else{
+            lista.innerHTML=visibles.map((t,i)=>{
+                const nombre=typeof t==='string'?t:t.nombre;
+                const id=String(t.id||('legacy_'+i));
+                const fecha=typeof t==='object'&&t.fecha?`Entrega: ${escHtml(t.fecha)}`:'';
+                const sel=tareasSeleccionadasSesion.map(String).includes(id);
+                return `<label class="task-option ${sel?'selected':''}"><input type="checkbox" ${sel?'checked':''} onchange="toggleTareaSesion('${jsStr(id)}',this.checked)"><span class="task-option-main"><span class="task-option-name">${escHtml(nombre)}</span>${fecha?`<span class="task-option-date"><i class="fa-regular fa-calendar"></i> ${fecha}</span>`:''}</span></label>`;
+            }).join('');
         }
+        const resumen=document.getElementById('resumen-tareas-sesion');
+        const seleccion=tareas.filter((t,i)=>tareasSeleccionadasSesion.map(String).includes(String(t.id||('legacy_'+i))));
+        if(resumen) resumen.innerHTML=seleccion.length?`<strong style="color:var(--accent)">${seleccion.length}</strong> tarea${seleccion.length===1?'':'s'} seleccionada${seleccion.length===1?'':'s'}: ${escHtml(seleccion.map(t=>typeof t==='string'?t:t.nombre).join(' · '))}`:'Sin tareas seleccionadas (sesión sin tarea)';
+        const chips=document.getElementById('tareas-seleccionadas-chips');
+        if(chips) chips.innerHTML=seleccion.length?seleccion.map((t,i)=>{const id=String(t.id||('legacy_'+i));const nombre=typeof t==='string'?t:t.nombre;return `<span class="v4-task-chip" onclick="toggleTareaSesion('${jsStr(id)}',false)" title="Quitar tarea">${escHtml(nombre)} <i class="fa-solid fa-xmark"></i></span>`}).join(''):'<span style="color:var(--medium-gray);font-size:.82rem">Las tareas seleccionadas aparecerán aquí. Tócalas para quitarlas.</span>';
+        actualizarTextosTareas();
     }
+    function toggleTareaSesion(id,checked){
+        id=String(id);
+        if(checked&&!tareasSeleccionadasSesion.map(String).includes(id)) tareasSeleccionadasSesion.push(id);
+        if(!checked) tareasSeleccionadasSesion=tareasSeleccionadasSesion.filter(x=>String(x)!==id);
+        actualizarSelectorTareasAsistencia();
+    }
+    function seleccionarTodasLasTareasSesion(){
+        const tareas=sistemaDatos.grupos[grupoActual].listaTareas||[];
+        tareasSeleccionadasSesion=tareas.map((t,i)=>String(t.id||('legacy_'+i)));
+        actualizarSelectorTareasAsistencia();
+    }
+    function limpiarTareasSesion(){tareasSeleccionadasSesion=[];actualizarSelectorTareasAsistencia();}
+    function filtrarTareasSesion(){actualizarSelectorTareasAsistencia();}
     function obtenerTareasSeleccionadas(){
-        const selector=document.getElementById('selector-tarea-actual');if(!selector)return[];
-        return Array.from(selector.selectedOptions).map(o=>o.value).filter(v=>v&&v!=='Ninguna');
+        const tareas=sistemaDatos.grupos[grupoActual].listaTareas||[];
+        return tareas.filter((t,i)=>tareasSeleccionadasSesion.map(String).includes(String(t.id||('legacy_'+i)))).map(t=>typeof t==='string'?t:t.nombre);
     }
     function actualizarTextosTareas(){
         const tareas=obtenerTareasSeleccionadas(),texto=tareas.join(', '),corto=texto.length>55?texto.substring(0,55)+'...':texto;
@@ -1941,6 +2254,7 @@
         actualizarListaTareas();
         actualizarListaReuniones();
         actualizarSelectorTareasAsistencia();
+        if(document.getElementById('centro-v4')) actualizarCentroV4();
 
         // --- Tomar lista ---
         const contAsis = document.getElementById('lista-asistencia-dinamica');
@@ -2261,6 +2575,81 @@
         document.querySelectorAll('nav .tab-btn')[0].click();
     }
 
+
+    function marcarTodosAsistencia(valor){
+        document.querySelectorAll('#lista-asistencia-dinamica .asis-card').forEach((card,i)=>{
+            const btn=Array.from(card.querySelectorAll('.seg button')).find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${valor}'`));
+            if(btn) setEstado(btn,'asis',valor,i);
+        });
+        toast('✔ Asistencia actualizada en bloque');
+    }
+    function marcarTodasTareasEstado(valor){
+        document.querySelectorAll('#lista-asistencia-dinamica .asis-card').forEach((card,i)=>{
+            const btn=Array.from(card.querySelectorAll('.seg button')).find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${valor}'`));
+            if(btn) setEstado(btn,'tarea',valor,i);
+        });
+        toast(valor==='Entregado'?'✔ Todos marcados como entregado':'✖ Todos marcados como no presentado');
+    }
+    function copiarUltimaAsistencia(){
+        const g=sistemaDatos.grupos[grupoActual],registros=g.registros||[];
+        if(!registros.length){toast('No hay una sesión anterior para copiar.');return;}
+        const fechas=[...new Set(registros.map(r=>r.fecha).filter(Boolean))].sort();
+        const fechaAnterior=fechas[fechas.length-1];
+        const anteriores=registros.filter(r=>r.fecha===fechaAnterior);
+        if(!anteriores.length)return;
+        document.querySelectorAll('#lista-asistencia-dinamica .asis-card').forEach((card,i)=>{
+            const nombre=g.alumnos[i]&&g.alumnos[i].nombre;
+            const r=anteriores.find(x=>x.alumno===nombre);
+            if(!r)return;
+            let estado=String(r.asistencia||'Presente');
+            let base=estado.includes('Falta Injustificada')?'Falta Injustificada':estado.includes('Falta Justificada')?'Falta Justificada':estado.includes('Retraso')?'Retraso':'Presente';
+            const btn=Array.from(card.querySelectorAll('.seg button')).find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${base}'`));
+            if(btn)setEstado(btn,'asis',base,i);
+            const motivo=card.querySelector('.input-motivo');
+            if(motivo&&base!=='Presente'){const m=estado.match(/\((.*?)\)\s*$/);motivo.value=m?m[1]:'';}
+            const tb=card.querySelector('.select-tarea');
+            if(tb)tb.value=r.tareaEstado||'Entregado';
+        });
+        toast(`✔ Copiada la sesión del ${fechaAnterior}`);
+    }
+
+    function limpiarEstadosAsistencia(){
+        document.querySelectorAll('#lista-asistencia-dinamica .asis-card').forEach((card,i)=>{
+            const btn=Array.from(card.querySelectorAll('.seg button')).find(b=>b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'Presente'"));
+            if(btn) setEstado(btn,'asis','Presente',i);
+            const motivo=card.querySelector('.input-motivo');if(motivo)motivo.value='';
+        });
+        document.querySelectorAll('#lista-asistencia-dinamica .select-tarea').forEach(x=>x.value='Entregado');
+        toast('↩ Registro restablecido');
+    }
+    function exportarRespaldoJSON(){
+        const copia=JSON.parse(JSON.stringify(sistemaDatos));
+        copia._respaldoCreado=new Date().toISOString();
+        const blob=new Blob([JSON.stringify(copia,null,2)],{type:'application/json'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Respaldo_Catequesis_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href);toast('✔ Respaldo descargado');
+    }
+    function restaurarRespaldoJSON(event){
+        const file=event.target.files&&event.target.files[0];if(!file)return;
+        const reader=new FileReader();reader.onload=()=>{
+            try{
+                const data=JSON.parse(reader.result);
+                if(!data||typeof data!=='object'||!data.grupos)throw new Error('Formato no válido');
+                if(!confirm('Esto reemplazará los datos actuales de este dispositivo. Recomendado: descarga primero un respaldo. ¿Continuar?'))return;
+                sistemaDatos=data;migrarDatosAntiguos();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(true);actualizarInterfazGrupo();renderizarDashboard();renderizarTemario();toast('✔ Respaldo restaurado');
+            }catch(e){alert('No se pudo restaurar el respaldo: '+e.message)}finally{event.target.value='';}
+        };reader.readAsText(file);
+    }
+    function ejecutarDiagnosticoApp(){
+        const g=sistemaDatos.grupos[grupoActual]||{};
+        const alumnos=Array.isArray(g.alumnos)?g.alumnos.length:0,registros=Array.isArray(g.registros)?g.registros.length:0,tareas=Array.isArray(g.listaTareas)?g.listaTareas.length:0;
+        const problemas=[];
+        if(!equipoActualLogin)problemas.push('No hay sesión de equipo activa.');
+        if(!nubeActiva())problemas.push('La sincronización en nube no está activa.');
+        if(!Array.isArray(g.alumnos))problemas.push('La lista de catequizandos necesita reparación.');
+        if(!Array.isArray(g.registros))problemas.push('Los registros de asistencia necesitan reparación.');
+        const el=document.getElementById('diagnostico-app');if(!el)return;
+        el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px"><div class="stat-card"><b>${alumnos}</b><small>Catequizandos</small></div><div class="stat-card"><b>${registros}</b><small>Registros</small></div><div class="stat-card"><b>${tareas}</b><small>Tareas</small></div></div>${problemas.length?`<div style="color:#fcd34d"><i class="fa-solid fa-triangle-exclamation"></i> ${problemas.join('<br>')}</div>`:'<div style="color:#6ee7b7"><i class="fa-solid fa-circle-check"></i> Sistema básico sin problemas detectados.</div>'}`;
+    }
 
     function limpiarCumpleanos(){const c=document.getElementById('alumno-cumple');if(c){c.value='';c.focus();}}
 
@@ -2685,6 +3074,86 @@
 
     // Cerrar modales tocando el fondo
     document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; }));
+
+
+    // =========================================================================
+    // CENTRO DE CONTROL NIVEL SÚPER DIOS V4
+    // =========================================================================
+    function fechasSesionesV4(){
+        const g=sistemaDatos.grupos[grupoActual]||{};
+        return [...new Set((g.registros||[]).map(r=>r.fecha).filter(Boolean))].sort((a,b)=>String(b).localeCompare(String(a)));
+    }
+    function metricasAlumnoV4(al){
+        const g=sistemaDatos.grupos[grupoActual]||{}, rs=(g.registros||[]).filter(r=>r.alumno===al.nombre);
+        const sesiones=fechasSesionesV4().length;
+        const presentes=rs.filter(r=>/Presente|Retraso/.test(r.asistencia||'')).length;
+        const faltas=rs.filter(r=>/Falta/.test(r.asistencia||'')).length;
+        const pct=rs.length?Math.round(presentes/rs.length*100):100;
+        return {rs,sesiones,presentes,faltas,pct};
+    }
+    function actualizarCentroV4(){
+        const g=sistemaDatos.grupos[grupoActual]; if(!g)return;
+        const registros=g.registros||[], sesiones=fechasSesionesV4();
+        const activos=registros.filter(r=>/Presente|Retraso/.test(r.asistencia||'')).length;
+        const faltas=registros.filter(r=>/Falta/.test(r.asistencia||'')).length;
+        const pct=registros.length?Math.round(activos/registros.length*100):100;
+        const riesgos=(g.alumnos||[]).map(a=>({a,m:metricasAlumnoV4(a)})).filter(x=>x.m.faltas>=3||x.m.pct<75);
+        const pendientes=registros.filter(r=>r.tareaEstado==='No Presentó'&&r.tareaNombre!=='Ninguna').length;
+        const hoy=new Date(); const cumples=(g.alumnos||[]).filter(a=>a.cumple).filter(a=>{const d=new Date(a.cumple+'T00:00:00');let f=new Date(hoy.getFullYear(),d.getMonth(),d.getDate());if(f<hoy)f=new Date(hoy.getFullYear()+1,d.getMonth(),d.getDate());return (f-hoy)/86400000<=30;}).length;
+        document.getElementById('v4-kpi-asistencia').innerText=pct+'%';
+        document.getElementById('v4-kpi-riesgo').innerText=riesgos.length;
+        document.getElementById('v4-kpi-sesiones').innerText=sesiones.length;
+        document.getElementById('v4-kpi-tareas').innerText=pendientes;
+        document.getElementById('v4-kpi-cumples').innerText=cumples;
+
+        const agenda=[]; const limite=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()+30);
+        (g.listaTareas||[]).forEach(t=>{const f=typeof t==='object'?t.fecha:'';if(f){const d=new Date(f+'T00:00:00');if(d>=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate())&&d<=limite)agenda.push({d,titulo:(typeof t==='string'?t:t.nombre),tipo:'Tarea',icon:'fa-book'});}});
+        (g.reuniones||[]).forEach(r=>{const m=String(r.fecha||'').match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);if(m){const d=new Date(Number(m[3].length===2?'20'+m[3]:m[3]),Number(m[2])-1,Number(m[1]));if(d>=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate())&&d<=limite)agenda.push({d,titulo:r.motivo,tipo:'Reunión',icon:'fa-people-group'});}});
+        (g.temario?.primerAno||[]).concat(g.temario?.segundoAno||[]).forEach(t=>{if(t.fecha){const d=new Date(t.fecha+'T00:00:00');if(d>=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate())&&d<=limite)agenda.push({d,titulo:t.titulo||t.nombre||'Tema',tipo:'Temario',icon:'fa-list-check'});}});
+        (g.alumnos||[]).forEach(a=>{if(!a.cumple)return;const d0=new Date(a.cumple+'T00:00:00');let d=new Date(hoy.getFullYear(),d0.getMonth(),d0.getDate());if(d<new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()))d=new Date(hoy.getFullYear()+1,d0.getMonth(),d0.getDate());if(d<=limite)agenda.push({d,titulo:'Cumpleaños: '+a.nombre,tipo:'Cumpleaños',icon:'fa-cake-candles'});});
+        agenda.sort((a,b)=>a.d-b.d);
+        const agendaEl=document.getElementById('v4-agenda');
+        agendaEl.innerHTML=agenda.length?agenda.map(x=>`<div class=\"v4-agenda-item\"><span class=\"v4-dot\"></span><div><strong>${escHtml(x.titulo)}</strong><div style=\"color:var(--medium-gray);font-size:.83rem\"><i class=\"fa-solid ${x.icon}\"></i> ${x.tipo} · ${x.d.toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'})}</div></div></div>`).join(''):'<div style="color:var(--medium-gray);padding:10px">No hay eventos próximos.</div>';
+
+        const riskEl=document.getElementById('v4-riesgos');
+        if(!riesgos.length) riskEl.innerHTML='<div class="v4-risk v4-good"><span><i class="fa-solid fa-circle-check"></i> No hay alertas de asistencia.</span><strong>OK</strong></div>';
+        else riskEl.innerHTML=riesgos.sort((x,y)=>x.m.pct-y.m.pct).map(x=>`<div class=\"v4-risk ${x.m.faltas<3?'warn':''}\"><div><strong>${escHtml(x.a.nombre)}</strong><br><small>${x.m.faltas} faltas · ${x.m.pct}% asistencia</small></div><button class=\"btn btn-info\" style=\"padding:.45rem .7rem\" onclick=\"generarReporteIndividualV4(${JSON.stringify(x.a.nombre)})\"><i class=\"fa-solid fa-user-chart\"></i></button></div>`).join('');
+
+        const sesEl=document.getElementById('v4-sesiones');
+        sesEl.innerHTML=sesiones.length?sesiones.map(f=>{const n=registros.filter(r=>r.fecha===f).length;return `<div class=\"v4-session\"><div><strong>${escHtml(f)}</strong><br><small style=\"color:var(--medium-gray)\">${n} registro${n===1?'':'s'} · ${g.alumnos.length} catequizandos</small></div><div class=\"v4-session-actions\"><button class=\"btn btn-slate\" style=\"padding:.45rem .7rem\" onclick=\"exportarSesionCSVV4('${jsStr(f)}')\"><i class=\"fa-solid fa-file-csv\"></i></button><button class=\"btn btn-danger\" style=\"padding:.45rem .7rem\" onclick=\"eliminarSesionV4('${jsStr(f)}')\"><i class=\"fa-solid fa-trash\"></i></button></div></div>`}).join(''):'<div style="color:var(--medium-gray)">Todavía no hay sesiones registradas.</div>';
+    }
+    function generarReporteIndividualV4(nombre){
+        const g=sistemaDatos.grupos[grupoActual]; const al=g.alumnos.find(a=>a.nombre===nombre); if(!al)return;
+        const m=metricasAlumnoV4(al); const tareas=m.rs.filter(r=>r.tareaEstado==='No Presentó'&&r.tareaNombre!=='Ninguna').length;
+        const rows=m.rs.slice().reverse().map(r=>`<tr><td>${escHtml(r.fecha)}</td><td>${escHtml(r.asistencia)}</td><td>${escHtml(r.tareaNombre||'Ninguna')}</td><td>${escHtml(r.tareaEstado||'-')}</td></tr>`).join('');
+        imprimirHTML(`<h1>Reporte individual</h1><h2>${escHtml(al.nombre)}</h2><p><b>Grupo:</b> ${escHtml(grupoActual)}</p><div style="display:flex;gap:25px;margin:18px 0"><b>Asistencia: ${m.pct}%</b><b>Faltas: ${m.faltas}</b><b>Tareas pendientes: ${tareas}</b></div><table style="width:100%;border-collapse:collapse"><thead><tr><th>Fecha</th><th>Asistencia</th><th>Tarea</th><th>Estado</th></tr></thead><tbody>${rows||'<tr><td colspan=4>Sin registros</td></tr>'}</tbody></table>`,'Reporte de '+al.nombre);
+    }
+    function abrirReporteIndividualRapido(){
+        const g=sistemaDatos.grupos[grupoActual]; if(!g.alumnos.length){alert('No hay catequizandos.');return;}
+        const nombre=prompt('Escribe el nombre exacto del catequizando:\n\n'+g.alumnos.map(a=>a.nombre).join('\n')); if(nombre)generarReporteIndividualV4(nombre.trim());
+    }
+    function mostrarPendientesV4(){
+        const g=sistemaDatos.grupos[grupoActual], items=[];
+        (g.registros||[]).forEach(r=>{if(r.tareaEstado==='No Presentó'&&r.tareaNombre!=='Ninguna')items.push(`${r.fecha} — ${r.alumno} — ${r.tareaNombre}`);});
+        document.getElementById('v4-resultado-accion').innerHTML=items.length?'<div class="v4-risk">'+items.map(escHtml).join('<br>')+'</div>':'<div class="v4-risk v4-good"><i class="fa-solid fa-circle-check"></i> No hay tareas pendientes registradas.</div>';
+    }
+    function crearRespaldoAutomaticoV4(){exportarRespaldoJSON();document.getElementById('v4-resultado-accion').innerHTML='<div class="v4-risk v4-good"><i class="fa-solid fa-shield-check"></i> Respaldo generado correctamente.</div>';}
+    function limpiarRegistrosDuplicadosV4(){
+        const g=sistemaDatos.grupos[grupoActual], rs=g.registros||[], seen=new Set(), dup=[];
+        rs.forEach((r,i)=>{const key=[r.fecha,r.alumno,r.asistencia,r.tareaNombre,r.tareaEstado].join('|');if(seen.has(key))dup.push(i);else seen.add(key);});
+        if(!dup.length){document.getElementById('v4-resultado-accion').innerHTML='<div class="v4-risk v4-good"><i class="fa-solid fa-circle-check"></i> No se detectaron duplicados exactos.</div>';return;}
+        if(confirm(`Se detectaron ${dup.length} registros duplicados exactos. ¿Eliminar duplicados y conservar el primero?`)){const keep=rs.filter((r,i)=>!dup.includes(i));g.registros=keep;sincronizarConNube(true);actualizarCentroV4();toast(`✔ ${dup.length} duplicados eliminados`);}
+    }
+    function eliminarSesionV4(fecha){
+        const g=sistemaDatos.grupos[grupoActual], antes=(g.registros||[]).length;
+        if(!confirm(`Se eliminarán todos los registros de la sesión ${fecha}. Antes se descargará un respaldo. ¿Continuar?`))return;
+        exportarRespaldoJSON(); g.registros=(g.registros||[]).filter(r=>r.fecha!==fecha); sincronizarConNube(true); actualizarDashboardYV4();
+    }
+    function actualizarDashboardYV4(){renderizarDashboard();actualizarCentroV4();actualizarInterfazGrupo();}
+    function csvDescargar(nombre,filas){const csv=filas.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
+    function exportarAlumnosCSV(){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Catequizandos_'+new Date().toISOString().slice(0,10)+'.csv',[['Nombre','Cumpleaños','Celular','Dirección','Tutor','Teléfono Tutor','Salud'],...(g.alumnos||[]).map(a=>[a.nombre,a.cumple||'',a.celular||'',a.direccion||'',a.tutor||'',a.telefono||'',a.salud||''])]);toast('✔ Lista de catequizandos exportada');}
+    function exportarAsistenciaCSV(){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Asistencia_'+new Date().toISOString().slice(0,10)+'.csv',[['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'],...(g.registros||[]).map(r=>[r.fecha,r.alumno,r.asistencia,r.tareaNombre||'',r.tareaEstado||''])]);toast('✔ Asistencia exportada');}
+    function exportarSesionCSVV4(fecha){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Sesion_'+fecha.replace(/[^0-9-]/g,'_')+'.csv',[['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'],...(g.registros||[]).filter(r=>r.fecha===fecha).map(r=>[r.fecha,r.alumno,r.asistencia,r.tareaNombre||'',r.tareaEstado||''])]);}
 </script>
 
 </body>
