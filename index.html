@@ -1254,6 +1254,26 @@ td,th{border-color:var(--ui-border)!important}
 .topbar-save i{font-size:.78rem!important;margin:0!important}
 @media(max-width:900px){.grupo-bar>.topbar-save{width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;border-radius:9px!important}}
 </style>
+
+<style id="guardar-mini-final">
+/* Botón Guardar: más pequeño que la campana */
+.grupo-bar>.topbar-save,.topbar-save{width:30px!important;height:30px!important;min-width:30px!important;max-width:30px!important;padding:0!important;border-radius:9px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+.topbar-save i{font-size:.72rem!important;margin:0!important}
+.topbar-save span{display:none!important}
+@media(max-width:900px){.grupo-bar>.topbar-save{width:30px!important;height:30px!important;min-width:30px!important;max-width:30px!important;padding:0!important}}
+</style>
+
+<style id="asistencia-mini-acciones">
+/* Acciones masivas de asistencia: solo iconos, con etiqueta al pasar el cursor */
+#asistencia .attendance-toolbar .session-tools{gap:5px!important;align-items:center}
+#asistencia .attendance-toolbar .attendance-mini-action{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:0!important;border-radius:8px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+#asistencia .attendance-toolbar .attendance-mini-action i{margin:0!important;font-size:.72rem!important}
+@media(max-width:700px){
+  #asistencia .attendance-toolbar .session-tools{display:flex!important;gap:4px!important}
+  #asistencia .attendance-toolbar .attendance-mini-action{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}
+  #asistencia .attendance-toolbar .attendance-mini-action i{font-size:.68rem!important}
+}
+</style>
 </head>
 <body>
 
@@ -1671,11 +1691,11 @@ td,th{border-color:var(--ui-border)!important}
 
                     <div class="attendance-toolbar no-print">
                         <div class="session-tools">
-                            <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
-                            <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
-                            <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
-                            <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
-                            <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última</button>
+                            <button class="btn btn-info attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Presente')" title="Todos presentes" aria-label="Todos presentes"><i class="fa-solid fa-user-check"></i></button>
+                            <button class="btn btn-warning attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Retraso')" title="Todos retrasados" aria-label="Todos retrasados"><i class="fa-solid fa-clock"></i></button>
+                            <button class="btn btn-danger attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')" title="Todos con falta" aria-label="Todos con falta"><i class="fa-solid fa-user-xmark"></i></button>
+                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="limpiarEstadosAsistencia()" title="Restablecer" aria-label="Restablecer"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="copiarUltimaAsistencia()" title="Copiar última sesión" aria-label="Copiar última sesión"><i class="fa-solid fa-copy"></i></button>
                         </div>
                         <div class="attendance-counts" id="resumen-asistencia-actual">
                             <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
