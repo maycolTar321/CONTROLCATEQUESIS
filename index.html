@@ -1239,6 +1239,16 @@ td,th{border-color:var(--ui-border)!important}
 .attendance-head-clean{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.attendance-head-clean h2{margin-bottom:6px}.attendance-head-actions{display:flex;gap:8px;flex-wrap:wrap}.btn-compact{padding:.65rem .9rem!important;min-height:42px}.lista-collapsible{margin:0 0 14px;padding:14px;border:1px solid var(--border-color);border-radius:16px;background:rgba(15,23,42,.32)}.attendance-session-box{margin:0}.attendance-legend{color:var(--medium-gray);font-size:.85rem;margin:10px 0}.attendance-list-clean{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}.attendance-save-btn{margin-top:1.5rem;width:100%;font-size:1.05rem;padding:1rem}.temario-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}.temario-item-head{gap:10px!important}
 @media(max-width:700px){.attendance-head-clean{display:block}.attendance-head-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:12px}.attendance-head-actions .btn{width:100%}.attendance-list-clean{grid-template-columns:1fr}.lista-collapsible{padding:12px}.temario-actions .btn{min-width:38px}.temario-item-head{align-items:flex-start!important}}
 </style>
+
+<style id="notificaciones-proximas">
+.notificaciones-wrap{position:relative;display:inline-flex;align-items:center}
+.notification-bell{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;position:relative;border:1px solid rgba(148,163,184,.18)!important;border-radius:12px!important;justify-content:center!important}
+.notification-bell i{font-size:.95rem!important}.notification-count{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#ef4444;color:#fff;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #0f172a}.notification-count:empty{display:none}
+.notification-panel{position:absolute;top:calc(100% + 10px);right:0;width:min(390px,calc(100vw - 24px));background:#162235;border:1px solid rgba(148,163,184,.22);border-radius:17px;box-shadow:0 22px 55px rgba(0,0,0,.45);overflow:hidden;display:none;z-index:5000}
+.notification-panel.open{display:block;animation:fadeIn .16s ease-out}.notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-bottom:1px solid rgba(148,163,184,.14)}.notification-panel-head strong{display:block;font-size:.92rem}.notification-panel-head small{display:block;color:var(--medium-gray);font-size:.72rem;margin-top:2px}.notification-close{width:30px;height:30px;border:0;border-radius:9px;background:rgba(148,163,184,.09);color:#cbd5e1;cursor:pointer}
+.notification-list{max-height:390px;overflow:auto;padding:8px}.notification-item{display:flex;gap:11px;padding:11px 10px;border-radius:12px}.notification-item:hover{background:rgba(255,255,255,.035)}.notification-icon{width:34px;height:34px;min-width:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(16,185,129,.12);color:#6ee7b7}.notification-item strong{display:block;font-size:.8rem;line-height:1.35}.notification-item small{display:block;color:var(--medium-gray);font-size:.7rem;margin-top:3px;line-height:1.4}.notification-empty{padding:28px 14px;text-align:center;color:var(--medium-gray);font-size:.78rem}.notification-empty i{display:block;font-size:1.5rem;color:#6ee7b7;margin-bottom:8px}
+@media(max-width:900px){.notificaciones-wrap{grid-column:4!important;grid-row:2!important}.notification-bell{width:34px!important;height:34px!important;min-width:34px!important;border-radius:10px!important}.notification-bell i{font-size:.82rem!important}.notification-count{top:-5px;right:-5px;min-width:15px;height:15px;font-size:.56rem}.notification-panel{position:fixed;top:64px;right:10px;width:min(390px,calc(100vw - 20px))}}
+</style>
 </head>
 <body>
 
@@ -1450,6 +1460,15 @@ td,th{border-color:var(--ui-border)!important}
                 <button class="chip chip-amber group-action" onclick="resetearGrupoActual()" title="Vaciar grupo (solo administrador)"><i class="fa-solid fa-eraser"></i> Vaciar</button>
                 <button class="chip chip-red group-action" onclick="eliminarGrupoActual()" title="Eliminar grupo (solo administrador)"><i class="fa-solid fa-trash"></i> Eliminar</button>
                 <span class="spacer"></span>
+                <div class="notificaciones-wrap">
+                    <button id="btn-notificaciones" class="chip chip-dark notification-bell" type="button" onclick="toggleNotificaciones(event)" title="Notificaciones" aria-label="Notificaciones">
+                        <i class="fa-solid fa-bell"></i><span id="contador-notificaciones" class="notification-count">0</span>
+                    </button>
+                    <div id="panel-notificaciones" class="notification-panel" role="dialog" aria-label="Próximos eventos" onclick="event.stopPropagation()">
+                        <div class="notification-panel-head"><div><strong>Próximamente</strong><small>Fechas y pendientes del grupo</small></div><button type="button" class="notification-close" onclick="cerrarNotificaciones()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
+                        <div id="lista-notificaciones" class="notification-list"><div class="notification-empty"><i class="fa-regular fa-calendar-check"></i><span>No hay próximos eventos.</span></div></div>
+                    </div>
+                </div>
                 <button id="estado-tiempo-real" class="realtime-status off" type="button" title="Estado de sincronización" aria-label="Estado de sincronización"><i class="fa-solid fa-cloud-slash"></i></button>
                 <button class="chip chip-green topbar-save" onclick="sincronizarConNube(true)" title="Guardar en la nube" aria-label="Guardar en la nube"><i class="fa-solid fa-cloud-arrow-up"></i></button>
                 <button class="chip chip-dark mobile-group-more" onclick="abrirMenuGrupo(event)" title="Más acciones del grupo"><i class="fa-solid fa-ellipsis"></i> Más</button>
@@ -1753,7 +1772,7 @@ td,th{border-color:var(--ui-border)!important}
                 </div>
 
                 <div class="card" style="border-left: 5px solid var(--primary-color);">
-                    <div class="section-toolbar"><div><h2 style="margin:0"><i class="fa-solid fa-people-roof"></i> Reuniones y Minutas</h2><p class="section-intro" style="margin:.45rem 0 0">Programa reuniones, registra asistencia de padres, acuerdos y próximos compromisos.</p></div><div class="toolbar-actions"><button class="btn btn-info" onclick="abrirNuevaReunionDetallada()"><i class="fa-solid fa-plus"></i> Nueva reunión</button><button class="btn btn-slate" onclick="imprimirReuniones()"><i class="fa-solid fa-print"></i> Imprimir minutas</button></div></div>
+                    <div class="section-toolbar"><div><h2 style="margin:0"><i class="fa-solid fa-people-roof"></i> Reuniones</h2><p class="section-intro" style="margin:.45rem 0 0">Programa reuniones, registra asistencia de padres, acuerdos y próximos compromisos.</p></div><div class="toolbar-actions"><button class="btn btn-info" onclick="abrirNuevaReunionDetallada()"><i class="fa-solid fa-plus"></i> Nueva reunión</button><button class="btn btn-slate" onclick="imprimirReuniones()"><i class="fa-solid fa-print"></i> Imprimir reuniones</button></div></div>
                     <div class="inline-collapsible meeting-collapsible">
                         <button type="button" class="btn btn-info collapse-toggle" data-target="panel-nueva-reunion" aria-expanded="false"><i class="fa-solid fa-plus"></i><span>Nueva reunión</span></button>
                         <div id="panel-nueva-reunion" class="collapsible-body compact-collapsible">
@@ -2023,11 +2042,11 @@ td,th{border-color:var(--ui-border)!important}
     </div>
 </div>
 
-<!-- MODAL MINUTA DE REUNIÓN -->
+<!-- MODAL DETALLE DE REUNIÓN -->
 <div id="modal-minuta-reunion" class="modal">
     <div class="modal-content" style="max-width:850px;">
         <i class="fa-solid fa-xmark close-btn" onclick="cerrarMinutaReunion()"></i>
-        <h2><i class="fa-solid fa-file-pen"></i> <span id="minuta-reunion-titulo">Minuta de reunión</span></h2>
+        <h2><i class="fa-solid fa-file-pen"></i> <span id="minuta-reunion-titulo">Detalle de reunión</span></h2>
         <input type="hidden" id="minuta-reunion-idx">
         <div class="form-grid">
             <div class="form-full"><label>Asistentes / padres presentes</label><textarea id="minuta-asistentes" rows="3" placeholder="Ej: María Pérez, Juan Soto, ..."></textarea></div>
@@ -3200,7 +3219,7 @@ td,th{border-color:var(--ui-border)!important}
     function abrirMinutaReunion(idx){
         const r=(sistemaDatos.grupos[grupoActual].reuniones||[])[idx]; if(!r)return;
         document.getElementById('minuta-reunion-idx').value=idx;
-        document.getElementById('minuta-reunion-titulo').textContent=r.motivo||'Minuta de reunión';
+        document.getElementById('minuta-reunion-titulo').textContent=r.motivo||'Detalle de reunión';
         document.getElementById('minuta-asistentes').value=r.asistentes||'';
         document.getElementById('minuta-acuerdos').value=r.acuerdos||'';
         document.getElementById('minuta-pendientes').value=r.pendientes||'';
@@ -3216,16 +3235,16 @@ td,th{border-color:var(--ui-border)!important}
         r.pendientes=document.getElementById('minuta-pendientes').value.trim();
         r.observaciones=document.getElementById('minuta-observaciones').value.trim();
         const p=document.getElementById('minuta-proxima').value; r.proximaFecha=p?formatearFecha(p):'';
-        sincronizarConNube(false); cerrarMinutaReunion(); actualizarListaReuniones(); toast('✔ Minuta guardada');
+        sincronizarConNube(false); cerrarMinutaReunion(); actualizarListaReuniones(); toast('✔ Reunión guardada');
     }
     function imprimirMinutaReunion(idx){
         const r=(sistemaDatos.grupos[grupoActual].reuniones||[])[idx]; if(!r)return;
-        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Minuta de reunión</h2><p><b>Grupo:</b> ${escHtml(grupoActual)}</p><p><b>Reunión:</b> ${escHtml(r.motivo||'')}</p><p><b>Fecha:</b> ${escHtml(r.fecha||'')} ${r.hora?' · '+escHtml(r.hora):''}</p><p><b>Lugar:</b> ${escHtml(r.lugar||'-')}</p><h3>Objetivo / agenda</h3><p>${escHtml(r.agenda||'-')}</p><h3>Asistentes</h3><p>${escHtml(r.asistentes||'-')}</p><h3>Acuerdos</h3><p>${escHtml(r.acuerdos||'-')}</p><h3>Pendientes</h3><p>${escHtml(r.pendientes||'-')}</p><h3>Observaciones</h3><p>${escHtml(r.observaciones||'-')}</p><h3>Próxima reunión</h3><p>${escHtml(r.proximaFecha||'-')}</p>`,`Minuta_${r.motivo||'Reunion'}`);
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Detalle de reunión</h2><p><b>Grupo:</b> ${escHtml(grupoActual)}</p><p><b>Reunión:</b> ${escHtml(r.motivo||'')}</p><p><b>Fecha:</b> ${escHtml(r.fecha||'')} ${r.hora?' · '+escHtml(r.hora):''}</p><p><b>Lugar:</b> ${escHtml(r.lugar||'-')}</p><h3>Objetivo / agenda</h3><p>${escHtml(r.agenda||'-')}</p><h3>Asistentes</h3><p>${escHtml(r.asistentes||'-')}</p><h3>Acuerdos</h3><p>${escHtml(r.acuerdos||'-')}</p><h3>Pendientes</h3><p>${escHtml(r.pendientes||'-')}</p><h3>Observaciones</h3><p>${escHtml(r.observaciones||'-')}</p><h3>Próxima reunión</h3><p>${escHtml(r.proximaFecha||'-')}</p>`,`Reunion_${r.motivo||'Reunion'}`);
     }
     function imprimirReuniones(){
         const rs=sistemaDatos.grupos[grupoActual].reuniones||[];
         const body=rs.slice().reverse().map((r,i)=>`<div style="border-bottom:1px solid #ccc;padding:12px 0"><h3>${escHtml(r.motivo||'')}</h3><p><b>${escHtml(r.fecha||'')}</b>${r.hora?' · '+escHtml(r.hora):''}${r.lugar?' · '+escHtml(r.lugar):''}</p><p><b>Agenda:</b> ${escHtml(r.agenda||'-')}</p><p><b>Asistentes:</b> ${escHtml(r.asistentes||'-')}</p><p><b>Acuerdos:</b> ${escHtml(r.acuerdos||'-')}</p><p><b>Pendientes:</b> ${escHtml(r.pendientes||'-')}</p></div>`).join('');
-        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Minutas de reuniones — ${escHtml(grupoActual)}</h2>${body||'<p>No hay reuniones registradas.</p>'}`,'Minutas_Reuniones');
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Reuniones — ${escHtml(grupoActual)}</h2>${body||'<p>No hay reuniones registradas.</p>'}`,'Reuniones');
     }
     function actualizarListaReuniones() {
         const lista = document.getElementById('lista-reuniones-creadas');
@@ -3756,6 +3775,10 @@ td,th{border-color:var(--ui-border)!important}
         const hechos=items.filter(x=>x.completado).length;if(pro)pro.innerHTML=`<strong>${hechos}/${items.length}</strong> temas completados (${items.length?Math.round(hechos/items.length*100):0}%)`;
         cont.innerHTML=items.length?items.map(x=>`<div class="temario-item ${x.completado?'completado':''}"><div class="temario-item-head"><input class="temario-check" type="checkbox" ${x.completado?'checked':''} onchange="cambiarEstadoTemaTemario('${ano}','${jsStr(x.id)}',this.checked)"><div style="flex:1"><h4>${escHtml(x.titulo)}</h4><small>${x.fecha?formatearFecha(x.fecha):'Sin fecha'}</small>${x.descripcion?`<p>${escHtml(x.descripcion)}</p>`:''}</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario('${ano}','${jsStr(x.id)}')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario('${ano}','${jsStr(x.id)}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join(''):`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>`;
     }
+    const reportKpiStyles = document.createElement('style');
+    reportKpiStyles.textContent = '.report-kpi{flex:1;min-width:150px;padding:12px 14px;border:1px solid #dbe3ea;border-radius:10px;background:#f8fafc;text-align:center}.report-kpi b{display:block;font-size:20px;color:#0f172a}.report-kpi small{color:#64748b}.report-kpi-ok b{color:#059669}.report-kpi-bad b{color:#dc2626}';
+    document.head.appendChild(reportKpiStyles);
+
     function imprimirHTML(contenido,titulo){
         const w=window.open('','_blank','width=1100,height=800');
         if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
@@ -3777,10 +3800,22 @@ td,th{border-color:var(--ui-border)!important}
         const filas=(obtenerTemarioActual()[ano]||[]).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>`<tr><td>${escHtml(x.fecha?formatearFecha(x.fecha):'-')}</td><td>${escHtml(x.titulo)}</td><td>${escHtml(x.descripcion||'')}</td><td>${x.completado?'✓ Completado':'Pendiente'}</td></tr>`).join('');
         imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Temario - ${escHtml(tituloAno)}</h2><p>Grupo: ${escHtml(grupoActual)}</p><table><thead><tr><th>Fecha</th><th>Tema</th><th>Actividad</th><th>Estado</th></tr></thead><tbody>${filas||'<tr><td colspan="4">Sin temas.</td></tr>'}</tbody></table>`,`Temario_${tituloAno}`);
     }
+    function registroNoPresentoTarea(r){
+        return String(r?.tareaEstado||'').trim().toLowerCase().replace(/ó/g,'o') === 'no presento';
+    }
+    function nombreTareaRegistro(r){
+        const n=String(r?.tareaNombre||'').trim();
+        if(n && n!=='Ninguna') return n;
+        if(Array.isArray(r?.tareaNombres) && r.tareaNombres.length) return r.tareaNombres.join(' + ');
+        return 'Tarea registrada';
+    }
     function imprimirReporteActual(){
         const g=sistemaDatos.grupos[grupoActual],rs=g.registros||[],fn=(document.getElementById('filtro-nombre').value||'').toLowerCase(),fe=document.getElementById('filtro-estado').value,ft=document.getElementById('filtro-tarea-estado').value;
-        const rows=rs.filter(r=>String(r.alumno||'').toLowerCase().includes(fn)&&(fe==='todos'||String(r.asistencia||'').includes(fe))&&(ft==='todos'||r.tareaEstado===ft)).slice().reverse().map(r=>`<tr><td>${escHtml(r.fecha)}</td><td>${escHtml(r.alumno)}</td><td>${escHtml(r.asistencia)}</td><td>${escHtml(r.tareaNombre||'Ninguna')}</td><td>${escHtml(r.tareaEstado||'-')}</td></tr>`).join('');
-        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Reporte de Catequesis</h2><p><strong>Grupo:</strong> ${escHtml(grupoActual)} &nbsp; <strong>Generado:</strong> ${new Date().toLocaleString('es-BO')}</p><table><thead><tr><th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tareas</th><th>Estado</th></tr></thead><tbody>${rows||'<tr><td colspan="5">No hay registros con los filtros actuales.</td></tr>'}</tbody></table>`,`Reporte_${grupoActual}`);
+        const filtrados=rs.filter(r=>String(r.alumno||'').toLowerCase().includes(fn)&&(fe==='todos'||String(r.asistencia||'').includes(fe))&&(ft==='todos'||(ft==='No Presentó'?registroNoPresentoTarea(r):String(r.tareaEstado||'')===ft)));
+        const noPresentaron=filtrados.filter(registroNoPresentoTarea).length;
+        const entregaron=filtrados.filter(r=>String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length;
+        const rows=filtrados.slice().reverse().map(r=>`<tr><td>${escHtml(r.fecha)}</td><td><strong>${escHtml(r.alumno)}</strong></td><td>${escHtml(r.asistencia)}</td><td>${escHtml(nombreTareaRegistro(r))}</td><td>${escHtml(r.tareaEstado||'-')}</td></tr>`).join('');
+        imprimirHTML(`<h1>Reporte de Catequesis</h1><h2>Control de asistencia y tareas</h2><p><strong>Grupo:</strong> ${escHtml(grupoActual)} &nbsp; <strong>Generado:</strong> ${new Date().toLocaleString('es-BO')}</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><div class="report-kpi"><b>${filtrados.length}</b><small>Registros</small></div><div class="report-kpi report-kpi-ok"><b>${entregaron}</b><small>Tareas presentadas</small></div><div class="report-kpi report-kpi-bad"><b>${noPresentaron}</b><small>No presentaron</small></div></div><table><thead><tr><th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tarea</th><th>Estado</th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:22px">No hay registros con los filtros actuales.</td></tr>'}</tbody></table>`,`Reporte_${grupoActual}`);
     }
 
     // =========================================================================
@@ -3919,24 +3954,24 @@ td,th{border-color:var(--ui-border)!important}
         const registros = grupo.registros || [];
         let filtrados = registros;
         if (tipo === 'faltas') filtrados = registros.filter(r => r.asistencia.includes('Falta'));
-        else if (tipo === 'tareas') filtrados = registros.filter(r => r.tareaEstado === 'No Presentó' && r.tareaNombre !== 'Ninguna');
+        else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
         else if (tipo === 'alumno') filtrados = registros.filter(r => r.alumno === alumnoSel);
 
         let asis = 0, faltas = 0, tar = 0;
         filtrados.forEach(r => {
             if (r.asistencia.includes('Presente') || r.asistencia.includes('Retraso')) asis++;
             if (r.asistencia.includes('Falta')) faltas++;
-            if (r.tareaEstado === 'No Presentó' && r.tareaNombre !== 'Ninguna') tar++;
+            if (registroNoPresentoTarea(r)) tar++;
         });
         const pct = filtrados.length > 0 ? Math.round((asis / filtrados.length) * 100) : 100;
 
         let rows = filtrados.slice().reverse().map(r => {
-            let tc = r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado === 'Entregado' ? 'Entregado' : 'No Presentó');
+            let tc = registroNoPresentoTarea(r) ? 'No Presentó' : (String(r.tareaEstado||'').trim().toLowerCase() === 'entregado' ? 'Entregado' : (r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-')));
             return `<tr>
                 <td style="border:1px solid #cbd5e1; padding:8px;">${r.fecha}</td>
                 <td style="border:1px solid #cbd5e1; padding:8px;"><strong>${escHtml(r.alumno)}</strong></td>
                 <td style="border:1px solid #cbd5e1; padding:8px;">${escHtml(r.asistencia)}</td>
-                <td style="border:1px solid #cbd5e1; padding:8px;">${escHtml(r.tareaNombre)}</td>
+                <td style="border:1px solid #cbd5e1; padding:8px;">${escHtml(nombreTareaRegistro(r))}</td>
                 <td style="border:1px solid #cbd5e1; padding:8px; color:${tc === 'No Presentó' ? 'red' : 'green'}; font-weight:bold;">${tc}</td>
             </tr>`;
         }).join('');
@@ -3999,7 +4034,7 @@ td,th{border-color:var(--ui-border)!important}
         registros.forEach(r => {
             if (r.asistencia.includes('Presente') || r.asistencia.includes('Retraso')) asis++;
             if (r.asistencia.includes('Falta')) faltas++;
-            if (r.tareaEstado === 'No Presentó' && r.tareaNombre !== 'Ninguna') tar++;
+            if (registroNoPresentoTarea(r)) tar++;
         });
 
         const filtrados = registros.filter(r =>
@@ -4181,7 +4216,7 @@ td,th{border-color:var(--ui-border)!important}
     }
     function generarReporteIndividualV4(nombre){
         const g=sistemaDatos.grupos[grupoActual]; const al=g.alumnos.find(a=>a.nombre===nombre); if(!al)return;
-        const m=metricasAlumnoV4(al); const tareas=m.rs.filter(r=>r.tareaEstado==='No Presentó'&&r.tareaNombre!=='Ninguna').length;
+        const m=metricasAlumnoV4(al); const tareas=m.rs.filter(registroNoPresentoTarea).length;
         const rows=m.rs.slice().reverse().map(r=>`<tr><td>${escHtml(r.fecha)}</td><td>${escHtml(r.asistencia)}</td><td>${escHtml(r.tareaNombre||'Ninguna')}</td><td>${escHtml(r.tareaEstado||'-')}</td></tr>`).join('');
         imprimirHTML(`<h1>Reporte individual</h1><h2>${escHtml(al.nombre)}</h2><p><b>Grupo:</b> ${escHtml(grupoActual)}</p><div style="display:flex;gap:25px;margin:18px 0"><b>Asistencia: ${m.pct}%</b><b>Faltas: ${m.faltas}</b><b>Tareas pendientes: ${tareas}</b></div><table style="width:100%;border-collapse:collapse"><thead><tr><th>Fecha</th><th>Asistencia</th><th>Tarea</th><th>Estado</th></tr></thead><tbody>${rows||'<tr><td colspan=4>Sin registros</td></tr>'}</tbody></table>`,'Reporte de '+al.nombre);
     }
@@ -4191,7 +4226,7 @@ td,th{border-color:var(--ui-border)!important}
     }
     function mostrarPendientesV4(){
         const g=sistemaDatos.grupos[grupoActual], items=[];
-        (g.registros||[]).forEach(r=>{if(r.tareaEstado==='No Presentó'&&r.tareaNombre!=='Ninguna')items.push(`${r.fecha} — ${r.alumno} — ${r.tareaNombre}`);});
+        (g.registros||[]).forEach(r=>{if(registroNoPresentoTarea(r))items.push(`${r.fecha} — ${r.alumno} — ${nombreTareaRegistro(r)}`);});
         document.getElementById('v4-resultado-accion').innerHTML=items.length?'<div class="v4-risk">'+items.map(escHtml).join('<br>')+'</div>':'<div class="v4-risk v4-good"><i class="fa-solid fa-circle-check"></i> No hay tareas pendientes registradas.</div>';
     }
     function crearRespaldoAutomaticoV4(){exportarRespaldoJSON();document.getElementById('v4-resultado-accion').innerHTML='<div class="v4-risk v4-good"><i class="fa-solid fa-shield-check"></i> Respaldo generado correctamente.</div>';}
@@ -4535,5 +4570,53 @@ td,th{border-color:var(--ui-border)!important}
   window.sincronizarTiempoReal=async function(){if(!window.equipoActualLogin||!nubeActiva()||window.__syncDeleteBusy)return;window.__syncDeleteBusy=true;try{const nube=await fetchNube(),k=nube&&nube.equipos?buscarEquipoEnObjeto(nube.equipos,equipoActualLogin):null;if(!k)return;const remoto=nube.equipos[k],tl=Number(sistemaDatos&&sistemaDatos._actualizado||0),tr=Number(remoto&&remoto._actualizado||0),sl=Number(sistemaDatos&&sistemaDatos._serverRevision||0),sr=Number(remoto&&remoto._serverRevision||0);if(!cambiosLocalesPendientes&&(sr>sl||tr>tl))aplicarDatosRemotos(remoto,'🔄 Cambios recibidos de otro dispositivo');actualizarEstadoTiempoReal('ok','En vivo')}catch(e){actualizarEstadoTiempoReal('off','Reintentando…')}finally{window.__syncDeleteBusy=false}};
   if(typeof v9Channel!=='undefined'&&v9Channel)v9Channel.onmessage=function(ev){if(!ev.data||ev.data.equipo!==equipoActualLogin||!ev.data.data)return;if(cambiosLocalesPendientes)return;const remoto=ev.data.data,rt=Number(remoto&&remoto._actualizado||0),lt=Number(sistemaDatos&&sistemaDatos._actualizado||0);if(rt>lt)aplicarDatosRemotos(remoto,'🔄 Cambios recibidos de este dispositivo')};
 })();
+
+function fechaNotificacionISO(valor){
+    if(!valor)return null;
+    const str=String(valor).trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(str)){const d=new Date(str+'T00:00:00');return isNaN(d)?null:d;}
+    const m=str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if(m){const d=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));return isNaN(d)?null:d;}
+    return null;
+}
+function toggleNotificaciones(e){if(e)e.stopPropagation();const p=document.getElementById('panel-notificaciones');if(!p)return;p.classList.toggle('open');if(p.classList.contains('open'))renderizarNotificaciones();}
+function cerrarNotificaciones(){const p=document.getElementById('panel-notificaciones');if(p)p.classList.remove('open');}
+function renderizarNotificaciones(){
+    const lista=document.getElementById('lista-notificaciones'),contador=document.getElementById('contador-notificaciones');if(!lista)return;
+    const g=sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual];if(!g){lista.innerHTML='<div class="notification-empty"><i class="fa-regular fa-calendar-check"></i><span>No hay próximos eventos.</span></div>';if(contador)contador.textContent='';return;}
+    const hoy=new Date();hoy.setHours(0,0,0,0);const limite=new Date(hoy);limite.setDate(limite.getDate()+45);const eventos=[];
+    const agregar=(fecha,titulo,detalle,icono)=>{const d=fechaNotificacionISO(fecha);if(!d)return;d.setHours(0,0,0,0);if(d<hoy||d>limite)return;const dias=Math.round((d-hoy)/86400000);eventos.push({fecha:d,titulo,detalle,icono,dias});};
+    (g.temario?.primerAno||[]).concat(g.temario?.segundoAno||[]).filter(x=>!x.completado).forEach(x=>agregar(x.fecha,'Tema: '+(x.titulo||'Sin título'),x.fecha?'Temario · '+(x.descripcion||'Próximo tema'):'Temario','fa-book-open'));
+    (g.finanzas?.actividades||[]).forEach(x=>{agregar(x.fecha,x.nombre||'Actividad','Actividad'+(x.inicio?' · '+x.inicio:''),'fa-calendar-days');if(x.fechaFin&&x.fechaFin!==x.fecha)agregar(x.fechaFin,(x.nombre||'Actividad')+' — finaliza','Actividad · fecha final','fa-flag-checkered');});
+    (g.reuniones||[]).forEach(x=>agregar(x.fecha,x.motivo||'Reunión',(x.hora?'A las '+x.hora+' · ':'')+(x.lugar||'Reunión programada'),'fa-users'));
+    eventos.sort((a,b)=>a.fecha-b.fecha);
+    const mostrados=eventos.slice(0,10);if(contador)contador.textContent=eventos.length>99?'99+':String(eventos.length);
+    if(!mostrados.length){lista.innerHTML='<div class="notification-empty"><i class="fa-regular fa-calendar-check"></i><span>No hay próximos eventos en los siguientes 45 días.</span></div>';if(contador)contador.textContent='';return;}
+    lista.innerHTML=mostrados.map(x=>{const cuando=x.dias===0?'Hoy':x.dias===1?'Mañana':'En '+x.dias+' días';const fecha=x.fecha.toLocaleDateString('es-BO',{day:'2-digit',month:'short'});return `<div class="notification-item"><div class="notification-icon"><i class="fa-solid ${x.icono}"></i></div><div><strong>${escHtml(x.titulo)}</strong><small>${escHtml(fecha+' · '+cuando+' · '+x.detalle)}</small></div></div>`;}).join('');
+}
+
+
+document.addEventListener('click',function(e){if(!e.target.closest('.notificaciones-wrap'))cerrarNotificaciones();});
 </script>
 </body></html>
+<style id="asistencia-iconos-compactos">
+/* Asistencia: controles más compactos para ganar espacio sin quitar funciones */
+#asistencia .attendance-head-actions{gap:6px}
+#asistencia .attendance-head-actions .btn{padding:.42rem .65rem!important;min-height:34px!important;font-size:.78rem!important;border-radius:9px!important}
+#asistencia .attendance-head-actions .btn i{font-size:.78rem!important;margin-right:4px!important}
+#asistencia .attendance-toolbar{gap:8px!important;padding:9px!important}
+#asistencia .session-tools{display:flex;gap:5px!important;flex-wrap:wrap}
+#asistencia .session-tools .btn{padding:.4rem .58rem!important;min-height:32px!important;font-size:.74rem!important;border-radius:8px!important;line-height:1.1!important}
+#asistencia .session-tools .btn i{font-size:.72rem!important;margin-right:3px!important}
+#asistencia .quick-actions{display:flex;gap:6px!important;flex-wrap:wrap}
+#asistencia .quick-actions .btn{padding:.4rem .62rem!important;min-height:32px!important;font-size:.74rem!important;border-radius:8px!important}
+#asistencia .quick-actions .btn i{font-size:.72rem!important;margin-right:3px!important}
+#asistencia .attendance-pill{padding:6px 8px!important;font-size:.68rem!important;border-radius:9px!important}
+@media(max-width:700px){
+  #asistencia .attendance-head-actions{display:flex!important;gap:5px!important;margin-top:8px!important}
+  #asistencia .attendance-head-actions .btn{width:auto!important;flex:1;padding:.38rem .5rem!important}
+  #asistencia .session-tools{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px!important}
+  #asistencia .session-tools .btn,#asistencia .quick-actions .btn{width:100%;padding:.38rem .45rem!important}
+  #asistencia .quick-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:5px!important}
+}
+</style>
