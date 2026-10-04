@@ -400,7 +400,7 @@
         color: var(--text-color);
     }
 
-    /* NIVEL DIOS: TEMARIO, CHECKLIST, IMPRESION Y SINCRONIZACION */
+    /* TEMARIO, CHECKLIST, IMPRESION Y SINCRONIZACION */
     .temario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
     .temario-item{background:rgba(0,0,0,.18);border:1px solid var(--border-color);border-radius:14px;padding:13px}
     .temario-item.completado{border-color:rgba(16,185,129,.45);opacity:.78}
@@ -546,7 +546,7 @@
         .login-card { padding: 2rem 1.5rem; }
     }
 
-/* ===== NIVEL SUPER DIOS V4 ===== */
+/* ===== CENTRO DE CONTROL V4 ===== */
 .v4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
 .v4-kpi{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(30,41,59,.95),rgba(15,23,42,.95));border:1px solid rgba(148,163,184,.16);box-shadow:0 10px 28px rgba(0,0,0,.12)}
 .v4-kpi .v4-num{font-size:2rem;font-weight:900;margin-top:6px}.v4-kpi small{color:var(--medium-gray)}
@@ -861,7 +861,7 @@ td{vertical-align:top;overflow-wrap:anywhere}
 }
 
 /* Accesibilidad y microinteracciones */
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(52,211,153,.35);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:1px solid rgba(148,163,184,.55);outline-offset:0}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
 
@@ -890,8 +890,8 @@ input[type="text"]:focus, input[type="search"]:focus, input[type="email"]:focus,
 input[type="tel"]:focus, input[type="date"]:focus, input[type="time"]:focus,
 input[type="password"]:focus, input[type="url"]:focus, input[type="number"]:focus,
 textarea:focus, select:focus {
-  border-color:var(--accent) !important;
-  box-shadow:0 0 0 3px rgba(52,211,153,.13), inset 0 1px 0 rgba(255,255,255,.03) !important;
+  border-color:rgba(148,163,184,.72) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 0 0 1px rgba(148,163,184,.08) !important;
   background:linear-gradient(180deg, rgba(15,23,42,1), rgba(17,28,48,1)) !important;
 }
 select option { background:#111c30 !important; color:#f1f5f9 !important; }
@@ -953,6 +953,64 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 }
 @media(max-width:520px){main{padding-left:10px!important;padding-right:10px!important}.page-head .acciones{grid-template-columns:1fr!important}.stats-grid,.finance-kpis{grid-template-columns:1fr 1fr!important}.mobile-nav{left:6px!important;right:6px!important;height:66px!important}.mobile-nav-btn{height:54px!important;min-height:54px!important;font-size:.59rem!important}.mobile-nav-btn i{font-size:1.08rem!important}.mobile-sheet-grid{grid-template-columns:1fr!important}}
 @media(min-width:901px){.mobile-nav,.mobile-action-sheet{display:none!important}.topbar-save span{display:inline!important}}
+<style id="campos-texto-visibles">
+/* Todos los campos de escritura: texto siempre visible y foco sin verde */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+select,
+[contenteditable="true"] {
+  color:#f8fafc !important;
+  -webkit-text-fill-color:#f8fafc !important;
+  caret-color:#f8fafc !important;
+  background-color:#172235 !important;
+  border:1px solid #64748b !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus-visible,
+textarea:focus, textarea:focus-visible,
+select:focus, select:focus-visible,
+[contenteditable="true"]:focus {
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  caret-color:#ffffff !important;
+  background:#172235 !important;
+  border-color:#94a3b8 !important;
+  outline:none !important;
+  box-shadow:0 0 0 1px rgba(148,163,184,.22) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"])::placeholder,
+textarea::placeholder {
+  color:#a8b3c2 !important;
+  -webkit-text-fill-color:#a8b3c2 !important;
+  opacity:1 !important;
+}
+
+/* Evita que Chrome cambie el texto a negro por autocompletado */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color:#f8fafc !important;
+  caret-color:#f8fafc !important;
+  -webkit-box-shadow:0 0 0 1000px #172235 inset !important;
+  box-shadow:0 0 0 1000px #172235 inset !important;
+}
+
+/* Campos específicos de Finanzas */
+#fin-nueva-actividad, #fin-nuevo-precio, #fin-nueva-fecha, #fin-nueva-inicio,
+#fin-nueva-fin, #fin-nueva-estado, #fin-nueva-descripcion, #fin-persona, #fin-actividad,
+#fin-tipo, #fin-monto, #fin-fecha, #fin-metodo, #fin-observacion {
+  color:#f8fafc !important;
+  -webkit-text-fill-color:#f8fafc !important;
+  caret-color:#f8fafc !important;
+}
+</style>
 </style>
 </head>
 <body>
@@ -1368,7 +1426,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <!-- CENTRO DE CONTROL V4 -->
             <section id="centro-v4" class="section">
                 <div class="page-head">
-                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control —  V4</h2>
+                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control</h2>
                     <div class="acciones">
                         <button class="btn btn-info" onclick="actualizarCentroV4()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                         <button class="btn btn-slate" onclick="exportarAsistenciaCSV()"><i class="fa-solid fa-file-csv"></i> Asistencia CSV</button>
@@ -1762,7 +1820,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     const PASSWORD_ACCESO = "5230";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin5230";
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5waRtzPbeuTZD6y8buxbpbxqGinVsnyz_ERpcL652c48uAeXDCy0OYpBYcPN9pg5raQ/exec";
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2CNhf615CRPH2ChYLBDgnxsJ9Rd3OIbfbHikb1u32_p1pONA_ePTaGE6VkJn1bBgqSw/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('db')) {
@@ -1901,6 +1959,31 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
         sistemaDatos._notasEliminadas=[...new Set([...(Array.isArray(sistemaDatos._notasEliminadas)?sistemaDatos._notasEliminadas:[]), ...eliminadasLocales].map(String))];
         if(!sistemaDatos.password&&passActual) sistemaDatos.password=passActual;
         migrarDatosAntiguos();
+        // Aplicar tombstones de catequizandos recibidos del servidor para que
+        // un registro borrado nunca reaparezca al sincronizar.
+        if (sistemaDatos.grupos && typeof sistemaDatos.grupos === 'object') {
+            Object.keys(sistemaDatos.grupos).forEach(gk => {
+                const g = sistemaDatos.grupos[gk];
+                if (!g) return;
+                if (g.finanzas && typeof g.finanzas === 'object') {
+                    if (!Array.isArray(g.finanzas.actividades)) g.finanzas.actividades=[];
+                    if (!Array.isArray(g.finanzas.movimientos)) g.finanzas.movimientos=[];
+                    if (!Array.isArray(g.finanzas.actividadesEliminadas)) g.finanzas.actividadesEliminadas=[];
+                    if (!Array.isArray(g.finanzas.movimientosEliminados)) g.finanzas.movimientosEliminados=[];
+                    const actividadesEliminadas=new Set(g.finanzas.actividadesEliminadas.map(String));
+                    const movimientosEliminados=new Set(g.finanzas.movimientosEliminados.map(String));
+                    g.finanzas.actividades=g.finanzas.actividades.filter(a=>!actividadesEliminadas.has(String(a&&a.id)));
+                    g.finanzas.movimientos=g.finanzas.movimientos.filter(m=>!movimientosEliminados.has(String(m&&m.id)) && !actividadesEliminadas.has(String(m&&m.actividadId)));
+                }
+                if (!Array.isArray(g.alumnos)) return;
+                const eliminados = new Set((Array.isArray(g.alumnosEliminados) ? g.alumnosEliminados : []).map(String));
+                g.alumnos = g.alumnos.filter(a => {
+                    const idKey = a && a.id !== undefined && a.id !== null && a.id !== '' ? 'id:' + String(a.id) : '';
+                    const nameKey = 'student:' + String(a?.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+                    return !eliminados.has(idKey) && !eliminados.has(nameKey);
+                });
+            });
+        }
         guardarEquipoLocal(equipoActualLogin,sistemaDatos);
         inicializarApp();
         if(motivo) toast(motivo);
@@ -3082,15 +3165,25 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 
         const nuevoAlumno = { nombre, cumple: cumple || '', celular: celular || '-', direccion: direccion || '-', tutor, telefono: tel || '-', salud: saludText };
 
+        const grupoActualData = sistemaDatos.grupos[grupoActual];
+        if (!Array.isArray(grupoActualData.alumnosEliminados)) grupoActualData.alumnosEliminados = [];
+        const studentKeyNuevo = 'student:' + String(nombre).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+
         if (editandoAlumnoIndex > -1) {
-            sistemaDatos.grupos[grupoActual].alumnos[editandoAlumnoIndex] = nuevoAlumno;
+            const alumnoAnterior = grupoActualData.alumnos[editandoAlumnoIndex];
+            const oldKey = 'student:' + String(alumnoAnterior?.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+            grupoActualData.alumnosEliminados = grupoActualData.alumnosEliminados.filter(k => String(k) !== oldKey && String(k) !== studentKeyNuevo);
+            nuevoAlumno.id = alumnoAnterior?.id || Date.now();
+            grupoActualData.alumnos[editandoAlumnoIndex] = nuevoAlumno;
             editandoAlumnoIndex = -1;
             const btn = document.getElementById('btn-guardar-alumno');
             btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Inscribir Catequizando Oficialmente`;
             btn.classList.remove('btn-warning');
             toast("✔ Datos actualizados");
         } else {
-            sistemaDatos.grupos[grupoActual].alumnos.push(nuevoAlumno);
+            nuevoAlumno.id = Date.now() + Math.floor(Math.random() * 1000);
+            grupoActualData.alumnosEliminados = grupoActualData.alumnosEliminados.filter(k => String(k) !== studentKeyNuevo);
+            grupoActualData.alumnos.push(nuevoAlumno);
             toast("✔ Catequizando inscrito");
         }
 
@@ -3155,10 +3248,25 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
 
     function eliminarAlumno(idx) {
+        const grupo = sistemaDatos.grupos[grupoActual];
+        const alumno = grupo && grupo.alumnos ? grupo.alumnos[idx] : null;
+        if (!alumno) return;
         if (!confirm("¿Eliminar a este catequizando y su ficha?")) return;
-        sistemaDatos.grupos[grupoActual].alumnos.splice(idx, 1);
-        sincronizarConNube(false);
+
+        if (!Array.isArray(grupo.alumnosEliminados)) grupo.alumnosEliminados = [];
+        const clave = alumno.id !== undefined && alumno.id !== null && alumno.id !== ''
+            ? 'id:' + String(alumno.id)
+            : 'student:' + String(alumno.nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+
+        if (!grupo.alumnosEliminados.some(x => String(x) === clave)) {
+            grupo.alumnosEliminados.push(clave);
+        }
+        grupo.alumnos.splice(idx, 1);
+        sistemaDatos._actualizado = Date.now();
+        guardarEquipoLocal(equipoActualLogin, sistemaDatos);
         actualizarInterfazGrupo();
+        sincronizarConNube(false);
+        toast('✔ Catequizando eliminado');
     }
 
     // =========================================================================
@@ -3323,7 +3431,104 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
     function imprimirHTML(contenido,titulo){
         const w=window.open('','_blank','width=1100,height=800');if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
-        w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#111}h1{text-align:center;color:#065f46}h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #bbb;padding:8px;text-align:left}th{background:#eee}</style></head><body>${contenido}<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);w.document.close();
+        w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#111}h1{text-align:center;color:#065f46}h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #bbb;padding:8px;text-align:left}th{background:#eee}
+/* ===== AJUSTE FINAL DE CAMPOS — ESTILO SIN CUADROS BLANCOS ===== */
+input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
+input[type="date"], input[type="time"], input[type="password"], input[type="url"],
+input[type="number"], textarea, select {
+  width:100% !important;
+  min-height:52px !important;
+  padding:13px 16px !important;
+  background:#111c30 !important;
+  color:#f8fafc !important;
+  border:1px solid #334155 !important;
+  border-radius:12px !important;
+  font-size:16px !important;
+  line-height:1.35 !important;
+  box-shadow:none !important;
+  outline:none !important;
+}
+input::placeholder, textarea::placeholder {
+  color:#94a3b8 !important;
+  opacity:1 !important;
+}
+input:hover, textarea:hover, select:hover {
+  background:#142238 !important;
+  border-color:#475569 !important;
+}
+input:focus, textarea:focus, select:focus {
+  background:#111c30 !important;
+  color:#ffffff !important;
+  border-color:#34d399 !important;
+  box-shadow:0 0 0 2px rgba(52,211,153,.16) !important;
+}
+select option { background:#111c30 !important; color:#f8fafc !important; }
+.activity-form-grid input,
+.activity-form-grid select,
+.activity-form-grid textarea,
+.finance-grid input,
+.finance-grid select,
+.finance-grid textarea {
+  min-height:54px !important;
+  font-size:16px !important;
+}
+.activity-main-field input {
+  min-height:58px !important;
+  font-size:17px !important;
+}
+.activity-description-field textarea {
+  min-height:130px !important;
+  color:#f8fafc !important;
+}
+.notas-toolbar input[type="search"],
+.notas-toolbar select {
+  min-height:54px !important;
+  color:#f8fafc !important;
+}
+.notas-toolbar input[type="search"]::placeholder { color:#94a3b8 !important; }
+#modal-nota input, #modal-nota select, #modal-nota textarea {
+  color:#f8fafc !important;
+}
+@media(max-width:560px){
+  input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
+  input[type="date"], input[type="time"], input[type="password"], input[type="url"],
+  input[type="number"], textarea, select { min-height:54px !important; font-size:16px !important; }
+}
+
+
+/* Campos de actividad: foco sobrio, sin borde verde ni doble contorno */
+#fin-nueva-actividad {
+  background:#172235 !important;
+  color:#f8fafc !important;
+  -webkit-text-fill-color:#f8fafc !important;
+  caret-color:#f8fafc !important;
+  border:1px solid #64748b !important;
+  border-radius:10px !important;
+  box-shadow:none !important;
+  outline:none !important;
+}
+#fin-nueva-actividad:hover {
+  border-color:#7c8da5 !important;
+}
+#fin-nueva-actividad:focus,
+#fin-nueva-actividad:focus-visible {
+  border-color:#94a3b8 !important;
+  box-shadow:0 0 0 1px rgba(148,163,184,.18) !important;
+  outline:none !important;
+}
+#fin-nueva-actividad::placeholder {
+  color:#94a3b8 !important;
+  -webkit-text-fill-color:#94a3b8 !important;
+  opacity:1 !important;
+}
+#fin-nueva-actividad:focus,
+#fin-nueva-actividad:active,
+#fin-nueva-actividad:focus-visible {
+  color:#f8fafc !important;
+  -webkit-text-fill-color:#f8fafc !important;
+  caret-color:#f8fafc !important;
+}
+</style></head><body>${contenido}<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);w.document.close();
     }
     function imprimirTemario(){
         const ano=document.getElementById('temario-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';
@@ -3683,7 +3888,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 
 
     // =========================================================================
-    // CENTRO DE CONTROL V4
+    // CENTRO DE CONTROL CENTRO DE CONTROL V4
     // =========================================================================
     function fechasSesionesV4(){
         const g=sistemaDatos.grupos[grupoActual]||{};
@@ -3767,10 +3972,16 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     // FINANZAS / ACTIVIDADES — V5
     // =========================================================================
     function obtenerFinanzasActual(){
-        const g=sistemaDatos.grupos[grupoActual]; if(!g)return {actividades:[],movimientos:[]};
+        const g=sistemaDatos.grupos[grupoActual]; if(!g)return {actividades:[],movimientos:[],actividadesEliminadas:[],movimientosEliminados:[]};
         if(!g.finanzas)g.finanzas={actividades:[],movimientos:[]};
         if(!Array.isArray(g.finanzas.actividades))g.finanzas.actividades=[];
         if(!Array.isArray(g.finanzas.movimientos))g.finanzas.movimientos=[];
+        if(!Array.isArray(g.finanzas.actividadesEliminadas))g.finanzas.actividadesEliminadas=[];
+        if(!Array.isArray(g.finanzas.movimientosEliminados))g.finanzas.movimientosEliminados=[];
+        const eliminadas=new Set(g.finanzas.actividadesEliminadas.map(String));
+        g.finanzas.actividades=g.finanzas.actividades.filter(a=>!eliminadas.has(String(a&&a.id)));
+        const movimientosEliminados=new Set(g.finanzas.movimientosEliminados.map(String));
+        g.finanzas.movimientos=g.finanzas.movimientos.filter(m=>!movimientosEliminados.has(String(m&&m.id)) && !eliminadas.has(String(m&&m.actividadId)));
         return g.finanzas;
     }
     function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -3796,9 +4007,24 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
         const f=obtenerFinanzasActual();f.movimientos=f.movimientos.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
     }
     function eliminarActividadFinanzas(id){
-        const f=obtenerFinanzasActual(), usada=f.movimientos.some(x=>String(x.actividadId)===String(id));
-        if(usada){alert('No se puede borrar una actividad que ya tiene pagos/devoluciones. Puedes dejarla archivada.');return;}
-        if(!confirm('¿Eliminar esta actividad?'))return;f.actividades=f.actividades.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
+        const f=obtenerFinanzasActual();
+        const actividad=f.actividades.find(x=>String(x.id)===String(id));
+        if(!actividad)return;
+        const movimientosRelacionados=f.movimientos.filter(x=>String(x.actividadId)===String(id));
+        const aviso=movimientosRelacionados.length
+          ? `La actividad "${actividad.nombre||'Actividad'}" tiene ${movimientosRelacionados.length} movimiento(s) asociado(s).\n\nSi la eliminas, también se eliminarán esos pagos/devoluciones del registro.\n\n¿Continuar?`
+          : `¿Eliminar la actividad "${actividad.nombre||'Actividad'}"?`;
+        if(!confirm(aviso))return;
+        if(!Array.isArray(f.actividadesEliminadas))f.actividadesEliminadas=[];
+        const sid=String(id);
+        if(!f.actividadesEliminadas.some(x=>String(x)===sid))f.actividadesEliminadas.push(id);
+        f.actividades=f.actividades.filter(x=>String(x.id)!==sid);
+        f.movimientos=f.movimientos.filter(x=>String(x.actividadId)!==sid);
+        sistemaDatos._actualizado=Date.now();
+        guardarEquipoLocal(equipoActualLogin,sistemaDatos);
+        renderizarFinanzas();
+        toast('✔ Actividad eliminada');
+        sincronizarConNube(false);
     }
     function estadoPagoFinanzas(persona,act){
         const f=obtenerFinanzasActual(), mov=f.movimientos.filter(x=>x.persona===persona&&String(x.actividadId)===String(act.id));
