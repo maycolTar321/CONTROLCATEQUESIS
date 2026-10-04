@@ -739,6 +739,206 @@ table{min-width:680px}
  .activity-summary-head>button{flex:0 0 auto}
 }
 
+/* =========================================================
+   V8 — DISEÑO PREMIUM / FLUIDO / MOBILE-FIRST
+   Objetivo: cero amontonamiento, jerarquía clara y respiración.
+   No cambia la lógica ni elimina funciones: solo reorganiza la presentación.
+   ========================================================= */
+:root{
+  --surface-1:#172235;
+  --surface-2:#1c2940;
+  --surface-3:#223149;
+  --line-soft:rgba(148,163,184,.14);
+  --line-strong:rgba(148,163,184,.22);
+  --text-soft:#cbd5e1;
+  --text-dim:#8fa0b8;
+  --green-soft:rgba(16,185,129,.12);
+}
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;line-height:1.5}
+#app-container{min-width:0}
+.app-main{min-width:0;width:100%}
+
+/* PC: espacio elegante y estable */
+@media(min-width:901px){
+  .sidebar{width:270px;padding:22px 14px;background:linear-gradient(180deg,#101a2d 0%,#0d1728 100%)}
+  .sidebar-brand{padding:6px 8px 20px;margin-bottom:16px}
+  .sidebar-brand img{width:72px;height:72px}
+  .sidebar-brand h1{font-size:.9rem;line-height:1.4}
+  nav.desktop-nav{gap:7px;padding:0 2px}
+  .tab-btn{min-height:48px;padding:11px 13px;border-radius:14px}
+  .topbar{padding:14px 24px;background:rgba(12,20,35,.92)}
+  main{max-width:1480px;padding:28px 30px 40px}
+  .section{padding-bottom:30px}
+  .card,.v4-panel{border-radius:22px}
+}
+
+/* Cabecera de grupo: una sola jerarquía, nunca una fila interminable */
+.grupo-bar{background:rgba(30,41,59,.34);border:1px solid var(--line-soft);border-radius:16px;min-width:0}
+.grupo-bar select{font-weight:750;background:#111c30}
+.grupo-bar .chip{box-shadow:0 4px 12px rgba(0,0,0,.12)}
+
+/* Encabezados de página */
+.page-head{padding:4px 2px 2px}
+.page-head h2{font-size:clamp(1.25rem,2vw,1.55rem);letter-spacing:-.02em}
+.section-intro{max-width:820px}
+
+/* Tarjetas con aire */
+.card,.v4-panel{box-shadow:0 14px 34px rgba(0,0,0,.16);background:linear-gradient(145deg,rgba(30,41,59,.98),rgba(24,36,54,.98));border-color:var(--line-soft)}
+.card>h2,.v4-panel>h2{margin-bottom:20px}
+.card p{max-width:100%;overflow-wrap:anywhere}
+
+/* Formularios: nunca se aplastan */
+.form-grid,.filters-grid,.meeting-form-grid,.activity-form-grid,.finance-grid,.session-summary-box{align-items:start}
+.form-grid{gap:18px}
+.form-grid>div,.filters-grid>div,.meeting-form-grid>div,.activity-form-grid>div,.finance-grid>div,.session-summary-box>div{min-width:0}
+textarea{resize:vertical;min-height:100px;line-height:1.5}
+
+/* Barras de acciones: los botones fluyen, no chocan */
+.acciones,.toolbar-actions,.session-tools,.quick-actions,.backup-box{gap:10px}
+.acciones .btn,.toolbar-actions .btn,.session-tools .btn,.quick-actions .btn,.backup-box .btn{flex:0 1 auto}
+.btn{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+
+/* Tablas: contenedor limpio, no deformar tarjetas */
+.table-responsive,.activity-table-wrap{border-radius:14px;overflow-x:auto;overflow-y:hidden}
+table{border-collapse:separate;border-spacing:0}
+th{white-space:nowrap}
+td{vertical-align:top;overflow-wrap:anywhere}
+
+/* Asistencia: bloques claramente separados */
+.attendance-toolbar{background:rgba(15,23,42,.32);border:1px solid var(--line-soft);border-radius:16px;padding:14px}
+.attendance-counts{gap:8px!important}
+.attendance-pill{border-radius:12px!important;padding:9px 11px!important}
+.session-summary-box{background:rgba(15,23,42,.26);border-color:var(--line-soft)!important;border-radius:16px!important}
+
+/* Tareas */
+.task-picker-tools{background:rgba(15,23,42,.25);padding:10px;border:1px solid var(--line-soft);border-radius:14px}
+.task-picker-list{border-radius:14px!important;background:rgba(15,23,42,.2)}
+.task-option{margin-bottom:7px!important}
+
+/* Finanzas: secciones independientes y respiradas */
+.finance-kpis{gap:16px!important}
+.finance-kpi{border-radius:18px!important;border:1px solid var(--line-soft)!important;background:linear-gradient(145deg,rgba(30,41,59,.98),rgba(15,23,42,.92))!important}
+.finance-section-title{padding-bottom:4px}
+.activity-form-grid{gap:18px 16px!important}
+.activity-form-grid input,.activity-form-grid select,.activity-form-grid textarea{min-height:46px}
+.activity-description-field textarea{min-height:125px}
+.activity-summary-card{border-radius:20px!important;background:linear-gradient(145deg,rgba(34,49,73,.8),rgba(20,31,48,.8))!important}
+.activity-stat-row{gap:8px!important;flex-wrap:wrap}
+
+/* Notas: tarjetas tipo bloc, no lista amontonada */
+.notas-toolbar{background:rgba(15,23,42,.28);padding:12px;border:1px solid var(--line-soft);border-radius:16px}
+.notas-grid{align-items:stretch}
+.nota-card{height:100%;min-width:0}
+
+/* Reuniones */
+.reunion-head{gap:12px!important;padding-bottom:12px!important}
+.meeting-form-grid{gap:16px!important}
+
+/* Centro */
+.v4-grid{gap:16px!important}
+.v4-kpi{min-width:0;overflow:hidden}
+
+/* =========================================================
+   MOBILE REAL — no se encoge el PC: se reorganiza.
+   ========================================================= */
+@media(max-width:900px){
+  /* El sidebar solo sirve de contenedor de la navegación móvil. */
+  .sidebar{display:block!important;position:fixed!important;left:0;right:0;bottom:0;top:auto!important;width:100%!important;height:auto!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;z-index:3000!important;pointer-events:none!important}
+  .sidebar-brand,.sidebar-footer,.desktop-nav{display:none!important}
+  .mobile-nav{display:flex!important;position:fixed!important;left:10px!important;right:10px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;width:auto!important;height:66px!important;padding:7px!important;gap:5px!important;background:rgba(13,22,39,.97)!important;border:1px solid rgba(148,163,184,.18)!important;border-radius:20px!important;box-shadow:0 18px 45px rgba(0,0,0,.48),0 0 0 1px rgba(255,255,255,.02)!important;pointer-events:auto!important;overflow:hidden!important}
+  .mobile-nav-btn{height:52px!important;min-height:52px!important;flex:1 1 0!important;padding:6px 3px!important;border-radius:15px!important;font-size:.67rem!important;color:#8ea0b8!important}
+  .mobile-nav-btn i{font-size:1.08rem!important}
+  .mobile-nav-btn.active{color:#75efba!important;background:rgba(16,185,129,.13)!important}
+
+  .topbar{padding:10px 12px 12px!important;background:rgba(10,18,32,.94)!important}
+  .mobile-brand{margin-bottom:10px!important;padding:2px 1px}
+  .mobile-brand .mb-left{min-width:0}
+  .mobile-brand h1{font-size:1rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-brand img{width:40px!important;height:40px!important;border-radius:12px!important}
+  .icon-btn{width:40px!important;height:40px!important;border-radius:12px!important}
+
+  /* Selector del grupo en dos filas lógicas */
+  .grupo-bar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:10px!important;border-radius:16px!important;overflow:visible!important}
+  .grupo-bar .lbl{display:none!important}
+  .grupo-bar #selector-grupos{grid-column:1/-1!important;width:100%!important;max-width:none!important;min-width:0!important;height:46px!important;font-size:.94rem!important}
+  .grupo-bar #estado-tiempo-real{grid-column:1!important;order:initial!important;min-width:0!important;justify-content:flex-start!important;height:42px!important;padding:0 11px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grupo-bar>.chip-green:not(.group-action){grid-column:2!important;order:initial!important;min-width:112px!important;height:42px!important;padding:0 13px!important}
+  .grupo-bar .mobile-group-more{grid-column:1/-1!important;display:flex!important;width:100%!important;height:42px!important;min-width:0!important}
+
+  main{padding:16px 12px 104px!important;max-width:none!important}
+  .section{padding-bottom:18px!important}
+  .page-head{margin-bottom:14px!important;gap:10px!important}
+  .page-head h2{font-size:1.22rem!important;line-height:1.25!important}
+  .page-head .acciones{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .page-head .acciones .btn{width:100%!important;min-height:44px!important}
+  .section-intro{margin-top:-4px!important;margin-bottom:16px!important;font-size:.9rem}
+
+  .card,.v4-panel{padding:17px!important;margin-bottom:14px!important;border-radius:18px!important}
+  h2{font-size:1.15rem!important;line-height:1.3!important;margin-bottom:16px!important}
+  .stats-grid{grid-template-columns:1fr 1fr!important;gap:10px!important;margin-bottom:14px!important}
+  .stat-card{padding:13px!important;min-width:0}
+  .stat-card .number{font-size:1.55rem!important}
+  .stat-card h3{font-size:.66rem!important;line-height:1.25}
+
+  .form-grid,.filters-grid,.meeting-form-grid,.activity-form-grid,.finance-grid,.session-summary-box{grid-template-columns:1fr!important;gap:14px!important}
+  .activity-main-field,.activity-description-field,.finance-grid>div:last-child,.session-summary-box .full{grid-column:auto!important}
+  .finance-section-title{display:block!important}
+  .finance-section-title .toolbar-actions{margin-top:12px}
+  .finance-section-title .toolbar-actions .btn{width:100%}
+  .finance-kpis{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .finance-kpi{min-height:94px!important;padding:13px!important}
+  .finance-kpi strong{font-size:1.25rem!important}
+
+  .activity-form-grid input,.activity-form-grid select,.activity-form-grid textarea{min-height:46px!important}
+  .activity-create-footer{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+  .activity-create-footer .btn{width:100%!important}
+  .activity-summary-card{padding:15px!important}
+  .activity-summary-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important}
+  .activity-meta{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
+
+  .attendance-toolbar{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;padding:12px!important}
+  .attendance-counts{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .attendance-pill{min-width:0!important}
+  .session-tools{display:grid!important;grid-template-columns:1fr!important}
+  .session-tools .btn{width:100%!important;min-width:0!important}
+  .task-picker-tools{display:grid!important;grid-template-columns:1fr 1fr!important}
+  .task-picker-tools input{grid-column:1/-1!important}
+
+  .notas-toolbar{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+  .notas-toolbar .btn{width:100%!important}
+  .notas-grid{grid-template-columns:1fr!important;gap:12px!important}
+
+  /* Tablas solo se convierten a tarjetas cuando tienen sentido. */
+  .table-responsive{overflow:visible!important}
+  .table-responsive table{min-width:0!important;width:100%!important}
+  .table-responsive thead{display:none!important}
+  .table-responsive tr{display:block!important;padding:13px!important;margin-bottom:10px!important;border:1px solid var(--line-soft)!important;border-radius:15px!important;background:rgba(15,23,42,.24)!important}
+  .table-responsive td{display:flex!important;flex-direction:column!important;padding:8px 0!important;border:0!important;border-bottom:1px solid rgba(148,163,184,.08)!important;min-width:0!important}
+  .table-responsive td:last-child{border-bottom:0!important}
+  .table-responsive td::before{font-size:.68rem!important;line-height:1.2!important;color:#8192aa!important;margin-bottom:4px!important;letter-spacing:.04em}
+
+  /* Menú Más */
+  .mobile-action-sheet{z-index:4000!important}
+  .mobile-sheet-panel{padding:10px 14px calc(22px + env(safe-area-inset-bottom))!important;border-radius:24px 24px 0 0!important;max-height:82vh!important}
+  .mobile-sheet-grid{gap:10px!important}
+  .mobile-sheet-grid button{min-height:72px!important;border-radius:16px!important}
+}
+
+@media(max-width:480px){
+  .mobile-nav{left:7px!important;right:7px!important;bottom:calc(6px + env(safe-area-inset-bottom))!important;height:64px!important}
+  .mobile-nav-btn{height:50px!important;font-size:.61rem!important}
+  .mobile-nav-btn i{font-size:1rem!important}
+  main{padding-left:10px!important;padding-right:10px!important}
+  .card,.v4-panel{padding:15px!important}
+  .stats-grid,.finance-kpis{grid-template-columns:1fr 1fr!important}
+  .page-head .acciones .btn{font-size:.88rem!important}
+}
+
+/* Accesibilidad y microinteracciones */
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(52,211,153,.35);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
 </style>
 
 </head>
