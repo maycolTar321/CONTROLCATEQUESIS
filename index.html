@@ -1274,6 +1274,7 @@ td,th{border-color:var(--ui-border)!important}
   #asistencia .attendance-toolbar .attendance-mini-action i{font-size:.68rem!important}
 }
 </style>
+
 </head>
 <body>
 
@@ -1691,11 +1692,19 @@ td,th{border-color:var(--ui-border)!important}
 
                     <div class="attendance-toolbar no-print">
                         <div class="session-tools">
-                            <button class="btn btn-info attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Presente')" title="Todos presentes" aria-label="Todos presentes"><i class="fa-solid fa-user-check"></i><span class="attendance-mini-label">Presentes</span></button>
-                            <button class="btn btn-warning attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Retraso')" title="Todos retrasados" aria-label="Todos retrasados"><i class="fa-solid fa-clock"></i><span class="attendance-mini-label">Retrasos</span></button>
-                            <button class="btn btn-danger attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')" title="Todos con falta" aria-label="Todos con falta"><i class="fa-solid fa-user-xmark"></i><span class="attendance-mini-label">Faltas</span></button>
-                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="limpiarEstadosAsistencia()" title="Restablecer" aria-label="Restablecer"><i class="fa-solid fa-rotate-left"></i><span class="attendance-mini-label">Reset</span></button>
-                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="copiarUltimaAsistencia()" title="Copiar última sesión" aria-label="Copiar última sesión"><i class="fa-solid fa-copy"></i><span class="attendance-mini-label">Copiar</span></button>
+                            <div class="attendance-bulk-menu-wrap">
+                                <button class="btn btn-slate attendance-bulk-trigger" type="button" onclick="toggleAccionesAsistencia(event)" aria-expanded="false" aria-controls="menu-acciones-asistencia">
+                                    <i class="fa-solid fa-list-check"></i><span>Acciones rápidas</span><i class="fa-solid fa-chevron-down attendance-bulk-chevron"></i>
+                                </button>
+                                <div id="menu-acciones-asistencia" class="attendance-bulk-menu" role="menu" onclick="event.stopPropagation()">
+                                    <div class="attendance-bulk-title"><i class="fa-solid fa-bolt"></i><div><strong>Acciones rápidas</strong><small>Úsalas para marcar a todos de una vez</small></div></div>
+                                    <button type="button" class="bulk-option present" onclick="ejecutarAccionAsistencia('presentes')"><i class="fa-solid fa-user-check"></i><span><strong>Todos presentes</strong><small>Marca a todos como presentes</small></span></button>
+                                    <button type="button" class="bulk-option delay" onclick="ejecutarAccionAsistencia('retrasos')"><i class="fa-solid fa-clock"></i><span><strong>Todos retrasados</strong><small>Marca a todos como retrasados</small></span></button>
+                                    <button type="button" class="bulk-option absent" onclick="ejecutarAccionAsistencia('faltas')"><i class="fa-solid fa-user-xmark"></i><span><strong>Todos con falta</strong><small>Marca falta injustificada a todos</small></span></button>
+                                    <button type="button" class="bulk-option reset" onclick="ejecutarAccionAsistencia('reset')"><i class="fa-solid fa-rotate-left"></i><span><strong>Restablecer</strong><small>Quita los estados marcados</small></span></button>
+                                    <button type="button" class="bulk-option copy" onclick="ejecutarAccionAsistencia('copiar')"><i class="fa-solid fa-copy"></i><span><strong>Copiar última sesión</strong><small>Repite la asistencia anterior</small></span></button>
+                                </div>
+                            </div>
                         </div>
                         <div class="attendance-counts" id="resumen-asistencia-actual">
                             <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
@@ -3837,7 +3846,16 @@ td,th{border-color:var(--ui-border)!important}
   #asistencia .attendance-toolbar .attendance-mini-label{font-size:.44rem!important}
 }
 </style>
-</head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div></body></html>`);
+
+<style id="acciones-asistencia-menu-compacto">
+.attendance-bulk-menu-wrap{position:relative;display:inline-flex}.attendance-bulk-trigger{min-height:36px!important;height:36px!important;padding:0 11px!important;border-radius:10px!important;font-size:.76rem!important;gap:6px!important;box-shadow:none!important}.attendance-bulk-trigger i:first-child{font-size:.78rem!important}.attendance-bulk-chevron{font-size:.62rem!important;margin-left:2px!important;transition:transform .18s}.attendance-bulk-menu-wrap.open .attendance-bulk-chevron{transform:rotate(180deg)}
+.attendance-bulk-menu{display:none;position:absolute;top:calc(100% + 7px);left:0;width:285px;padding:7px;background:#162235;border:1px solid rgba(148,163,184,.2);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42);z-index:5000}.attendance-bulk-menu.open{display:block;animation:fadeIn .14s ease-out}.attendance-bulk-title{display:flex;gap:9px;align-items:center;padding:9px 10px 10px;border-bottom:1px solid rgba(148,163,184,.13);margin-bottom:5px}.attendance-bulk-title>i{color:#6ee7b7}.attendance-bulk-title strong{display:block;font-size:.76rem}.attendance-bulk-title small{display:block;color:var(--medium-gray);font-size:.63rem;margin-top:2px}
+.bulk-option{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;background:transparent;color:#e2e8f0;border-radius:10px;text-align:left;cursor:pointer}.bulk-option:hover{background:rgba(255,255,255,.055)}.bulk-option>i{width:28px;height:28px;min-width:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem}.bulk-option span{min-width:0}.bulk-option strong{display:block;font-size:.72rem;line-height:1.25}.bulk-option small{display:block;color:#94a3b8;font-size:.61rem;line-height:1.3;margin-top:2px}.bulk-option.present>i{background:rgba(16,185,129,.13);color:#6ee7b7}.bulk-option.delay>i{background:rgba(245,158,11,.13);color:#fcd34d}.bulk-option.absent>i{background:rgba(239,68,68,.13);color:#fca5a5}.bulk-option.reset>i,.bulk-option.copy>i{background:rgba(148,163,184,.12);color:#cbd5e1}
+@media(max-width:700px){.attendance-bulk-trigger{height:34px!important;min-height:34px!important;padding:0 9px!important;font-size:.69rem!important}.attendance-bulk-menu{position:fixed;left:10px;right:10px;top:auto;bottom:calc(76px + env(safe-area-inset-bottom));width:auto;max-width:none;padding:7px;border-radius:16px}.bulk-option{padding:10px 11px;min-height:48px}.bulk-option strong{font-size:.74rem}.bulk-option small{font-size:.64rem}.attendance-bulk-title{padding:10px 11px}}
+.grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;padding:0!important;border-radius:8px!important;box-shadow:none!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.68rem!important;margin:0!important}@media(max-width:900px){.grupo-bar>.topbar-save,.grupo-bar .topbar-save{flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.66rem!important}}
+</style>
+</head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div>
+</body></html>`);
         w.document.close();
         w.focus();
         setTimeout(()=>w.print(),350);
@@ -4646,7 +4664,36 @@ function renderizarNotificaciones(){
 
 document.addEventListener('click',function(e){if(!e.target.closest('.notificaciones-wrap'))cerrarNotificaciones();});
 </script>
-</body></html>
+</body>
+<script id="acciones-asistencia-menu-js">
+function toggleAccionesAsistencia(e){if(e)e.stopPropagation();const wrap=document.querySelector('.attendance-bulk-menu-wrap'),menu=document.getElementById('menu-acciones-asistencia'),btn=document.querySelector('.attendance-bulk-trigger');if(!wrap||!menu)return;const abrir=!menu.classList.contains('open');menu.classList.toggle('open',abrir);wrap.classList.toggle('open',abrir);if(btn)btn.setAttribute('aria-expanded',String(abrir));}
+function cerrarAccionesAsistencia(){const wrap=document.querySelector('.attendance-bulk-menu-wrap'),menu=document.getElementById('menu-acciones-asistencia'),btn=document.querySelector('.attendance-bulk-trigger');if(menu)menu.classList.remove('open');if(wrap)wrap.classList.remove('open');if(btn)btn.setAttribute('aria-expanded','false');}
+function ejecutarAccionAsistencia(accion){cerrarAccionesAsistencia();if(accion==='presentes')marcarTodosAsistencia('Presente');else if(accion==='retrasos')marcarTodosAsistencia('Retraso');else if(accion==='faltas')marcarTodosAsistencia('Falta Injustificada');else if(accion==='reset')limpiarEstadosAsistencia();else if(accion==='copiar')copiarUltimaAsistencia();}
+document.addEventListener('click',function(e){if(!e.target.closest('.attendance-bulk-menu-wrap'))cerrarAccionesAsistencia();});
+</script>
+
+<style id="ajuste-final-guardar">
+.grupo-bar .topbar-save,.grupo-bar > .topbar-save{flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;padding:0!important;margin:0!important;border-radius:8px!important;font-size:0!important;gap:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;box-shadow:none!important}
+.grupo-bar .topbar-save span,.grupo-bar > .topbar-save span{display:none!important}
+.grupo-bar .topbar-save i,.grupo-bar > .topbar-save i{display:block!important;font-size:11px!important;line-height:1!important;margin:0!important}
+@media(max-width:380px){.grupo-bar .topbar-save,.grupo-bar > .topbar-save{flex-basis:28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important}}
+</style>
+
+<script id="temario-delete-persistence-final">
+(function(){
+  function normT(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ')}
+  function ensureT(g){if(!g)return;if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[]}
+  function addT(arr,k){if(!Array.isArray(arr))return [k];if(!arr.some(x=>String(x)===String(k)))arr.push(k);return arr}
+  function keysT(item){if(!item)return [];const out=[];if(item.id!==undefined&&item.id!==null&&item.id!=='')out.push('id:'+String(item.id));out.push('temario:'+normT(item.fecha)+'|'+normT(item.titulo||item.nombre||item.tema));return [...new Set(out)]}
+  function cleanGroupT(g){if(!g)return;ensureT(g);if(!g.temario)return;['primerAno','segundoAno'].forEach(function(ano){if(!Array.isArray(g.temario[ano]))g.temario[ano]=[];g.temario[ano]=g.temario[ano].filter(function(item){const ks=keysT(item);return !ks.some(k=>g.temarioEliminados.some(t=>String(t)===String(k)))})})}
+  function cleanAllT(){Object.values(sistemaDatos.grupos||{}).forEach(cleanGroupT)}
+  const oldApplyT=window.aplicarDatosRemotos;
+  if(oldApplyT){window.aplicarDatosRemotos=function(remoto,motivo){const localGroups=sistemaDatos&&sistemaDatos.grupos||{};const remotoSafe=JSON.parse(JSON.stringify(remoto||{}));remotoSafe.grupos=remotoSafe.grupos||{};Object.keys(localGroups).forEach(function(nombre){const lg=localGroups[nombre],rg=remotoSafe.grupos[nombre];if(!lg||!rg)return;ensureT(lg);ensureT(rg);rg.temarioEliminados=[...new Set([...(lg.temarioEliminados||[]),...(rg.temarioEliminados||[])].map(String))]});const ok=oldApplyT(remotoSafe,motivo);if(ok){cleanAllT();guardarEquipoLocal(equipoActualLogin,sistemaDatos);try{renderizarTemario()}catch(e){}}return ok}}
+  window.eliminarTemaTemario=function(ano,id){const g=sistemaDatos.grupos[grupoActual],tem=obtenerTemarioActual(),arr=tem[ano]||[],item=arr.find(x=>String(x.id)===String(id));if(!item)return;if(!confirm('¿Eliminar este tema del temario?'))return;ensureT(g);keysT(item).forEach(k=>addT(g.temarioEliminados,k));const i=arr.indexOf(item);if(i>=0)arr.splice(i,1);sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);renderizarTemario();sincronizarConNube(false);toast('✔ Tema eliminado')};
+  cleanAllT();try{renderizarTemario()}catch(e){}
+})();
+</script>
+</html>
 <style id="asistencia-iconos-compactos">
 /* Asistencia: controles más compactos para ganar espacio sin quitar funciones */
 #asistencia .attendance-head-actions{gap:6px}
