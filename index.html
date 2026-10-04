@@ -329,9 +329,12 @@
     .nota-card h3 { font-size: 1.05rem; color: #854d0e; margin-bottom: 0.2rem; font-weight: 800; }
     .nota-card .fecha { font-size: 0.75rem; color: #a16207; margin-bottom: 0.8rem; display: block; font-weight: 600; }
     .nota-card .contenido { font-size: 0.92rem; color: #3f3f1a; max-height: 180px; overflow: hidden; }
-    .nota-card .acciones { position: absolute; top: -33px; right: 8px; }
-    .nota-card .btn-icon { background: none; border: none; cursor: pointer; color: #854d0e; font-size: 1rem; }
-    .nota-card .btn-icon:hover { color: var(--danger-color); }
+    .nota-card .acciones { position:absolute; top:18px; right:12px; display:flex; gap:7px; z-index:5; }
+    .nota-card .btn-icon { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:rgba(255,255,255,.58); border:1px solid rgba(133,77,14,.22); border-radius:10px; cursor:pointer; color:#854d0e; font-size:.95rem; box-shadow:0 2px 7px rgba(0,0,0,.12); transition:transform .15s, background .15s, color .15s; }
+    .nota-card .btn-icon:hover { transform:translateY(-1px); background:#fff; color:#b91c1c; }
+    .nota-card .btn-icon:first-child:hover { color:#854d0e; }
+    .nota-card { padding-top:4.2rem !important; }
+    .nota-card h3 { padding-right:82px; }
     .ql-toolbar.ql-snow { background: #f1f5f9; border-radius: 10px 10px 0 0; border-color: var(--border-color) !important; }
     .ql-container.ql-snow { border-color: var(--border-color) !important; border-radius: 0 0 10px 10px; }
     .ql-editor { font-size: 1rem; color: #0f172a; }
@@ -543,7 +546,7 @@
         .login-card { padding: 2rem 1.5rem; }
     }
 
-/* ===== V4 ===== */
+/* ===== NIVEL SUPER DIOS V4 ===== */
 .v4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
 .v4-kpi{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(30,41,59,.95),rgba(15,23,42,.95));border:1px solid rgba(148,163,184,.16);box-shadow:0 10px 28px rgba(0,0,0,.12)}
 .v4-kpi .v4-num{font-size:2rem;font-weight:900;margin-top:6px}.v4-kpi small{color:var(--medium-gray)}
@@ -1089,7 +1092,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <button class="tab-btn" onclick="switchTab(event, 'alumnos')" title="Inscribir y ver jóvenes"><i class="fa-solid fa-user-graduate"></i><span class="lbl-pc">Catequizandos y Fichas</span><span class="lbl-m">Fichas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'notas')" title="Tus apuntes"><i class="fa-solid fa-thumbtack"></i><span class="lbl-pc">Mis Notas</span><span class="lbl-m">Notas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'herramientas')" title="Respaldo y diagnóstico"><i class="fa-solid fa-shield-halved"></i><span class="lbl-pc">Herramientas</span><span class="lbl-m">Backup</span></button>
-            <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control "><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control"><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'temario')" title="Temario de Primer y Segundo Año"><i class="fa-solid fa-list-check"></i><span class="lbl-pc">Temario / Checklist</span><span class="lbl-m">Temario</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'finanzas')" title="Pagos, devoluciones y actividades"><i class="fa-solid fa-money-bill-transfer"></i><span class="lbl-pc">Finanzas</span><span class="lbl-m">Pagos</span></button>
         </nav>
@@ -1365,7 +1368,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <!-- CENTRO DE CONTROL V4 -->
             <section id="centro-v4" class="section">
                 <div class="page-head">
-                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control</h2>
+                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control —  V4</h2>
                     <div class="acciones">
                         <button class="btn btn-info" onclick="actualizarCentroV4()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                         <button class="btn btn-slate" onclick="exportarAsistenciaCSV()"><i class="fa-solid fa-file-csv"></i> Asistencia CSV</button>
@@ -1893,7 +1896,9 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     function aplicarDatosRemotos(remoto, motivo){
         if(!remoto || typeof remoto!=='object') return false;
         const passActual=sistemaDatos&&sistemaDatos.password;
+        const eliminadasLocales=Array.isArray(sistemaDatos&&sistemaDatos._notasEliminadas)?sistemaDatos._notasEliminadas:[];
         sistemaDatos=JSON.parse(JSON.stringify(remoto));
+        sistemaDatos._notasEliminadas=[...new Set([...(Array.isArray(sistemaDatos._notasEliminadas)?sistemaDatos._notasEliminadas:[]), ...eliminadasLocales].map(String))];
         if(!sistemaDatos.password&&passActual) sistemaDatos.password=passActual;
         migrarDatosAntiguos();
         guardarEquipoLocal(equipoActualLogin,sistemaDatos);
@@ -2245,6 +2250,9 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
         } else if (!Array.isArray(sistemaDatos.notas)) {
             sistemaDatos.notas = [];
         }
+        if (!Array.isArray(sistemaDatos._notasEliminadas)) sistemaDatos._notasEliminadas = [];
+        const eliminadas = new Set(sistemaDatos._notasEliminadas.map(String));
+        sistemaDatos.notas = sistemaDatos.notas.filter(n => !eliminadas.has(String(n.id)));
     }
 
     function inicializarApp() {
@@ -3383,7 +3391,8 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
     function renderizarNotas() {
         const cont = document.getElementById('contenedor-notas'); if(!cont)return;
-        const todas=Array.isArray(sistemaDatos.notas)?sistemaDatos.notas:[];
+        const eliminadas=new Set((Array.isArray(sistemaDatos._notasEliminadas)?sistemaDatos._notasEliminadas:[]).map(String));
+        const todas=(Array.isArray(sistemaDatos.notas)?sistemaDatos.notas:[]).filter(n=>!eliminadas.has(String(n.id)));
         const q=(document.getElementById('buscar-notas')?.value||'').toLowerCase().trim(); const tipo=document.getElementById('filtro-notas-tipo')?.value||'todos';
         let notas=todas.filter(n=>{const texto=(String(n.titulo||'')+' '+limpiarTextoPlano(n.contenido)).toLowerCase();return (!q||texto.includes(q))&&(tipo==='todos'||(n.tipo||'general')===tipo)&&(!filtroNotasFijadas||!!n.fijada);});
         notas.sort((a,b)=>(Number(!!b.fijada)-Number(!!a.fijada)) || String(b.recordatorio||b.fecha||'').localeCompare(String(a.recordatorio||a.fecha||'')) || Number(b.id||0)-Number(a.id||0));
@@ -3409,11 +3418,23 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
         const idStr = document.getElementById('nota-id-actual').value; const titulo = document.getElementById('nota-titulo').value.trim() || "Nota sin título"; const fechaInput = document.getElementById('nota-fecha').value; const contenido = quillEditor.root.innerHTML;
         if (quillEditor.getText().trim() === "") { alert("La nota está vacía."); return; }
         const fecha = fechaInput ? formatearFecha(fechaInput) : new Date().toLocaleDateString(); const tipo=document.getElementById('nota-tipo').value||'general'; const recordatorio=document.getElementById('nota-recordatorio').value||''; const fijada=document.getElementById('nota-fijada').checked;
-        if (idStr) { const n = sistemaDatos.notas.find(x => Number(x.id) === Number(idStr)); if (n) { n.titulo=titulo;n.contenido=contenido;n.fecha=fecha;n.tipo=tipo;n.recordatorio=recordatorio;n.fijada=fijada;n.actualizado=Date.now(); } }
-        else sistemaDatos.notas.push({id:Date.now(),titulo,contenido,fecha,tipo,recordatorio,fijada,actualizado:Date.now()});
+        if (!Array.isArray(sistemaDatos._notasEliminadas)) sistemaDatos._notasEliminadas=[];
+        if (idStr) { const n = sistemaDatos.notas.find(x => Number(x.id) === Number(idStr)); if (n) { n.titulo=titulo;n.contenido=contenido;n.fecha=fecha;n.tipo=tipo;n.recordatorio=recordatorio;n.fijada=fijada;n.actualizado=Date.now(); sistemaDatos._notasEliminadas=sistemaDatos._notasEliminadas.filter(x=>String(x)!==String(idStr)); } }
+        else { const nuevoId=Date.now(); sistemaDatos.notas.push({id:nuevoId,titulo,contenido,fecha,tipo,recordatorio,fijada,actualizado:Date.now()}); sistemaDatos._notasEliminadas=sistemaDatos._notasEliminadas.filter(x=>String(x)!==String(nuevoId)); }
         sincronizarConNube(false); cerrarEditorNota(); renderizarNotas(); toast('✔ Nota guardada');
     }
-    function eliminarNota(id) { if (!confirm("¿Eliminar permanentemente esta nota?")) return; sistemaDatos.notas=sistemaDatos.notas.filter(n=>Number(n.id)!==Number(id)); sincronizarConNube(false); renderizarNotas(); }
+    function eliminarNota(id) {
+        if (!confirm('¿Eliminar permanentemente esta nota?')) return;
+        if (!Array.isArray(sistemaDatos._notasEliminadas)) sistemaDatos._notasEliminadas=[];
+        const sid=String(id);
+        if (!sistemaDatos._notasEliminadas.some(x=>String(x)===sid)) sistemaDatos._notasEliminadas.push(id);
+        sistemaDatos.notas=sistemaDatos.notas.filter(n=>String(n.id)!==sid);
+        sistemaDatos._actualizado=Date.now();
+        guardarEquipoLocal(equipoActualLogin,sistemaDatos);
+        renderizarNotas();
+        toast('✔ Nota eliminada');
+        sincronizarConNube(false);
+    }
     function cerrarEditorNota() { document.getElementById('modal-nota').style.display = 'none'; }
     function imprimirNotas(){
         const notas=Array.isArray(sistemaDatos.notas)?sistemaDatos.notas:[]; const body=notas.slice().sort((a,b)=>Number(!!b.fijada)-Number(!!a.fijada)).map(n=>`<div style="border-bottom:1px solid #ccc;padding:12px 0"><h3>${n.fijada?'📌 ':''}${escHtml(n.titulo||'Nota')}</h3><p><b>${escHtml(tipoNotaTexto(n.tipo||'general'))}</b> · ${escHtml(n.fecha||'-')}${n.recordatorio?' · Recordatorio: '+escHtml(formatearFecha(n.recordatorio)):''}</p><div>${n.contenido||''}</div></div>`).join(''); imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Notas — ${escHtml(grupoActual)}</h2>${body||'<p>No hay notas.</p>'}`,'Notas_Catequesis'); }
@@ -3662,7 +3683,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 
 
     // =========================================================================
-    // CENTRO DE CONTROL NIVEL SÚPER DIOS V4
+    // CENTRO DE CONTROL V4
     // =========================================================================
     function fechasSesionesV4(){
         const g=sistemaDatos.grupos[grupoActual]||{};
