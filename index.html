@@ -916,6 +916,14 @@ input[type="checkbox"], input[type="radio"] { accent-color:var(--primary-color);
   .notas-toolbar input[type="search"], .notas-toolbar select, .notas-toolbar .btn { min-height:54px !important; }
 }
 
+
+/* ===== PANEL INICIO + ACCIONES COMPACTAS ===== */
+.dashboard-welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 22px;margin-bottom:18px;border:1px solid rgba(52,211,153,.18);border-radius:20px;background:linear-gradient(135deg,rgba(16,185,129,.10),rgba(15,23,42,.72));box-shadow:0 12px 28px rgba(0,0,0,.14)}
+.dashboard-welcome-main{display:flex;align-items:center;gap:14px;min-width:0}.dashboard-welcome-logo{width:58px;height:58px;border-radius:16px;object-fit:cover;border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 18px rgba(0,0,0,.22)}
+.dashboard-welcome h3{margin:0 0 4px;font-size:1.08rem}.dashboard-welcome p{margin:0;color:var(--medium-gray);font-size:.9rem;line-height:1.45}
+.report-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.report-tool{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important;border-radius:10px!important;font-size:.9rem!important;box-shadow:none!important;gap:0!important}.report-tool span{display:none}
+.report-tool:hover{transform:translateY(-1px)!important}.report-tool[title]{position:relative}
+@media(max-width:700px){.dashboard-welcome{padding:15px;align-items:flex-start}.dashboard-welcome-logo{width:48px;height:48px;border-radius:13px}.dashboard-welcome p{font-size:.84rem}.report-tools{gap:6px}.report-tool{width:35px!important;height:35px!important;min-width:35px!important;min-height:35px!important}}
 </style>
 
 <style id="v9-premium-overrides">:root{--ui-gap:clamp(12px,1.5vw,20px);--ui-radius:20px;--ui-line:rgba(148,163,184,.14);--ui-max:1440px}
@@ -1227,6 +1235,10 @@ td,th{border-color:var(--ui-border)!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
+<style id="asistencia-temario-final">
+.attendance-head-clean{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.attendance-head-clean h2{margin-bottom:6px}.attendance-head-actions{display:flex;gap:8px;flex-wrap:wrap}.btn-compact{padding:.65rem .9rem!important;min-height:42px}.lista-collapsible{margin:0 0 14px;padding:14px;border:1px solid var(--border-color);border-radius:16px;background:rgba(15,23,42,.32)}.attendance-session-box{margin:0}.attendance-legend{color:var(--medium-gray);font-size:.85rem;margin:10px 0}.attendance-list-clean{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}.attendance-save-btn{margin-top:1.5rem;width:100%;font-size:1.05rem;padding:1rem}.temario-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}.temario-item-head{gap:10px!important}
+@media(max-width:700px){.attendance-head-clean{display:block}.attendance-head-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:12px}.attendance-head-actions .btn{width:100%}.attendance-list-clean{grid-template-columns:1fr}.lista-collapsible{padding:12px}.temario-actions .btn{min-width:38px}.temario-item-head{align-items:flex-start!important}}
+</style>
 </head>
 <body>
 
@@ -1451,11 +1463,18 @@ td,th{border-color:var(--ui-border)!important}
             <section id="dashboard" class="section active">
                 <div class="page-head">
                     <h2><i class="fa-solid fa-chart-pie"></i> Estadísticas - <span id="lbl-grupo-dash" style="color: var(--accent);"></span></h2>
-                    <div class="acciones">
-                        <button class="btn btn-danger" onclick="abrirModalPDF()"><i class="fa-solid fa-file-pdf"></i> Reporte PDF</button>
-                        <button class="btn btn-slate" onclick="imprimirReporteActual()"><i class="fa-solid fa-print"></i> Imprimir</button>
-                        <button class="btn btn-info" onclick="abrirModalDirectorio()"><i class="fa-solid fa-address-book"></i> Directorio / Salud</button>
-                        <button class="btn btn-slate" onclick="exportarRespaldoJSON()"><i class="fa-solid fa-database"></i> Backup</button>
+                    <div class="report-tools" aria-label="Herramientas del inicio">
+                        <button class="btn btn-danger report-tool" onclick="abrirModalPDF()" title="Generar reporte PDF" aria-label="Generar reporte PDF"><i class="fa-solid fa-file-pdf"></i><span>PDF</span></button>
+                        <button class="btn btn-slate report-tool" onclick="imprimirReporteActual()" title="Imprimir reporte" aria-label="Imprimir reporte"><i class="fa-solid fa-print"></i><span>Imprimir</span></button>
+                        <button class="btn btn-info report-tool" onclick="abrirModalDirectorio()" title="Abrir directorio" aria-label="Abrir directorio"><i class="fa-solid fa-address-book"></i><span>Directorio</span></button>
+                        <button class="btn btn-slate report-tool" onclick="exportarRespaldoJSON()" title="Crear backup" aria-label="Crear backup"><i class="fa-solid fa-database"></i><span>Backup</span></button>
+                    </div>
+                </div>
+
+                <div class="dashboard-welcome">
+                    <div class="dashboard-welcome-main">
+                        <img src="logo.jpg" class="dashboard-welcome-logo" alt="Logo de la parroquia">
+                        <div><h3>Panel de inicio</h3><p>Resumen del grupo, asistencia, tareas y próximas actividades. Usa los iconos de arriba para generar reportes, imprimir, abrir el directorio o crear un respaldo.</p></div>
                     </div>
                 </div>
 
@@ -1595,51 +1614,56 @@ td,th{border-color:var(--ui-border)!important}
 
             <!-- TOMAR LISTA -->
             <section id="asistencia" class="section">
-                <div class="card">
-                    <h2><i class="fa-solid fa-clipboard-check"></i> Registrar Asistencia del Día</h2>
-                    <div class="session-summary-box">
-                        <div><label>Fecha de Sesión:</label><input type="date" id="fecha-sesion"></div>
-                        <div><label>Tema de la sesión:</label><input type="text" id="tema-sesion" placeholder="Ej: Los Sacramentos — Bautismo"></div>
-                        <div class="full"><label>Observaciones generales:</label><input type="text" id="observaciones-sesion" placeholder="Ej: Se explicó el tema, quedaron dudas, se dejó actividad..."></div>
-                        <div><label>Próxima sesión:</label><input type="date" id="proxima-sesion"></div>
-                        <div><label>Objetivo / compromiso:</label><input type="text" id="compromiso-sesion" placeholder="Ej: Traer Biblia y completar actividad"></div>
-                    </div>
-                    <div class="filters-container filters-grid">
-                        <div style="grid-column:1/-1;">
-                            <label>Selecciona una o varias tareas del día:</label>
-                            <div id="selector-tarea-actual" class="task-picker">
-                                <div class="task-picker-tools">
-                                    <input type="search" id="buscar-tarea-sesion" placeholder="Buscar tarea..." oninput="filtrarTareasSesion()" autocomplete="off">
-                                    <button type="button" class="btn btn-info" onclick="seleccionarTodasLasTareasSesion()"><i class="fa-solid fa-check-double"></i> Todas</button>
-                                    <button type="button" class="btn btn-slate" onclick="limpiarTareasSesion()"><i class="fa-solid fa-eraser"></i> Limpiar</button>
-                                </div>
-                                <div id="lista-tareas-sesion" class="task-picker-list"></div>
-                                <div class="task-picker-summary"><span id="resumen-tareas-sesion">Sin tareas seleccionadas</span><span>El estado de tarea se aplicará a todas.</span></div>
-                                <div id="tareas-seleccionadas-chips" class="v4-task-selected"></div>
-                            </div>
+                <div class="card attendance-page-clean">
+                    <div class="attendance-head-clean">
+                        <div>
+                            <h2><i class="fa-solid fa-clipboard-check"></i> Tomar lista</h2>
+                            <p class="section-intro">Marca la asistencia primero. Los datos de la sesión y las tareas se abren solo cuando los necesites.</p>
+                        </div>
+                        <div class="attendance-head-actions">
+                            <button class="btn btn-info btn-compact" type="button" onclick="togglePanelLista('datos-sesion-lista',this)"><i class="fa-solid fa-calendar-day"></i> Datos de hoy</button>
+                            <button class="btn btn-slate btn-compact" type="button" onclick="togglePanelLista('selector-tarea-actual',this)"><i class="fa-solid fa-list-check"></i> Tareas <span id="resumen-tareas-corto">0</span></button>
                         </div>
                     </div>
-                    <p style="color: var(--medium-gray); font-size: 0.85rem; margin-bottom: 10px;">
-                        <b style="color:#6ee7b7">P</b> = Presente · <b style="color:#fcd34d">R</b> = Retraso · <b style="color:#fca5a5">FJ</b> = Falta Justificada · <b style="color:#fca5a5">FI</b> = Falta Injustificada
-                    </p>
+
+                    <div id="datos-sesion-lista" class="lista-collapsible" style="display:none;">
+                        <div class="session-summary-box attendance-session-box">
+                            <div><label>Fecha de la sesión</label><input type="date" id="fecha-sesion"></div>
+                            <div><label>Tema de hoy</label><input type="text" id="tema-sesion" placeholder="Ej: Los Sacramentos — Bautismo"></div>
+                            <div class="full"><label>Observaciones de hoy</label><input type="text" id="observaciones-sesion" placeholder="Ej: Quedaron dudas, se explicó una actividad..."></div>
+                        </div>
+                    </div>
+
+                    <div id="selector-tarea-actual" class="task-picker lista-collapsible" style="display:none;">
+                        <div class="task-picker-tools">
+                            <input type="search" id="buscar-tarea-sesion" placeholder="Buscar tarea..." oninput="filtrarTareasSesion()" autocomplete="off">
+                            <button type="button" class="btn btn-info" onclick="seleccionarTodasLasTareasSesion()"><i class="fa-solid fa-check-double"></i> Todas</button>
+                            <button type="button" class="btn btn-slate" onclick="limpiarTareasSesion()"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                        </div>
+                        <div id="lista-tareas-sesion" class="task-picker-list"></div>
+                        <div class="task-picker-summary"><span id="resumen-tareas-sesion">Sin tareas seleccionadas</span><span>El estado se aplicará a todas.</span></div>
+                        <div id="tareas-seleccionadas-chips" class="v4-task-selected"></div>
+                    </div>
+
                     <div class="attendance-toolbar no-print">
-                    <div class="session-tools">
-                        <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
-                        <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
-                        <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
-                        <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
-                        <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última sesión</button>
+                        <div class="session-tools">
+                            <button class="btn btn-info" type="button" onclick="marcarTodosAsistencia('Presente')"><i class="fa-solid fa-user-check"></i> Todos presentes</button>
+                            <button class="btn btn-warning" type="button" onclick="marcarTodosAsistencia('Retraso')"><i class="fa-solid fa-clock"></i> Todos retrasados</button>
+                            <button class="btn btn-danger" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')"><i class="fa-solid fa-user-xmark"></i> Todos con falta</button>
+                            <button class="btn btn-slate" type="button" onclick="limpiarEstadosAsistencia()"><i class="fa-solid fa-rotate-left"></i> Restablecer</button>
+                            <button class="btn btn-slate" type="button" onclick="copiarUltimaAsistencia()"><i class="fa-solid fa-copy"></i> Copiar última</button>
+                        </div>
+                        <div class="attendance-counts" id="resumen-asistencia-actual">
+                            <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
+                        </div>
                     </div>
-                    <div class="attendance-counts" id="resumen-asistencia-actual">
-                        <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
-                    </div>
-                    </div>
+                    <p class="attendance-legend"><b>P</b> = Presente · <b>R</b> = Retraso · <b>FJ</b> = Falta Justificada · <b>FI</b> = Falta Injustificada</p>
                     <div class="quick-actions no-print">
                         <button class="btn btn-info" type="button" onclick="marcarTodasTareasEstado('Entregado')"><i class="fa-solid fa-check"></i> Todos presentaron tarea</button>
                         <button class="btn btn-danger" type="button" onclick="marcarTodasTareasEstado('No Presentó')"><i class="fa-solid fa-xmark"></i> Nadie presentó tarea</button>
                     </div>
-                    <div id="lista-asistencia-dinamica" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;"></div>
-                    <button class="btn" style="margin-top: 1.5rem; width: 100%; font-size: 1.05rem; padding: 1rem;" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar Registro de Sesión</button>
+                    <div id="lista-asistencia-dinamica" class="attendance-list-clean"></div>
+                    <button class="btn attendance-save-btn" onclick="guardarRegistroSesion()"><i class="fa-solid fa-save"></i> Guardar registro de sesión</button>
                 </div>
             </section>
 
@@ -1858,11 +1882,13 @@ td,th{border-color:var(--ui-border)!important}
                 <div class="card">
                     <h2><i class="fa-solid fa-circle-plus"></i> Agregar Tema</h2>
                     <div class="temario-toolbar">
+                        <input type="hidden" id="temario-edit-id" value="">
                         <div><label>Año</label><select id="temario-ano"><option value="primerAno">Primer Año</option><option value="segundoAno">Segundo Año</option></select></div>
                         <div><label>Fecha</label><input type="date" id="temario-fecha"></div>
                         <div style="flex:2"><label>Tema</label><input type="text" id="temario-titulo" placeholder="Ej: Los Sacramentos"></div>
                         <div style="flex:2"><label>Descripción / actividad</label><input type="text" id="temario-descripcion" placeholder="Actividad, tarea, material..."></div>
-                        <button class="btn" onclick="agregarTemaTemario()"><i class="fa-solid fa-plus"></i> Agregar</button>
+                        <button id="btn-temario-guardar" class="btn" onclick="agregarTemaTemario()"><i class="fa-solid fa-plus"></i> Agregar</button>
+                        <button id="btn-temario-cancelar" type="button" class="btn btn-slate" style="display:none" onclick="cancelarEdicionTemaTemario()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     </div>
                 </div>
                 <div class="card">
@@ -3537,14 +3563,21 @@ td,th{border-color:var(--ui-border)!important}
     // =========================================================================
     // GUARDAR ASISTENCIA
     // =========================================================================
+    function togglePanelLista(id,btn){
+        const el=document.getElementById(id);if(!el)return;
+        const abrir=el.style.display==='none'||!el.style.display;el.style.display=abrir?'block':'none';
+        if(btn){btn.classList.toggle('btn-info',abrir);btn.classList.toggle('btn-slate',!abrir);}
+        if(abrir&&id==='selector-tarea-actual')actualizarSelectorTareasAsistencia();
+    }
+
     function guardarRegistroSesion() {
         const fecha = document.getElementById('fecha-sesion').value;
         const tareasSeleccionadas = obtenerTareasSeleccionadas();
         const tareaNombre = tareasSeleccionadas.length ? tareasSeleccionadas.join(' + ') : 'Ninguna';
         const temaSesion = document.getElementById('tema-sesion')?.value.trim() || '';
         const observacionesSesion = document.getElementById('observaciones-sesion')?.value.trim() || '';
-        const proximaSesion = document.getElementById('proxima-sesion')?.value || '';
-        const compromisoSesion = document.getElementById('compromiso-sesion')?.value.trim() || '';
+        const proximaSesion = '';
+        const compromisoSesion = '';
         const filas = document.querySelectorAll('#lista-asistencia-dinamica .asis-card');
         const grupo = sistemaDatos.grupos[grupoActual];
         if (!fecha) { alert("Selecciona la fecha de la sesión."); return; }
@@ -3562,7 +3595,7 @@ td,th{border-color:var(--ui-border)!important}
         });
 
         sincronizarConNube(true);
-        ['tema-sesion','observaciones-sesion','proxima-sesion','compromiso-sesion'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+        ['tema-sesion','observaciones-sesion'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
 
         const alertasRiesgo = [];
         grupo.alumnos.forEach(al => {
@@ -3665,194 +3698,80 @@ td,th{border-color:var(--ui-border)!important}
         if(!Array.isArray(g.temario.segundoAno))g.temario.segundoAno=[];
         return g.temario;
     }
+    function limpiarFormularioTemario(){
+        ['temario-edit-id','temario-fecha','temario-titulo','temario-descripcion'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+        const b=document.getElementById('btn-temario-guardar'),c=document.getElementById('btn-temario-cancelar');
+        if(b)b.innerHTML='<i class="fa-solid fa-plus"></i> Agregar';
+        if(c)c.style.display='none';
+    }
+    function cancelarEdicionTemaTemario(){limpiarFormularioTemario();toast('Edición cancelada');}
     function agregarTemaTemario(){
         const ano=document.getElementById('temario-ano').value,fecha=document.getElementById('temario-fecha').value;
         const titulo=document.getElementById('temario-titulo').value.trim(),descripcion=document.getElementById('temario-descripcion').value.trim();
+        const editId=document.getElementById('temario-edit-id').value.trim();
         if(!titulo){alert('Escribe el tema.');return;}
-        obtenerTemarioActual()[ano].push({id:Date.now()+Math.random(),fecha,titulo,descripcion,completado:false});
-        ['temario-fecha','temario-titulo','temario-descripcion'].forEach(id=>document.getElementById(id).value='');
-        sincronizarConNube(false);renderizarTemario();toast('✔ Tema agregado');
+        const t=obtenerTemarioActual();
+        if(editId){
+            let encontrado=null;
+            for(const a of ['primerAno','segundoAno']){const i=t[a].findIndex(x=>String(x.id)===String(editId));if(i>=0){encontrado=t[a][i];t[a].splice(i,1);break;}}
+            if(!encontrado){alert('No se encontró el tema que estás editando.');limpiarFormularioTemario();return;}
+            encontrado.fecha=fecha;encontrado.titulo=titulo;encontrado.descripcion=descripcion;
+            if(Array.isArray(sistemaDatos.grupos[grupoActual].temarioEliminados))sistemaDatos.grupos[grupoActual].temarioEliminados=sistemaDatos.grupos[grupoActual].temarioEliminados.filter(x=>String(x)!=='id:'+String(editId)&&String(x)!==String(editId));
+            t[ano].push(encontrado);
+            limpiarFormularioTemario();sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarTemario();toast('✔ Tema actualizado');return;
+        }
+        const item={id:Date.now()+Math.random(),fecha,titulo,descripcion,completado:false};
+        t[ano].push(item);
+        limpiarFormularioTemario();sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarTemario();toast('✔ Tema agregado');
+    }
+    function editarTemaTemario(ano,id){
+        const item=(obtenerTemarioActual()[ano]||[]).find(x=>String(x.id)===String(id));if(!item)return;
+        document.getElementById('temario-ano').value=ano;document.getElementById('temario-edit-id').value=String(item.id);
+        document.getElementById('temario-fecha').value=item.fecha||'';document.getElementById('temario-titulo').value=item.titulo||'';document.getElementById('temario-descripcion').value=item.descripcion||'';
+        const b=document.getElementById('btn-temario-guardar'),c=document.getElementById('btn-temario-cancelar');
+        if(b)b.innerHTML='<i class="fa-solid fa-check"></i> Guardar cambios';if(c)c.style.display='inline-flex';
+        document.getElementById('temario-titulo').focus();
+        window.scrollTo({top:document.getElementById('temario').offsetTop||0,behavior:'smooth'});
     }
     function cambiarEstadoTemaTemario(ano,id,checked){
         const x=obtenerTemarioActual()[ano].find(v=>String(v.id)===String(id));if(!x)return;
-        x.completado=!!checked;sincronizarConNube(false);renderizarTemario();
+        x.completado=!!checked;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarTemario();
     }
     function eliminarTemaTemario(ano,id){
+        const g=sistemaDatos.grupos[grupoActual],t=obtenerTemarioActual(),item=(t[ano]||[]).find(x=>String(x.id)===String(id));if(!item)return;
         if(!confirm('¿Eliminar este tema del temario?'))return;
-        const t=obtenerTemarioActual();t[ano]=t[ano].filter(x=>String(x.id)!==String(id));
-        sincronizarConNube(false);renderizarTemario();
+        if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[];const k='id:'+String(item.id);if(!g.temarioEliminados.some(x=>String(x)===k))g.temarioEliminados.push(k);
+        t[ano]=t[ano].filter(x=>String(x.id)!==String(id));
+        sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);renderizarTemario();sincronizarConNube(false);toast('✔ Tema eliminado');
     }
     function marcarTemarioTodos(valor){
         const ano=document.getElementById('temario-filtro-ano').value,desde=document.getElementById('temario-filtro-desde').value,hasta=document.getElementById('temario-filtro-hasta').value;
         obtenerTemarioActual()[ano].forEach(x=>{if((!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta))x.completado=valor});
-        sincronizarConNube(false);renderizarTemario();
+        sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarTemario();
     }
     function renderizarTemario(){
         const cont=document.getElementById('lista-temario'),pro=document.getElementById('temario-progreso');if(!cont)return;
         const ano=document.getElementById('temario-filtro-ano').value,desde=document.getElementById('temario-filtro-desde').value,hasta=document.getElementById('temario-filtro-hasta').value;
         const items=(obtenerTemarioActual()[ano]||[]).filter(x=>(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta)).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
         const hechos=items.filter(x=>x.completado).length;if(pro)pro.innerHTML=`<strong>${hechos}/${items.length}</strong> temas completados (${items.length?Math.round(hechos/items.length*100):0}%)`;
-        cont.innerHTML=items.length?items.map(x=>`<div class="temario-item ${x.completado?'completado':''}"><div class="temario-item-head"><input class="temario-check" type="checkbox" ${x.completado?'checked':''} onchange="cambiarEstadoTemaTemario('${ano}','${jsStr(x.id)}',this.checked)"><div style="flex:1"><h4>${escHtml(x.titulo)}</h4><small>${x.fecha?formatearFecha(x.fecha):'Sin fecha'}</small>${x.descripcion?`<p>${escHtml(x.descripcion)}</p>`:''}</div><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario('${ano}','${jsStr(x.id)}')"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''):`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>`;
+        cont.innerHTML=items.length?items.map(x=>`<div class="temario-item ${x.completado?'completado':''}"><div class="temario-item-head"><input class="temario-check" type="checkbox" ${x.completado?'checked':''} onchange="cambiarEstadoTemaTemario('${ano}','${jsStr(x.id)}',this.checked)"><div style="flex:1"><h4>${escHtml(x.titulo)}</h4><small>${x.fecha?formatearFecha(x.fecha):'Sin fecha'}</small>${x.descripcion?`<p>${escHtml(x.descripcion)}</p>`:''}</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario('${ano}','${jsStr(x.id)}')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario('${ano}','${jsStr(x.id)}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join(''):`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>`;
     }
     function imprimirHTML(contenido,titulo){
-        const w=window.open('','_blank','width=1100,height=800');if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
-        w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#111}h1{text-align:center;color:#065f46}h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #bbb;padding:8px;text-align:left}th{background:#eee}
-/* ===== AJUSTE FINAL DE CAMPOS — ESTILO SIN CUADROS BLANCOS ===== */
-input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
-input[type="date"], input[type="time"], input[type="password"], input[type="url"],
-input[type="number"], textarea, select {
-  width:100% !important;
-  min-height:52px !important;
-  padding:13px 16px !important;
-  background:#111c30 !important;
-  color:#f8fafc !important;
-  border:1px solid #334155 !important;
-  border-radius:12px !important;
-  font-size:16px !important;
-  line-height:1.35 !important;
-  box-shadow:none !important;
-  outline:none !important;
-}
-input::placeholder, textarea::placeholder {
-  color:#94a3b8 !important;
-  opacity:1 !important;
-}
-input:hover, textarea:hover, select:hover {
-  background:#142238 !important;
-  border-color:#475569 !important;
-}
-input:focus, textarea:focus, select:focus {
-  background:#111c30 !important;
-  color:#ffffff !important;
-  border-color:#34d399 !important;
-  box-shadow:0 0 0 2px rgba(52,211,153,.16) !important;
-}
-select option { background:#111c30 !important; color:#f8fafc !important; }
-.activity-form-grid input,
-.activity-form-grid select,
-.activity-form-grid textarea,
-.finance-grid input,
-.finance-grid select,
-.finance-grid textarea {
-  min-height:54px !important;
-  font-size:16px !important;
-}
-.activity-main-field input {
-  min-height:58px !important;
-  font-size:17px !important;
-}
-.activity-description-field textarea {
-  min-height:130px !important;
-  color:#f8fafc !important;
-}
-.notas-toolbar input[type="search"],
-.notas-toolbar select {
-  min-height:54px !important;
-  color:#f8fafc !important;
-}
-.notas-toolbar input[type="search"]::placeholder { color:#94a3b8 !important; }
-#modal-nota input, #modal-nota select, #modal-nota textarea {
-  color:#f8fafc !important;
-}
-@media(max-width:560px){
-  input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
-  input[type="date"], input[type="time"], input[type="password"], input[type="url"],
-  input[type="number"], textarea, select { min-height:54px !important; font-size:16px !important; }
-}
-
-
-/* Campos de actividad: foco sobrio, sin borde verde ni doble contorno */
-#fin-nueva-actividad {
-  background:#172235 !important;
-  color:#f8fafc !important;
-  -webkit-text-fill-color:#f8fafc !important;
-  caret-color:#f8fafc !important;
-  border:1px solid #64748b !important;
-  border-radius:10px !important;
-  box-shadow:none !important;
-  outline:none !important;
-}
-#fin-nueva-actividad:hover {
-  border-color:#7c8da5 !important;
-}
-#fin-nueva-actividad:focus,
-#fin-nueva-actividad:focus-visible {
-  border-color:#94a3b8 !important;
-  box-shadow:0 0 0 1px rgba(148,163,184,.18) !important;
-  outline:none !important;
-}
-#fin-nueva-actividad::placeholder {
-  color:#94a3b8 !important;
-  -webkit-text-fill-color:#94a3b8 !important;
-  opacity:1 !important;
-}
-#fin-nueva-actividad:focus,
-#fin-nueva-actividad:active,
-#fin-nueva-actividad:focus-visible {
-  color:#f8fafc !important;
-  -webkit-text-fill-color:#f8fafc !important;
-  caret-color:#f8fafc !important;
-}
-</style></head><body>${contenido}<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script>
-
-<style id="mobile-toolbar-real-fix">
-/* FIX DEFINITIVO: barra de grupo compacta en celular */
-@media (max-width:900px){
-  header .grupo-bar{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 36px 36px 36px!important;
-    grid-template-rows:42px!important;
-    align-items:center!important;
-    width:100%!important;
-    min-width:0!important;
-    gap:6px!important;
-    padding:6px!important;
-    flex-wrap:nowrap!important;
-    overflow:visible!important;
-  }
-  header .grupo-bar .lbl,
-  header .grupo-bar .spacer,
-  header .grupo-bar .group-action,
-  header .grupo-bar .chip-pc{display:none!important;}
-  header .grupo-bar #selector-grupos{
-    grid-column:1!important;grid-row:1!important;
-    display:block!important;width:100%!important;min-width:0!important;max-width:none!important;
-    height:42px!important;min-height:42px!important;
-    margin:0!important;padding:0 30px 0 12px!important;
-    box-sizing:border-box!important;
-    flex:none!important;
-  }
-  header .grupo-bar #estado-tiempo-real,
-  header .grupo-bar>.topbar-save,
-  header .grupo-bar .mobile-group-more{
-    grid-row:1!important;
-    width:36px!important;min-width:36px!important;max-width:36px!important;
-    height:36px!important;min-height:36px!important;max-height:36px!important;
-    padding:0!important;margin:0!important;
-    box-sizing:border-box!important;
-    flex:none!important;
-    display:inline-flex!important;
-    align-items:center!important;justify-content:center!important;
-    border-radius:10px!important;
-    font-size:0!important;
-  }
-  header .grupo-bar #estado-tiempo-real{grid-column:2!important;}
-  header .grupo-bar>.topbar-save{grid-column:3!important;}
-  header .grupo-bar .mobile-group-more{grid-column:4!important;}
-  header .grupo-bar #estado-tiempo-real i,
-  header .grupo-bar>.topbar-save i,
-  header .grupo-bar .mobile-group-more i{font-size:15px!important;line-height:1!important;margin:0!important;}
-  header .grupo-bar>.topbar-save{background:#10b981!important;color:#fff!important;}
-}
-@media(max-width:380px){
-  header .grupo-bar{grid-template-columns:minmax(0,1fr) 34px 34px 34px!important;gap:5px!important;padding:5px!important;}
-  header .grupo-bar #selector-grupos{height:40px!important;min-height:40px!important;font-size:.86rem!important;}
-  header .grupo-bar #estado-tiempo-real,header .grupo-bar>.topbar-save,header .grupo-bar .mobile-group-more{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;}
-}
-</style>
-
-</body></html>`);w.document.close();
+        const w=window.open('','_blank','width=1100,height=800');
+        if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
+        const info=sistemaDatos.info||{};
+        const g=(sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual])||{};
+        const parroquia=info.parroquia||g.metadata?.parroquia||'';
+        const catequista=g.metadata?.catequista||perfilCatequista.nombre||info.catequista||'';
+        const gestion=info.gestion||g.metadata?.gestion||'';
+        w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>
+        @page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px} .report{max-width:100%;margin:auto} .head{display:flex;align-items:center;gap:15px;border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:18px}.logo{width:64px;height:64px;object-fit:cover;border-radius:12px}.brand{flex:1}.brand h1{margin:0;color:#065f46;font-size:19px}.brand h2{margin:4px 0 0;font-size:17px;color:#334155}.meta{margin-top:3px;color:#64748b;font-size:10px}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.summary span{padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#f8fafc}.content h1,.content h2{text-align:center}.content h1{color:#065f46}.content h2{color:#334155}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top}th{background:#f1f5f9;color:#1e293b}.footer{margin-top:20px;padding-top:8px;border-top:1px solid #dbe3ea;color:#64748b;font-size:9px;text-align:center}@media print{.no-print{display:none}}
+        </style></head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div></body></html>`);
+        w.document.close();
+        w.focus();
+        setTimeout(()=>w.print(),350);
     }
+
     function imprimirTemario(){
         const ano=document.getElementById('temario-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';
         const filas=(obtenerTemarioActual()[ano]||[]).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>`<tr><td>${escHtml(x.fecha?formatearFecha(x.fecha):'-')}</td><td>${escHtml(x.titulo)}</td><td>${escHtml(x.descripcion||'')}</td><td>${x.completado?'✓ Completado':'Pendiente'}</td></tr>`).join('');
@@ -4027,11 +3946,15 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
         const container = document.createElement('div');
         container.style.cssText = 'padding:30px; background:#fff; color:#0f172a; font-family:Arial, sans-serif;';
         container.innerHTML = `
-            <div style="text-align:center; margin-bottom:20px; border-bottom:3px solid #059669; padding-bottom:15px;">
-                <h1 style="color:#065f46; margin:0; font-size:26px;">CONTROL DE CATEQUESIS</h1>
-                <h2 style="color:#334155; margin:5px 0;">${escHtml(titulo)}</h2>
-                <p style="color:#64748b; font-size:14px; margin:5px 0;"><strong>Grupo:</strong> ${escHtml(grupoActual)} | <strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
-                <p style="color:#94a3b8; font-size:11px; margin:8px 0 0; text-transform:uppercase;">Catequista: ${escHtml(cat)} ${perfilCatequista.cargo ? '(' + escHtml(perfilCatequista.cargo) + ')' : ''}</p>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;border-bottom:3px solid #059669;padding-bottom:15px;">
+                <img src="logo.jpg" crossorigin="anonymous" style="width:68px;height:68px;object-fit:cover;border-radius:12px;" alt="Logo de la parroquia">
+                <div style="flex:1;text-align:left;">
+                <div style="color:#065f46;font-weight:800;font-size:13px;text-transform:uppercase;">${escHtml((sistemaDatos.info&&sistemaDatos.info.parroquia)||'PARROQUIA')}</div>
+                <h1 style="color:#065f46;margin:2px 0;font-size:25px;">CONTROL DE CATEQUESIS</h1>
+                <h2 style="color:#334155;margin:3px 0;font-size:18px;">${escHtml(titulo)}</h2>
+                <p style="color:#64748b;font-size:12px;margin:4px 0;"><strong>Grupo:</strong> ${escHtml(grupoActual)} | <strong>Fecha:</strong> ${new Date().toLocaleDateString('es-BO')}</p>
+                <p style="color:#94a3b8;font-size:10px;margin:4px 0 0;text-transform:uppercase;">Catequista: ${escHtml(cat)} ${perfilCatequista.cargo ? '(' + escHtml(perfilCatequista.cargo) + ')' : ''}</p>
+                </div>
             </div>
             <div style="display:flex; justify-content:space-around; margin-bottom:25px; font-weight:bold; background:#f8fafc; padding:15px; border:1px solid #cbd5e1; border-radius:8px;">
                 <span style="color:#059669;">Asistencia Promedio: ${pct}%</span>
