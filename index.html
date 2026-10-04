@@ -1691,11 +1691,11 @@ td,th{border-color:var(--ui-border)!important}
 
                     <div class="attendance-toolbar no-print">
                         <div class="session-tools">
-                            <button class="btn btn-info attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Presente')" title="Todos presentes" aria-label="Todos presentes"><i class="fa-solid fa-user-check"></i></button>
-                            <button class="btn btn-warning attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Retraso')" title="Todos retrasados" aria-label="Todos retrasados"><i class="fa-solid fa-clock"></i></button>
-                            <button class="btn btn-danger attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')" title="Todos con falta" aria-label="Todos con falta"><i class="fa-solid fa-user-xmark"></i></button>
-                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="limpiarEstadosAsistencia()" title="Restablecer" aria-label="Restablecer"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="copiarUltimaAsistencia()" title="Copiar última sesión" aria-label="Copiar última sesión"><i class="fa-solid fa-copy"></i></button>
+                            <button class="btn btn-info attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Presente')" title="Todos presentes" aria-label="Todos presentes"><i class="fa-solid fa-user-check"></i><span class="attendance-mini-label">Presentes</span></button>
+                            <button class="btn btn-warning attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Retraso')" title="Todos retrasados" aria-label="Todos retrasados"><i class="fa-solid fa-clock"></i><span class="attendance-mini-label">Retrasos</span></button>
+                            <button class="btn btn-danger attendance-mini-action" type="button" onclick="marcarTodosAsistencia('Falta Injustificada')" title="Todos con falta" aria-label="Todos con falta"><i class="fa-solid fa-user-xmark"></i><span class="attendance-mini-label">Faltas</span></button>
+                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="limpiarEstadosAsistencia()" title="Restablecer" aria-label="Restablecer"><i class="fa-solid fa-rotate-left"></i><span class="attendance-mini-label">Reset</span></button>
+                            <button class="btn btn-slate attendance-mini-action" type="button" onclick="copiarUltimaAsistencia()" title="Copiar última sesión" aria-label="Copiar última sesión"><i class="fa-solid fa-copy"></i><span class="attendance-mini-label">Copiar</span></button>
                         </div>
                         <div class="attendance-counts" id="resumen-asistencia-actual">
                             <span class="attendance-pill">Presentes: 0</span><span class="attendance-pill">Retrasos: 0</span><span class="attendance-pill">Faltas: 0</span><span class="attendance-pill">Tareas pendientes: 0</span>
@@ -3814,7 +3814,30 @@ td,th{border-color:var(--ui-border)!important}
         const gestion=info.gestion||g.metadata?.gestion||'';
         w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>
         @page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px} .report{max-width:100%;margin:auto} .head{display:flex;align-items:center;gap:15px;border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:18px}.logo{width:64px;height:64px;object-fit:cover;border-radius:12px}.brand{flex:1}.brand h1{margin:0;color:#065f46;font-size:19px}.brand h2{margin:4px 0 0;font-size:17px;color:#334155}.meta{margin-top:3px;color:#64748b;font-size:10px}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.summary span{padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#f8fafc}.content h1,.content h2{text-align:center}.content h1{color:#065f46}.content h2{color:#334155}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top}th{background:#f1f5f9;color:#1e293b}.footer{margin-top:20px;padding-top:8px;border-top:1px solid #dbe3ea;color:#64748b;font-size:9px;text-align:center}@media print{.no-print{display:none}}
-        </style></head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div></body></html>`);
+        </style>
+<style id="ajuste-final-botones-asistencia-y-guardar">
+/* Acciones de asistencia: icono + etiqueta visible, también en celular */
+#asistencia .attendance-toolbar .session-tools{display:flex!important;flex-wrap:wrap!important;gap:6px!important;align-items:center!important}
+#asistencia .attendance-toolbar .attendance-mini-action{width:auto!important;min-width:62px!important;height:38px!important;min-height:38px!important;padding:4px 7px!important;border-radius:9px!important;gap:4px!important;display:inline-flex!important;flex-direction:column!important;line-height:1!important;font-size:.58rem!important}
+#asistencia .attendance-toolbar .attendance-mini-action i{font-size:.72rem!important;margin:0!important;line-height:1!important}
+#asistencia .attendance-toolbar .attendance-mini-label{display:block!important;font-size:.52rem!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important}
+/* Guardar superior: claramente más pequeño que la campana */
+.grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important;padding:0!important;border-radius:8px!important}
+.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.72rem!important;margin:0!important}
+@media(max-width:900px){
+  #asistencia .attendance-toolbar .session-tools{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;gap:5px!important}
+  #asistencia .attendance-toolbar .attendance-mini-action{width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;padding:4px 2px!important;border-radius:9px!important}
+  #asistencia .attendance-toolbar .attendance-mini-label{font-size:.48rem!important}
+  .grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important}
+  .grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.7rem!important}
+}
+@media(max-width:390px){
+  #asistencia .attendance-toolbar .session-tools{gap:3px!important}
+  #asistencia .attendance-toolbar .attendance-mini-action{height:42px!important;min-height:42px!important}
+  #asistencia .attendance-toolbar .attendance-mini-label{font-size:.44rem!important}
+}
+</style>
+</head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div></body></html>`);
         w.document.close();
         w.focus();
         setTimeout(()=>w.print(),350);
