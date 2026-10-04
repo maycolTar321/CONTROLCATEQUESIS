@@ -952,6 +952,22 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
 .mobile-sheet-panel{width:100%!important;max-width:720px!important;margin:0 auto!important;padding:11px 14px calc(22px + env(safe-area-inset-bottom))!important;border-radius:26px 26px 0 0!important}.mobile-sheet-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.mobile-sheet-grid button{min-width:0!important;min-height:78px!important;padding:13px!important;border-radius:17px!important;overflow:hidden!important}.mobile-sheet-grid button span{line-height:1.25!important;overflow-wrap:anywhere!important}
 }
 @media(max-width:520px){main{padding-left:10px!important;padding-right:10px!important}.page-head .acciones{grid-template-columns:1fr!important}.stats-grid,.finance-kpis{grid-template-columns:1fr 1fr!important}.mobile-nav{left:6px!important;right:6px!important;height:66px!important}.mobile-nav-btn{height:54px!important;min-height:54px!important;font-size:.59rem!important}.mobile-nav-btn i{font-size:1.08rem!important}.mobile-sheet-grid{grid-template-columns:1fr!important}}
+
+/* Barra superior compacta: acciones principales como iconos */
+.realtime-status{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:1rem!important;cursor:default;border:1px solid rgba(148,163,184,.18)!important;transition:all .18s ease}
+.realtime-status.ok{color:#34d399!important;background:rgba(16,185,129,.10)!important;border-color:rgba(52,211,153,.25)!important}
+.realtime-status.off{color:#fb7185!important;background:rgba(244,63,94,.10)!important;border-color:rgba(251,113,133,.25)!important}
+.realtime-status.syncing{color:#60a5fa!important;background:rgba(59,130,246,.10)!important;border-color:rgba(96,165,250,.25)!important}
+.topbar-save{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+.topbar-save span{display:none!important}
+.grupo-bar .group-action{width:40px!important;min-width:40px!important;height:40px!important;padding:0!important;border-radius:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:0!important}
+.grupo-bar .group-action i{font-size:1rem!important;margin:0!important}
+.grupo-bar .chip-pc{width:40px!important;min-width:40px!important;height:40px!important;padding:0!important;border-radius:12px!important;font-size:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+.grupo-bar .chip-pc i{font-size:1rem!important;margin:0!important}
+.grupo-bar .mobile-group-more{width:40px!important;min-width:40px!important;height:40px!important;padding:0!important;font-size:0!important}
+.grupo-bar .mobile-group-more i{font-size:1rem!important}
+@media(max-width:900px){.grupo-bar .group-action,.grupo-bar .chip-pc{width:40px!important;min-width:40px!important}.grupo-bar>.topbar-save{min-width:40px!important;width:40px!important;padding:0!important}}
+
 @media(min-width:901px){.mobile-nav,.mobile-action-sheet{display:none!important}.topbar-save span{display:inline!important}}
 <style id="campos-texto-visibles">
 /* Todos los campos de escritura: texto siempre visible y foco sin verde */
@@ -1338,7 +1354,7 @@ td,th{border-color:var(--ui-border)!important}
             <strong id="footer-nombre-perfil">No configurado</strong><br>
             <span id="footer-cargo-perfil"></span><br>
             <span style="opacity:.7;">Equipo: <span id="footer-equipo"></span></span><br>
-            <span style="opacity:.5;">Control de Catequesis V.4 Súper Dios</span>
+            <span style="opacity:.5;">Control de Catequesis V.4</span>
         </div>
     </aside>
 
@@ -1364,8 +1380,8 @@ td,th{border-color:var(--ui-border)!important}
                 <button class="chip chip-amber group-action" onclick="resetearGrupoActual()" title="Vaciar grupo (solo administrador)"><i class="fa-solid fa-eraser"></i> Vaciar</button>
                 <button class="chip chip-red group-action" onclick="eliminarGrupoActual()" title="Eliminar grupo (solo administrador)"><i class="fa-solid fa-trash"></i> Eliminar</button>
                 <span class="spacer"></span>
-                <span id="estado-tiempo-real" class="realtime-status off"><i class="fa-solid fa-cloud"></i> Sincronización</span>
-                <button class="chip chip-green topbar-save" onclick="sincronizarConNube(true)" title="Guardar en la nube"><i class="fa-solid fa-cloud-arrow-up"></i><span>Guardar</span></button>
+                <button id="estado-tiempo-real" class="realtime-status off" type="button" title="Estado de sincronización" aria-label="Estado de sincronización"><i class="fa-solid fa-cloud-slash"></i></button>
+                <button class="chip chip-green topbar-save" onclick="sincronizarConNube(true)" title="Guardar en la nube" aria-label="Guardar en la nube"><i class="fa-solid fa-cloud-arrow-up"></i></button>
                 <button class="chip chip-dark mobile-group-more" onclick="abrirMenuGrupo(event)" title="Más acciones del grupo"><i class="fa-solid fa-ellipsis"></i> Más</button>
                 <button class="chip chip-slate chip-pc" onclick="abrirPerfil()" title="Mi Perfil"><i class="fa-solid fa-user-circle"></i> Perfil</button>
                 <button class="chip chip-dark chip-pc" onclick="cerrarSesion()" title="Cerrar Sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
@@ -4235,7 +4251,7 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
   const V9_SYNC_MS=1800; let v9Timer=null,v9Busy=false,v9Channel=null;
   try{v9Channel=new BroadcastChannel('catequesis_live_sync')}catch(e){}
   function hora(){try{return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}catch(e){return ''}}
-  window.actualizarEstadoTiempoReal=function(estado,texto){const el=document.getElementById('estado-tiempo-real');if(!el)return;el.className='realtime-status '+(estado==='ok'?'ok':'off');const icon=estado==='ok'?'fa-wifi':'fa-cloud-slash';el.innerHTML='<i class="fa-solid '+icon+'"></i> '+escHtml(texto||'Sin conexión');el.title=(estado==='ok'?'Sincronización activa':'Sin conexión')+(texto?' · '+texto:'')};
+  window.actualizarEstadoTiempoReal=function(estado,texto){const el=document.getElementById('estado-tiempo-real');if(!el)return;const online=estado==='ok',syncing=estado==='syncing';el.className='realtime-status '+(online?'ok':(syncing?'syncing':'off'));const icon=online?'fa-wifi':(syncing?'fa-rotate':'fa-cloud-slash');el.innerHTML='<i class="fa-solid '+icon+(syncing?' fa-spin':'')+'"></i>';el.title=texto||(online?'Sincronización en línea':(syncing?'Sincronizando…':'Sin conexión'));el.setAttribute('aria-label',el.title)};
   window.sincronizarTiempoReal=async function(){if(v9Busy||!window.equipoActualLogin||!nubeActiva()||!navigator.onLine)return;v9Busy=true;try{const nube=await fetchNube(),k=nube&&nube.equipos?buscarEquipoEnObjeto(nube.equipos,equipoActualLogin):null;if(!k){actualizarEstadoTiempoReal('ok','En vivo');return}const remoto=nube.equipos[k],lt=Number(sistemaDatos&&sistemaDatos._actualizado||0),rt=Number(remoto&&remoto._actualizado||0);if(rt>lt&&!cambiosLocalesPendientes){const pass=sistemaDatos&&sistemaDatos.password;sistemaDatos=remoto;if(!sistemaDatos.password&&pass)sistemaDatos.password=pass;migrarDatosAntiguos();guardarEquipoLocal(equipoActualLogin,sistemaDatos);inicializarApp();try{toast('🔄 Cambios recibidos de otro dispositivo')}catch(e){}}actualizarEstadoTiempoReal('ok','En vivo · '+hora())}catch(e){actualizarEstadoTiempoReal('off','Reintentando…')}finally{v9Busy=false}};
   window.iniciarSincronizacionTiempoReal=function(){if(v9Timer)clearTimeout(v9Timer);if(!nubeActiva()){actualizarEstadoTiempoReal('off','Solo local');return}const ciclo=async()=>{if(document.visibilityState!=='hidden')await sincronizarTiempoReal();v9Timer=setTimeout(ciclo,V9_SYNC_MS)};v9Timer=setTimeout(ciclo,500)};
   if(v9Channel)v9Channel.onmessage=function(ev){if(!ev.data||ev.data.equipo!==equipoActualLogin||!ev.data.data)return;const ts=Number(ev.data.data._actualizado||0),lt=Number(sistemaDatos&&sistemaDatos._actualizado||0);if(ts>lt&&!cambiosLocalesPendientes){const pass=sistemaDatos&&sistemaDatos.password;sistemaDatos=ev.data.data;if(!sistemaDatos.password&&pass)sistemaDatos.password=pass;migrarDatosAntiguos();guardarEquipoLocal(equipoActualLogin,sistemaDatos);inicializarApp()}};
