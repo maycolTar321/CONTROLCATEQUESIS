@@ -2129,7 +2129,7 @@ td,th{border-color:var(--ui-border)!important}
     const PASSWORD_ACCESO = "5230";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin5230";
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycogreGRnb-aKp6OuIeouyiARNOM-QW2xiwzGAvZOHjFqusKeo6aS7cQSi4NKHPhNBPQ/exec";
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2CNhf615CRPH2ChYLBDgnxsJ9Rd3OIbfbHikb1u32_p1pONA_ePTaGE6VkJn1bBgqSw/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('db')) {
@@ -4684,7 +4684,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   function normT(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ')}
   function ensureT(g){if(!g)return;if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[]}
   function addT(arr,k){if(!Array.isArray(arr))return [k];if(!arr.some(x=>String(x)===String(k)))arr.push(k);return arr}
-  function keysT(item){if(!item)return [];const out=[];const titulo=normT(item.titulo||item.nombre||item.tema);if(item.id!==undefined&&item.id!==null&&item.id!=='')out.push('id:'+String(item.id));out.push('temario:'+normT(item.fecha)+'|'+titulo);if(titulo)out.push('temarioTitulo:'+titulo);return [...new Set(out)]}
+  function keysT(item){if(!item)return [];const out=[];if(item.id!==undefined&&item.id!==null&&item.id!=='')out.push('id:'+String(item.id));out.push('temario:'+normT(item.fecha)+'|'+normT(item.titulo||item.nombre||item.tema));return [...new Set(out)]}
   function cleanGroupT(g){if(!g)return;ensureT(g);if(!g.temario)return;['primerAno','segundoAno'].forEach(function(ano){if(!Array.isArray(g.temario[ano]))g.temario[ano]=[];g.temario[ano]=g.temario[ano].filter(function(item){const ks=keysT(item);return !ks.some(k=>g.temarioEliminados.some(t=>String(t)===String(k)))})})}
   function cleanAllT(){Object.values(sistemaDatos.grupos||{}).forEach(cleanGroupT)}
   const oldApplyT=window.aplicarDatosRemotos;
@@ -4716,33 +4716,67 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 }
 </style>
 
-<style id="ajuste-guardar-igual-antena">
-/* Guardar: mismo tamaño compacto que el botón de sincronización/antena en móvil */
-@media (max-width: 900px){
-  .grupo-bar > .topbar-save,
-  .grupo-bar .topbar-save{
-    width:32px!important;
-    min-width:32px!important;
-    max-width:32px!important;
-    flex:0 0 32px!important;
-    height:32px!important;
-    min-height:32px!important;
-    max-height:32px!important;
-    padding:0!important;
-    margin:0!important;
-    border-radius:9px!important;
-    font-size:0!important;
-    line-height:1!important;
-    gap:0!important;
-  }
-  .grupo-bar > .topbar-save span,
-  .grupo-bar .topbar-save span{display:none!important}
-  .grupo-bar > .topbar-save i,
-  .grupo-bar .topbar-save i{
-    display:block!important;
-    margin:0!important;
-    font-size:.84rem!important;
-    line-height:1!important;
-  }
+<style id="boton-verde-igual-antena">
+/* Igualar botón Guardar al botón Antena */
+.grupo-bar .topbar-save,
+.grupo-bar > .topbar-save {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Ocultar la palabra "Guardar" y dejar solo la nube */
+.grupo-bar .topbar-save span,
+.grupo-bar > .topbar-save span {
+    display: none !important;
+}
+
+.grupo-bar .topbar-save i,
+.grupo-bar > .topbar-save i {
+    display: block !important;
+    font-size: 1rem !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+/* Ajustes para celulares (mismo tamaño que la antena en móvil) */
+@media (max-width: 900px) {
+    .grupo-bar .topbar-save,
+    .grupo-bar > .topbar-save {
+        flex: 0 0 36px !important;
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        border-radius: 10px !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .grupo-bar .topbar-save,
+    .grupo-bar > .topbar-save {
+        flex: 0 0 34px !important;
+        width: 34px !important;
+        min-width: 34px !important;
+        max-width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        max-height: 34px !important;
+        border-radius: 9px !important;
+    }
 }
 </style>
