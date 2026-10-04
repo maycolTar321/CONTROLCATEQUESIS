@@ -1785,14 +1785,14 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     const PASSWORD_ACCESO = "5230";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin5230";
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyrvwTmhJQ8s27YU-R_wSI_g0sOF0P96ajhzFJg2eTbVMcEWrR4Fcq_-dd6tjrZk-KIQ/exec";
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5waRtzPbeuTZD6y8buxbpbxqGinVsnyz_ERpcL652c48uAeXDCy0OYpBYcPN9pg5raQ/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('db')) {
         localStorage.setItem('google_script_url', urlParams.get('db'));
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-    let GOOGLE_SCRIPT_URL = localStorage.getItem('google_script_url') || DEFAULT_SCRIPT_URL;
+    let GOOGLE_SCRIPT_URL = DEFAULT_SCRIPT_URL;
 
     let sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
     let grupoActual = "Grupo 1";
@@ -1839,11 +1839,12 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
 
     // =========================================================================
-    // ALMACENAMIENTO LOCAL + NUBE
+    // ALMACENAMIENTO LOCAL + NUBE — SINCRONIZACIÓN MULTIDISPOSITIVO
     // =========================================================================
     let sincronizacionTimer = null;
     let sincronizandoAhora = false;
     let cambiosLocalesPendientes = false;
+    let reintentoSyncTimer = null;
 
     function actualizarEstadoTiempoReal(estado, texto) {
         const el = document.getElementById('estado-tiempo-real');
@@ -1853,45 +1854,94 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
     function nubeActiva(){return !!GOOGLE_SCRIPT_URL&&GOOGLE_SCRIPT_URL.startsWith('https://');}
 
+    function urlNube(extra){
+        return GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + (extra || '_rt') + '=' + Date.now();
+    }
+
     async function fetchNube(){
         if(!nubeActiva()){actualizarEstadoTiempoReal('off','Solo local');return null;}
         try{
             const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
-            const r=await fetch(GOOGLE_SCRIPT_URL+(GOOGLE_SCRIPT_URL.includes('?')?'&':'?')+'_rt='+Date.now(),{signal:ctrl.signal,cache:'no-store'});
-            clearTimeout(timer); if(!r.ok) throw new Error('HTTP '+r.status);
-            const data=await r.json(); actualizarEstadoTiempoReal('ok','En tiempo real'); return data;
-        }catch(e){console.warn('No se pudo leer la nube:',e);actualizarEstadoTiempoReal('off','Sin conexión');return null;}
+            const r=await fetch(urlNube('_rt'),{method:'GET',signal:ctrl.signal,cache:'no-store'});
+            clearTimeout(timer);
+            if(!r.ok) throw new Error('HTTP '+r.status);
+            const data=await r.json();
+            actualizarEstadoTiempoReal('ok','En tiempo real');
+            return data;
+        }catch(e){
+            console.warn('No se pudo leer la nube:',e);
+            actualizarEstadoTiempoReal('off','Sin conexión');
+            return null;
+        }
     }
 
     async function postNube(payload){
         if(!nubeActiva()) return false;
         try{
-            await fetch(GOOGLE_SCRIPT_URL,{method:'POST',mode:'no-cors',cache:'no-store',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
-            actualizarEstadoTiempoReal('ok','Guardado'); return true;
-        }catch(e){console.warn('No se pudo guardar en la nube:',e);actualizarEstadoTiempoReal('off','Guardado local');return false;}
+            // text/plain evita el preflight CORS del navegador en Apps Script.
+            await fetch(GOOGLE_SCRIPT_URL,{
+                method:'POST',mode:'no-cors',cache:'no-store',
+                headers:{'Content-Type':'text/plain;charset=utf-8'},
+                body:JSON.stringify(payload),keepalive:true
+            });
+            actualizarEstadoTiempoReal('ok','Guardado en nube');
+            return true;
+        }catch(e){
+            console.warn('No se pudo guardar en la nube:',e);
+            actualizarEstadoTiempoReal('off','Guardado local');
+            return false;
+        }
+    }
+
+    function aplicarDatosRemotos(remoto, motivo){
+        if(!remoto || typeof remoto!=='object') return false;
+        const passActual=sistemaDatos&&sistemaDatos.password;
+        sistemaDatos=JSON.parse(JSON.stringify(remoto));
+        if(!sistemaDatos.password&&passActual) sistemaDatos.password=passActual;
+        migrarDatosAntiguos();
+        guardarEquipoLocal(equipoActualLogin,sistemaDatos);
+        inicializarApp();
+        if(motivo) toast(motivo);
+        return true;
     }
 
     async function sincronizarTiempoReal(){
         if(!equipoActualLogin||!nubeActiva()||sincronizandoAhora)return;
         sincronizandoAhora=true;
         try{
-            const nube=await fetchNube(),k=nube&&nube.equipos?buscarEquipoEnObjeto(nube.equipos,equipoActualLogin):null;
+            const nube=await fetchNube();
+            const k=nube&&nube.equipos?buscarEquipoEnObjeto(nube.equipos,equipoActualLogin):null;
             if(!k)return;
-            const remoto=nube.equipos[k],tl=Number(sistemaDatos._actualizado||0),tr=Number(remoto._actualizado||0);
-            if(tr>tl&&!cambiosLocalesPendientes){
-                const pass=sistemaDatos.password;sistemaDatos=remoto;
-                if(!sistemaDatos.password&&pass)sistemaDatos.password=pass;
-                migrarDatosAntiguos();guardarEquipoLocal(equipoActualLogin,sistemaDatos);inicializarApp();
-                toast('🔄 Datos actualizados desde otro dispositivo');
+            const remoto=nube.equipos[k];
+            const tl=Number(sistemaDatos&&sistemaDatos._actualizado||0);
+            const tr=Number(remoto&&remoto._actualizado||0);
+            const sl=Number(sistemaDatos&&sistemaDatos._serverRevision||0);
+            const sr=Number(remoto&&remoto._serverRevision||0);
+
+            // La revisión del servidor es la autoridad para detectar una fusión,
+            // incluso cuando dos dispositivos escribieron con marcas de tiempo similares.
+            if(!cambiosLocalesPendientes && (sr>sl || tr>tl)){
+                aplicarDatosRemotos(remoto,'🔄 Datos actualizados en otro dispositivo');
             }
-        }finally{sincronizandoAhora=false;}
+        }finally{
+            sincronizandoAhora=false;
+        }
+    }
+
+    function programarReintentoSync(){
+        clearTimeout(reintentoSyncTimer);
+        if(!equipoActualLogin||!nubeActiva()||!cambiosLocalesPendientes)return;
+        reintentoSyncTimer=setTimeout(()=>sincronizarConNube(false),5000);
     }
 
     function iniciarSincronizacionTiempoReal(){
         clearInterval(sincronizacionTimer);
+        clearTimeout(reintentoSyncTimer);
         if(!nubeActiva())return;
-        sincronizacionTimer=setInterval(sincronizarTiempoReal,2500);
-        setTimeout(sincronizarTiempoReal,700);
+        // Apps Script no ofrece WebSocket aquí; este sondeo corto mantiene los
+        // dispositivos prácticamente en tiempo real sin perder compatibilidad.
+        sincronizacionTimer=setInterval(sincronizarTiempoReal,2000);
+        setTimeout(sincronizarTiempoReal,500);
     }
 
     function getEliminados() { try { return JSON.parse(localStorage.getItem('catequesis_eliminados') || '[]'); } catch (e) { return []; } }
@@ -2120,13 +2170,45 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     }
 
     async function sincronizarConNube(mostrar){
-        if(!equipoActualLogin)return;
-        cambiosLocalesPendientes=true;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);
-        if(!nubeActiva()){cambiosLocalesPendientes=false;if(mostrar)toast('✔ Guardado en este dispositivo');return;}
+        if(!equipoActualLogin)return false;
+        cambiosLocalesPendientes=true;
+        sistemaDatos._actualizado=Date.now();
+        sistemaDatos._clienteUltimaActualizacion=sistemaDatos._actualizado;
+        guardarEquipoLocal(equipoActualLogin,sistemaDatos);
+
+        if(!nubeActiva()){
+            cambiosLocalesPendientes=false;
+            if(mostrar)toast('✔ Guardado en este dispositivo');
+            return true;
+        }
+
         if(mostrar)showLoading(true,'Sincronizando...');
         const ok=await postNube({action:'merge_equipo',equipo:equipoActualLogin,data:sistemaDatos});
-        cambiosLocalesPendientes=false;
-        if(mostrar){showLoading(false);toast(ok?'✔ Sincronizado con la nube':'✔ Guardado local; se reintentará');}
+
+        if(ok){
+            // Esperamos a que Apps Script termine el merge y recuperamos la versión
+            // fusionada. Así este dispositivo también recibe cambios hechos en otro.
+            await new Promise(r=>setTimeout(r,450));
+            const nube=await fetchNube();
+            const k=nube&&nube.equipos?buscarEquipoEnObjeto(nube.equipos,equipoActualLogin):null;
+            if(k){
+                const remoto=nube.equipos[k];
+                const sr=Number(remoto&&remoto._serverRevision||0);
+                const sl=Number(sistemaDatos&&sistemaDatos._serverRevision||0);
+                if(sr>=sl){
+                    aplicarDatosRemotos(remoto,null);
+                }
+            }
+            cambiosLocalesPendientes=false;
+            if(mostrar){showLoading(false);toast('✔ Sincronizado en todos tus dispositivos');}
+            return true;
+        }
+
+        // El dato queda en local y se reintentará automáticamente.
+        cambiosLocalesPendientes=true;
+        if(mostrar){showLoading(false);toast('⚠ Sin conexión: guardado local, se reintentará');}
+        programarReintentoSync();
+        return false;
     }
 
     function migrarDatosAntiguos() {
