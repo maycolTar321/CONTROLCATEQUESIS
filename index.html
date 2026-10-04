@@ -7,89 +7,7 @@
     <title>Control De Catequesis - Sistema de Catequesis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-    // =========================================================================
-    // FINANZAS / ACTIVIDADES — V5
-    // =========================================================================
-    function obtenerFinanzasActual(){
-        const g=sistemaDatos.grupos[grupoActual]; if(!g)return {actividades:[],movimientos:[]};
-        if(!g.finanzas)g.finanzas={actividades:[],movimientos:[]};
-        if(!Array.isArray(g.finanzas.actividades))g.finanzas.actividades=[];
-        if(!Array.isArray(g.finanzas.movimientos))g.finanzas.movimientos=[];
-        return g.finanzas;
-    }
-    function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
-    function fechaISOHoy(){return new Date().toISOString().slice(0,10);}
-    function agregarActividadFinanzas(){
-        const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, precio=Number(document.getElementById('fin-nuevo-precio').value||0), descripcion=(document.getElementById('fin-nueva-descripcion')?.value||'').trim(), inicio=document.getElementById('fin-nueva-inicio')?.value||'', fin=document.getElementById('fin-nueva-fin')?.value||'', estado=document.getElementById('fin-nueva-estado')?.value||'planificada';
-        if(!nombre){alert('Escribe el nombre de la actividad.');return;}
-        f.actividades.push({id:'act_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),nombre,fecha,precio,descripcion,inicio,fin,estado,creadaEn:new Date().toISOString()});
-        sincronizarConNube(false);
-        ['fin-nueva-actividad','fin-nueva-fecha','fin-nuevo-precio','fin-nueva-descripcion','fin-nueva-inicio','fin-nueva-fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-        const es=document.getElementById('fin-nueva-estado');if(es)es.value='planificada';
-        renderizarFinanzas();toast('✔ Actividad creada');
-    }
-    function registrarMovimientoFinanzas(){
-        const f=obtenerFinanzasActual(), persona=document.getElementById('fin-persona').value, actividadId=document.getElementById('fin-actividad').value, tipo=document.getElementById('fin-tipo').value, monto=Number(document.getElementById('fin-monto').value||0), fecha=document.getElementById('fin-fecha').value||fechaISOHoy(), metodo=document.getElementById('fin-metodo').value, observacion=document.getElementById('fin-observacion').value.trim();
-        if(!persona||!actividadId||!monto||monto<=0){alert('Completa persona, actividad y monto.');return;}
-        const act=f.actividades.find(a=>String(a.id)===String(actividadId)); if(!act){alert('Selecciona una actividad válida.');return;}
-        f.movimientos.push({id:'mov_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),persona,actividadId,actividadNombre:act.nombre,tipo,monto,fecha,metodo,observacion});
-        sincronizarConNube(false);document.getElementById('fin-monto').value='';document.getElementById('fin-observacion').value='';renderizarFinanzas();toast(tipo==='pago'?'✔ Pago registrado':'✔ Devolución registrada');
-    }
-    function eliminarMovimientoFinanzas(id){
-        if(!confirm('¿Eliminar este movimiento? Se recomienda hacer un respaldo antes.'))return;
-        const f=obtenerFinanzasActual();f.movimientos=f.movimientos.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
-    }
-    function eliminarActividadFinanzas(id){
-        const f=obtenerFinanzasActual(), usada=f.movimientos.some(x=>String(x.actividadId)===String(id));
-        if(usada){alert('No se puede borrar una actividad que ya tiene pagos/devoluciones. Puedes dejarla archivada.');return;}
-        if(!confirm('¿Eliminar esta actividad?'))return;f.actividades=f.actividades.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
-    }
-    function estadoPagoFinanzas(persona,act){
-        const f=obtenerFinanzasActual(), mov=f.movimientos.filter(x=>x.persona===persona&&String(x.actividadId)===String(act.id));
-        const pagos=mov.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=mov.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0), neto=pagos-dev, precio=Number(act.precio||0), saldo=precio-neto;
-        return {pagos,dev,neto,precio,saldo};
-    }
-    function renderizarFinanzas(){
-        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
-        const totalPagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), totalDev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
-        const pendiente=f.actividades.reduce((sum,a)=>sum+alumnos.reduce((s,al)=>{const e=estadoPagoFinanzas(al.nombre,a);return s+Math.max(0,e.saldo);},0),0);
-        document.getElementById('fin-kpi-cobrado').textContent=dineroBOB(totalPagos);document.getElementById('fin-kpi-devuelto').textContent=dineroBOB(totalDev);document.getElementById('fin-kpi-caja').textContent=dineroBOB(totalPagos-totalDev);document.getElementById('fin-kpi-pendiente').textContent=dineroBOB(pendiente);document.getElementById('fin-kpi-movimientos').textContent=f.movimientos.length;
-        const ps=document.getElementById('fin-persona');ps.innerHTML=alumnos.length?alumnos.map(a=>`<option value="${escHtml(a.nombre)}">${escHtml(a.nombre)}</option>`).join(''):'<option value="">No hay catequizandos</option>';
-        const as=document.getElementById('fin-actividad');as.innerHTML=f.actividades.length?f.actividades.map(a=>`<option value="${escHtml(a.id)}">${escHtml(a.nombre)} · ${dineroBOB(a.precio)}</option>`).join(''):'<option value="">Crea una actividad primero</option>';
-        const rows=[];
-        f.actividades.slice().reverse().forEach(a=>{
-            const det=alumnos.map(al=>({al,e:estadoPagoFinanzas(al.nombre,a)}));
-            const pag=det.filter(x=>x.e.neto>=x.e.precio&&x.e.precio>0).length, parc=det.filter(x=>x.e.neto>0&&x.e.neto<x.e.precio).length, pend=det.filter(x=>x.e.saldo>0).length;
-            rows.push(`<div class="activity-summary-card"><div class="activity-summary-head"><div><div class="activity-title-line"><strong>${escHtml(a.nombre)}</strong><span class="finance-badge">${escHtml(a.estado||'planificada')}</span></div><div class="activity-meta"><span><i class="fa-regular fa-calendar"></i> ${a.fecha?formatearFecha(a.fecha):'Sin fecha'}</span><span><i class="fa-solid fa-clock"></i> ${a.inicio||'--:--'}${a.fin?' – '+a.fin:''}</span><span><i class="fa-solid fa-tag"></i> ${dineroBOB(a.precio)}</span></div>${a.descripcion?`<p class="activity-description">${escHtml(a.descripcion)}</p>`:''}</div><button class="btn btn-danger" style="padding:7px 10px" onclick="eliminarActividadFinanzas('${jsStr(a.id)}')"><i class="fa-solid fa-trash"></i></button></div><div class="activity-stat-row"><span class="finance-status ok">Pagados: ${pag}</span><span class="finance-status warn">Parciales: ${parc}</span><span class="finance-status bad">Pendientes: ${pend}</span></div><div class="activity-table-wrap"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${det.map(x=>{const e=x.e;let st=e.precio===0?'Sin costo':e.saldo<=0?'Pagado':e.neto>0?'Parcial':'Pendiente';let cl=st==='Pagado'?'ok':st==='Parcial'?'warn':'bad';return `<tr><td>${escHtml(x.al.nombre)}</td><td>${dineroBOB(e.neto)}</td><td class="${e.saldo>0?'money-negative':'money-positive'}">${dineroBOB(Math.max(0,e.saldo))}</td><td><span class="finance-status ${cl}">${st}</span></td></tr>`}).join('')}</tbody></table></div></div>`);
-        });
-        document.getElementById('fin-resumen-actividades').innerHTML=rows.join('')||'<p style="color:var(--medium-gray)">Todavía no hay actividades. Crea la primera arriba.</p>';
-        const personaRows=alumnos.map(al=>{
-            let pag=0,dev=0,pend=0;
-            f.actividades.forEach(a=>{const e=estadoPagoFinanzas(al.nombre,a);pag+=e.pagos;dev+=e.dev;pend+=Math.max(0,e.saldo);});
-            return `<tr><td>${escHtml(al.nombre)}</td><td class="money-positive">${dineroBOB(pag)}</td><td class="money-negative">${dineroBOB(dev)}</td><td><b>${dineroBOB(pag-dev)}</b></td><td class="${pend>0?'money-negative':'money-positive'}">${dineroBOB(pend)}</td></tr>`;
-        });
-        document.getElementById('fin-tabla-personas').innerHTML=personaRows.join('')||'<tr><td colspan="5" style="color:var(--medium-gray)">No hay catequizandos.</td></tr>';
-        const mov=f.movimientos.slice().reverse();
-        document.getElementById('fin-tabla-movimientos').innerHTML=mov.length?mov.map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td class="${m.tipo==='pago'?'money-positive':'money-negative'}">${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td><td><button class="btn btn-info" style="padding:4px 7px" onclick="imprimirComprobanteFinanzas('${jsStr(m.id)}')" title="Imprimir comprobante"><i class="fa-solid fa-print"></i></button></td><td><button class="btn btn-danger" style="padding:4px 7px" onclick="eliminarMovimientoFinanzas('${jsStr(m.id)}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="9" style="color:var(--medium-gray)">No hay movimientos.</td></tr>';
-    }
-    function imprimirComprobanteFinanzas(id){
-        const f=obtenerFinanzasActual(),m=f.movimientos.find(x=>String(x.id)===String(id));if(!m)return;
-        const tipo=m.tipo==='pago'?'RECIBO DE PAGO':'CONSTANCIA DE DEVOLUCIÓN';
-        imprimirHTML(`<div style="max-width:650px;margin:auto;border:2px solid #0f766e;padding:28px;border-radius:12px"><h1 style="text-align:center">CONTROL DE CATEQUESIS</h1><h2 style="text-align:center">${tipo}</h2><hr><p><b>Persona:</b> ${escHtml(m.persona)}</p><p><b>Actividad:</b> ${escHtml(m.actividadNombre||'')}</p><p><b>Fecha:</b> ${escHtml(m.fecha||'')}</p><p><b>Método:</b> ${escHtml(m.metodo||'')}</p><p style="font-size:24px"><b>Monto: ${dineroBOB(m.monto)}</b></p><p><b>Observación:</b> ${escHtml(m.observacion||'-')}</p><br><p style="text-align:center;color:#64748b">Comprobante generado por el Sistema de Control de Catequesis.</p></div>`,tipo.replace(/ /g,'_')+'_'+m.persona);
-    }
-    function exportarFinanzasCSV(){
-        const f=obtenerFinanzasActual();csvDescargar('Finanzas_Catequesis_'+new Date().toISOString().slice(0,10)+'.csv',[['Fecha','Persona','Actividad','Tipo','Metodo','Monto Bs','Observacion'],...f.movimientos.map(m=>[m.fecha,m.persona,m.actividadNombre,m.tipo,m.metodo,m.monto,m.observacion||''])]);toast('✔ Finanzas exportadas');
-    }
-    function imprimirFinanzas(){
-        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
-        const pagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
-        const rows=f.movimientos.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td>${escHtml(m.tipo)}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td></tr>`).join('');
-        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Reporte de Finanzas y Actividades</h2><p><b>Grupo:</b> ${escHtml(grupoActual)} · <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p><p><b>Total cobrado:</b> ${dineroBOB(pagos)} &nbsp; <b>Devoluciones:</b> ${dineroBOB(dev)} &nbsp; <b>En caja:</b> ${dineroBOB(pagos-dev)}</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th></tr></thead><tbody>${rows||'<tr><td colspan="7">Sin movimientos</td></tr>'}</tbody></table>`,'Reporte_Finanzas_'+grupoActual);
-    }
-    document.addEventListener('DOMContentLoaded',()=>{const f=document.getElementById('fin-fecha');if(f)f.value=fechaISOHoy();});
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <!-- Configuración para App de Celular (PWA) -->
 <link rel="manifest" href="manifest.json">
@@ -142,7 +60,7 @@
 
     /* ----- FORMULARIOS ----- */
     label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--medium-gray); margin-bottom: 6px; }
-    input[type="text"], input[type="tel"], input[type="date"], input[type="time"], input[type="password"],
+    input[type="text"], input[type="search"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"], input[type="password"],
     input[type="url"], input[type="number"], textarea, select {
         width: 100%; padding: 0.8rem 1rem; background-color: var(--input-bg); color: var(--text-color);
         border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.95rem;
@@ -230,6 +148,10 @@
     .activity-main-field{grid-column:span 2}
     .activity-description-field{grid-column:1/-1}
     .activity-description-field textarea{width:100%;resize:vertical;min-height:92px}
+    .activity-form-grid input,.activity-form-grid select,.activity-form-grid textarea{min-height:52px;font-size:1rem;padding:0.9rem 1rem;}
+    .activity-main-field input{min-height:58px;font-size:1.02rem;}
+    .activity-description-field textarea{min-height:130px;line-height:1.55;}
+    .finance-grid input,.finance-grid select{min-height:52px;font-size:1rem;}
     .activity-create-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-top:18px;padding-top:15px;border-top:1px solid var(--border-color)}
     .activity-create-footer small{color:var(--medium-gray);line-height:1.5}
     .activity-create-footer small i{color:var(--accent)}
@@ -244,7 +166,7 @@
     .activity-table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:12px}
     .activity-table-wrap .finance-table{min-width:560px}
     @media(max-width:850px){.activity-form-grid{grid-template-columns:1fr 1fr}.activity-main-field,.activity-description-field{grid-column:1/-1}.finance-section-title{flex-direction:column}}
-    @media(max-width:560px){.activity-form-grid{grid-template-columns:1fr}.activity-main-field,.activity-description-field{grid-column:1}.activity-summary-card{padding:14px}.activity-summary-head{align-items:flex-start}.finance-section-title h2{font-size:1.12rem}}
+    @media(max-width:560px){.activity-form-grid{grid-template-columns:1fr}.activity-main-field,.activity-description-field{grid-column:1}.activity-summary-card{padding:14px}.activity-summary-head{align-items:flex-start}.finance-section-title h2{font-size:1.12rem}.activity-form-grid input,.activity-form-grid select,.activity-form-grid textarea,.finance-grid input,.finance-grid select{min-height:54px;font-size:1rem}.activity-create-footer .btn{width:100%;min-height:52px}.finance-grid>div{grid-column:1!important}}
 
     /* ----- REGISTRO ----- */
     #registro-overlay {
@@ -621,7 +543,7 @@
         .login-card { padding: 2rem 1.5rem; }
     }
 
-/* ===== NIVEL SUPER DIOS V4 ===== */
+/* ===== V4 ===== */
 .v4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
 .v4-kpi{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(30,41,59,.95),rgba(15,23,42,.95));border:1px solid rgba(148,163,184,.16);box-shadow:0 10px 28px rgba(0,0,0,.12)}
 .v4-kpi .v4-num{font-size:2rem;font-weight:900;margin-top:6px}.v4-kpi small{color:var(--medium-gray)}
@@ -939,6 +861,58 @@ td{vertical-align:top;overflow-wrap:anywhere}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(52,211,153,.35);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
+
+/* ===== UI UNIFICADA — CAMPOS PROFESIONALES (SIN CUADROS BLANCOS) ===== */
+input[type="text"], input[type="search"], input[type="email"], input[type="tel"],
+input[type="date"], input[type="time"], input[type="password"], input[type="url"],
+input[type="number"], textarea, select {
+  width:100%; min-height:52px; padding:13px 16px;
+  background:linear-gradient(180deg, rgba(15,23,42,.96), rgba(17,28,48,.96)) !important;
+  color:var(--text-color) !important;
+  border:1px solid rgba(148,163,184,.24) !important;
+  border-radius:14px !important;
+  font-size:15px; line-height:1.35;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025), 0 3px 12px rgba(0,0,0,.12);
+  outline:none;
+  appearance:auto;
+}
+input[type="text"]::placeholder, input[type="search"]::placeholder, input[type="email"]::placeholder,
+input[type="tel"]::placeholder, input[type="url"]::placeholder, input[type="number"]::placeholder,
+textarea::placeholder { color:#718096 !important; opacity:1; }
+input[type="text"]:hover, input[type="search"]:hover, input[type="email"]:hover,
+input[type="tel"]:hover, input[type="date"]:hover, input[type="time"]:hover,
+input[type="password"]:hover, input[type="url"]:hover, input[type="number"]:hover,
+textarea:hover, select:hover { border-color:rgba(148,163,184,.40) !important; }
+input[type="text"]:focus, input[type="search"]:focus, input[type="email"]:focus,
+input[type="tel"]:focus, input[type="date"]:focus, input[type="time"]:focus,
+input[type="password"]:focus, input[type="url"]:focus, input[type="number"]:focus,
+textarea:focus, select:focus {
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 3px rgba(52,211,153,.13), inset 0 1px 0 rgba(255,255,255,.03) !important;
+  background:linear-gradient(180deg, rgba(15,23,42,1), rgba(17,28,48,1)) !important;
+}
+select option { background:#111c30 !important; color:#f1f5f9 !important; }
+input[type="checkbox"], input[type="radio"] { accent-color:var(--primary-color); }
+.notas-toolbar { padding:14px !important; border-radius:18px !important; background:rgba(15,23,42,.48) !important; border:1px solid rgba(148,163,184,.14) !important; }
+.notas-toolbar input[type="search"] { min-height:58px !important; font-size:16px !important; }
+.notas-toolbar select { min-height:58px !important; font-size:15px !important; }
+.notas-toolbar .btn { min-height:58px !important; border-radius:14px !important; padding-left:20px !important; padding-right:20px !important; }
+#modal-nota .form-grid > div { min-width:0; }
+#modal-nota .form-grid input[type="text"], #modal-nota .form-grid input[type="date"], #modal-nota .form-grid select { min-height:54px !important; }
+#editor-quill { height:330px !important; background:#0f172a !important; border-radius:14px !important; overflow:hidden; border:1px solid rgba(148,163,184,.22); }
+#editor-quill .ql-toolbar.ql-snow { background:#111c30 !important; border:0 !important; border-bottom:1px solid rgba(148,163,184,.20) !important; padding:10px !important; }
+#editor-quill .ql-container.ql-snow { border:0 !important; background:#0f172a !important; color:#f1f5f9 !important; font-size:16px; }
+#editor-quill .ql-editor { color:#f1f5f9 !important; min-height:275px; }
+#editor-quill .ql-editor.ql-blank::before { color:#64748b !important; font-style:normal; }
+#editor-quill .ql-stroke { stroke:#cbd5e1 !important; }
+#editor-quill .ql-fill { fill:#cbd5e1 !important; }
+#editor-quill .ql-picker { color:#cbd5e1 !important; }
+#modal-nota .modal-content { background:linear-gradient(145deg,#1e293b,#172236) !important; }
+@media(max-width:700px){
+  .notas-toolbar { padding:10px !important; }
+  .notas-toolbar input[type="search"], .notas-toolbar select, .notas-toolbar .btn { min-height:54px !important; }
+}
+
 </style>
 
 <style id="v9-premium-overrides">:root{--ui-gap:clamp(12px,1.5vw,20px);--ui-radius:20px;--ui-line:rgba(148,163,184,.14);--ui-max:1440px}
@@ -1115,7 +1089,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <button class="tab-btn" onclick="switchTab(event, 'alumnos')" title="Inscribir y ver jóvenes"><i class="fa-solid fa-user-graduate"></i><span class="lbl-pc">Catequizandos y Fichas</span><span class="lbl-m">Fichas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'notas')" title="Tus apuntes"><i class="fa-solid fa-thumbtack"></i><span class="lbl-pc">Mis Notas</span><span class="lbl-m">Notas</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'herramientas')" title="Respaldo y diagnóstico"><i class="fa-solid fa-shield-halved"></i><span class="lbl-pc">Herramientas</span><span class="lbl-m">Backup</span></button>
-            <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control Nivel Súper Dios"><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control "><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'temario')" title="Temario de Primer y Segundo Año"><i class="fa-solid fa-list-check"></i><span class="lbl-pc">Temario / Checklist</span><span class="lbl-m">Temario</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'finanzas')" title="Pagos, devoluciones y actividades"><i class="fa-solid fa-money-bill-transfer"></i><span class="lbl-pc">Finanzas</span><span class="lbl-m">Pagos</span></button>
         </nav>
@@ -1391,7 +1365,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <!-- CENTRO DE CONTROL V4 -->
             <section id="centro-v4" class="section">
                 <div class="page-head">
-                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control — Nivel Súper Dios V4</h2>
+                    <h2><i class="fa-solid fa-gauge-high"></i> Centro de Control</h2>
                     <div class="acciones">
                         <button class="btn btn-info" onclick="actualizarCentroV4()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                         <button class="btn btn-slate" onclick="exportarAsistenciaCSV()"><i class="fa-solid fa-file-csv"></i> Asistencia CSV</button>
@@ -1726,9 +1700,9 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
             <div><label>Recordatorio (opcional):</label><input type="date" id="nota-recordatorio"></div>
             <div style="display:flex;align-items:center;gap:8px;grid-column:1/-1;"><input type="checkbox" id="nota-fijada" style="width:auto;"><label for="nota-fijada" style="margin:0"><i class="fa-solid fa-thumbtack"></i> Fijar esta nota arriba</label></div>
         </div>
-        <div id="editor-quill" style="height: 300px; background: #fff;"></div>
+        <div id="editor-quill"></div>
         <input type="hidden" id="nota-id-actual">
-        <button class="btn" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="guardarNota()"><i class="fa-solid fa-save"></i> Guardar Nota</button>
+        <button class="btn" style="width: 100%; margin-top: 1.5rem; min-height: 56px; padding: 1rem;" onclick="guardarNota()"><i class="fa-solid fa-save"></i> Guardar Nota</button>
     </div>
 </div>
 
@@ -1797,6 +1771,29 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     let sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
     let grupoActual = "Grupo 1";
     let quillEditor = null;
+    function initQuill() {
+        const el = document.getElementById('editor-quill');
+        if (!el) return null;
+        if (quillEditor) return quillEditor;
+        if (typeof Quill === 'undefined') {
+            console.error('Quill.js no está disponible.');
+            return null;
+        }
+        quillEditor = new Quill(el, {
+            theme: 'snow',
+            placeholder: 'Escribe aquí tu nota...',
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    [{ align: [] }],
+                    ['link', 'blockquote', 'clean']
+                ]
+            }
+        });
+        return quillEditor;
+    }
     let equipoActualLogin = "";
     let tareasSeleccionadasSesion = [];
 
@@ -2265,6 +2262,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
         renderizarDashboard();
         renderizarNotas();
         renderizarTemario();
+        if(typeof renderizarFinanzas==='function') renderizarFinanzas();
         iniciarSincronizacionTiempoReal();
         if(document.getElementById('centro-v4')) actualizarCentroV4();
 
@@ -3741,6 +3739,89 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
     function exportarAlumnosCSV(){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Catequizandos_'+new Date().toISOString().slice(0,10)+'.csv',[['Nombre','Cumpleaños','Celular','Dirección','Tutor','Teléfono Tutor','Salud'],...(g.alumnos||[]).map(a=>[a.nombre,a.cumple||'',a.celular||'',a.direccion||'',a.tutor||'',a.telefono||'',a.salud||''])]);toast('✔ Lista de catequizandos exportada');}
     function exportarAsistenciaCSV(){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Asistencia_'+new Date().toISOString().slice(0,10)+'.csv',[['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'],...(g.registros||[]).map(r=>[r.fecha,r.alumno,r.asistencia,r.tareaNombre||'',r.tareaEstado||''])]);toast('✔ Asistencia exportada');}
     function exportarSesionCSVV4(fecha){const g=sistemaDatos.grupos[grupoActual];csvDescargar('Sesion_'+fecha.replace(/[^0-9-]/g,'_')+'.csv',[['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'],...(g.registros||[]).filter(r=>r.fecha===fecha).map(r=>[r.fecha,r.alumno,r.asistencia,r.tareaNombre||'',r.tareaEstado||''])]);}
+
+
+    // FINANZAS / ACTIVIDADES — V5 (integrado en el script principal)
+    // =========================================================================
+    // FINANZAS / ACTIVIDADES — V5
+    // =========================================================================
+    function obtenerFinanzasActual(){
+        const g=sistemaDatos.grupos[grupoActual]; if(!g)return {actividades:[],movimientos:[]};
+        if(!g.finanzas)g.finanzas={actividades:[],movimientos:[]};
+        if(!Array.isArray(g.finanzas.actividades))g.finanzas.actividades=[];
+        if(!Array.isArray(g.finanzas.movimientos))g.finanzas.movimientos=[];
+        return g.finanzas;
+    }
+    function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function fechaISOHoy(){return new Date().toISOString().slice(0,10);}
+    function agregarActividadFinanzas(){
+        const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, precio=Number(document.getElementById('fin-nuevo-precio').value||0), descripcion=(document.getElementById('fin-nueva-descripcion')?.value||'').trim(), inicio=document.getElementById('fin-nueva-inicio')?.value||'', fin=document.getElementById('fin-nueva-fin')?.value||'', estado=document.getElementById('fin-nueva-estado')?.value||'planificada';
+        if(!nombre){alert('Escribe el nombre de la actividad.');return;}
+        f.actividades.push({id:'act_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),nombre,fecha,precio,descripcion,inicio,fin,estado,creadaEn:new Date().toISOString()});
+        sincronizarConNube(false);
+        ['fin-nueva-actividad','fin-nueva-fecha','fin-nuevo-precio','fin-nueva-descripcion','fin-nueva-inicio','fin-nueva-fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+        const es=document.getElementById('fin-nueva-estado');if(es)es.value='planificada';
+        renderizarFinanzas();toast('✔ Actividad creada');
+    }
+    function registrarMovimientoFinanzas(){
+        const f=obtenerFinanzasActual(), persona=document.getElementById('fin-persona').value, actividadId=document.getElementById('fin-actividad').value, tipo=document.getElementById('fin-tipo').value, monto=Number(document.getElementById('fin-monto').value||0), fecha=document.getElementById('fin-fecha').value||fechaISOHoy(), metodo=document.getElementById('fin-metodo').value, observacion=document.getElementById('fin-observacion').value.trim();
+        if(!persona||!actividadId||!monto||monto<=0){alert('Completa persona, actividad y monto.');return;}
+        const act=f.actividades.find(a=>String(a.id)===String(actividadId)); if(!act){alert('Selecciona una actividad válida.');return;}
+        f.movimientos.push({id:'mov_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),persona,actividadId,actividadNombre:act.nombre,tipo,monto,fecha,metodo,observacion});
+        sincronizarConNube(false);document.getElementById('fin-monto').value='';document.getElementById('fin-observacion').value='';renderizarFinanzas();toast(tipo==='pago'?'✔ Pago registrado':'✔ Devolución registrada');
+    }
+    function eliminarMovimientoFinanzas(id){
+        if(!confirm('¿Eliminar este movimiento? Se recomienda hacer un respaldo antes.'))return;
+        const f=obtenerFinanzasActual();f.movimientos=f.movimientos.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
+    }
+    function eliminarActividadFinanzas(id){
+        const f=obtenerFinanzasActual(), usada=f.movimientos.some(x=>String(x.actividadId)===String(id));
+        if(usada){alert('No se puede borrar una actividad que ya tiene pagos/devoluciones. Puedes dejarla archivada.');return;}
+        if(!confirm('¿Eliminar esta actividad?'))return;f.actividades=f.actividades.filter(x=>String(x.id)!==String(id));sincronizarConNube(false);renderizarFinanzas();
+    }
+    function estadoPagoFinanzas(persona,act){
+        const f=obtenerFinanzasActual(), mov=f.movimientos.filter(x=>x.persona===persona&&String(x.actividadId)===String(act.id));
+        const pagos=mov.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=mov.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0), neto=pagos-dev, precio=Number(act.precio||0), saldo=precio-neto;
+        return {pagos,dev,neto,precio,saldo};
+    }
+    function renderizarFinanzas(){
+        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
+        const totalPagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), totalDev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
+        const pendiente=f.actividades.reduce((sum,a)=>sum+alumnos.reduce((s,al)=>{const e=estadoPagoFinanzas(al.nombre,a);return s+Math.max(0,e.saldo);},0),0);
+        document.getElementById('fin-kpi-cobrado').textContent=dineroBOB(totalPagos);document.getElementById('fin-kpi-devuelto').textContent=dineroBOB(totalDev);document.getElementById('fin-kpi-caja').textContent=dineroBOB(totalPagos-totalDev);document.getElementById('fin-kpi-pendiente').textContent=dineroBOB(pendiente);document.getElementById('fin-kpi-movimientos').textContent=f.movimientos.length;
+        const ps=document.getElementById('fin-persona');ps.innerHTML=alumnos.length?alumnos.map(a=>`<option value="${escHtml(a.nombre)}">${escHtml(a.nombre)}</option>`).join(''):'<option value="">No hay catequizandos</option>';
+        const as=document.getElementById('fin-actividad');as.innerHTML=f.actividades.length?f.actividades.map(a=>`<option value="${escHtml(a.id)}">${escHtml(a.nombre)} · ${dineroBOB(a.precio)}</option>`).join(''):'<option value="">Crea una actividad primero</option>';
+        const rows=[];
+        f.actividades.slice().reverse().forEach(a=>{
+            const det=alumnos.map(al=>({al,e:estadoPagoFinanzas(al.nombre,a)}));
+            const pag=det.filter(x=>x.e.neto>=x.e.precio&&x.e.precio>0).length, parc=det.filter(x=>x.e.neto>0&&x.e.neto<x.e.precio).length, pend=det.filter(x=>x.e.saldo>0).length;
+            rows.push(`<div class="activity-summary-card"><div class="activity-summary-head"><div><div class="activity-title-line"><strong>${escHtml(a.nombre)}</strong><span class="finance-badge">${escHtml(a.estado||'planificada')}</span></div><div class="activity-meta"><span><i class="fa-regular fa-calendar"></i> ${a.fecha?formatearFecha(a.fecha):'Sin fecha'}</span><span><i class="fa-solid fa-clock"></i> ${a.inicio||'--:--'}${a.fin?' – '+a.fin:''}</span><span><i class="fa-solid fa-tag"></i> ${dineroBOB(a.precio)}</span></div>${a.descripcion?`<p class="activity-description">${escHtml(a.descripcion)}</p>`:''}</div><button class="btn btn-danger" style="padding:7px 10px" onclick="eliminarActividadFinanzas('${jsStr(a.id)}')"><i class="fa-solid fa-trash"></i></button></div><div class="activity-stat-row"><span class="finance-status ok">Pagados: ${pag}</span><span class="finance-status warn">Parciales: ${parc}</span><span class="finance-status bad">Pendientes: ${pend}</span></div><div class="activity-table-wrap"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${det.map(x=>{const e=x.e;let st=e.precio===0?'Sin costo':e.saldo<=0?'Pagado':e.neto>0?'Parcial':'Pendiente';let cl=st==='Pagado'?'ok':st==='Parcial'?'warn':'bad';return `<tr><td>${escHtml(x.al.nombre)}</td><td>${dineroBOB(e.neto)}</td><td class="${e.saldo>0?'money-negative':'money-positive'}">${dineroBOB(Math.max(0,e.saldo))}</td><td><span class="finance-status ${cl}">${st}</span></td></tr>`}).join('')}</tbody></table></div></div>`);
+        });
+        document.getElementById('fin-resumen-actividades').innerHTML=rows.join('')||'<p style="color:var(--medium-gray)">Todavía no hay actividades. Crea la primera arriba.</p>';
+        const personaRows=alumnos.map(al=>{
+            let pag=0,dev=0,pend=0;
+            f.actividades.forEach(a=>{const e=estadoPagoFinanzas(al.nombre,a);pag+=e.pagos;dev+=e.dev;pend+=Math.max(0,e.saldo);});
+            return `<tr><td>${escHtml(al.nombre)}</td><td class="money-positive">${dineroBOB(pag)}</td><td class="money-negative">${dineroBOB(dev)}</td><td><b>${dineroBOB(pag-dev)}</b></td><td class="${pend>0?'money-negative':'money-positive'}">${dineroBOB(pend)}</td></tr>`;
+        });
+        document.getElementById('fin-tabla-personas').innerHTML=personaRows.join('')||'<tr><td colspan="5" style="color:var(--medium-gray)">No hay catequizandos.</td></tr>';
+        const mov=f.movimientos.slice().reverse();
+        document.getElementById('fin-tabla-movimientos').innerHTML=mov.length?mov.map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td class="${m.tipo==='pago'?'money-positive':'money-negative'}">${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td><td><button class="btn btn-info" style="padding:4px 7px" onclick="imprimirComprobanteFinanzas('${jsStr(m.id)}')" title="Imprimir comprobante"><i class="fa-solid fa-print"></i></button></td><td><button class="btn btn-danger" style="padding:4px 7px" onclick="eliminarMovimientoFinanzas('${jsStr(m.id)}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="9" style="color:var(--medium-gray)">No hay movimientos.</td></tr>';
+    }
+    function imprimirComprobanteFinanzas(id){
+        const f=obtenerFinanzasActual(),m=f.movimientos.find(x=>String(x.id)===String(id));if(!m)return;
+        const tipo=m.tipo==='pago'?'RECIBO DE PAGO':'CONSTANCIA DE DEVOLUCIÓN';
+        imprimirHTML(`<div style="max-width:650px;margin:auto;border:2px solid #0f766e;padding:28px;border-radius:12px"><h1 style="text-align:center">CONTROL DE CATEQUESIS</h1><h2 style="text-align:center">${tipo}</h2><hr><p><b>Persona:</b> ${escHtml(m.persona)}</p><p><b>Actividad:</b> ${escHtml(m.actividadNombre||'')}</p><p><b>Fecha:</b> ${escHtml(m.fecha||'')}</p><p><b>Método:</b> ${escHtml(m.metodo||'')}</p><p style="font-size:24px"><b>Monto: ${dineroBOB(m.monto)}</b></p><p><b>Observación:</b> ${escHtml(m.observacion||'-')}</p><br><p style="text-align:center;color:#64748b">Comprobante generado por el Sistema de Control de Catequesis.</p></div>`,tipo.replace(/ /g,'_')+'_'+m.persona);
+    }
+    function exportarFinanzasCSV(){
+        const f=obtenerFinanzasActual();csvDescargar('Finanzas_Catequesis_'+new Date().toISOString().slice(0,10)+'.csv',[['Fecha','Persona','Actividad','Tipo','Metodo','Monto Bs','Observacion'],...f.movimientos.map(m=>[m.fecha,m.persona,m.actividadNombre,m.tipo,m.metodo,m.monto,m.observacion||''])]);toast('✔ Finanzas exportadas');
+    }
+    function imprimirFinanzas(){
+        const f=obtenerFinanzasActual(), g=sistemaDatos.grupos[grupoActual]||{}, alumnos=g.alumnos||[];
+        const pagos=f.movimientos.filter(x=>x.tipo==='pago').reduce((s,x)=>s+Number(x.monto||0),0), dev=f.movimientos.filter(x=>x.tipo==='devolucion').reduce((s,x)=>s+Number(x.monto||0),0);
+        const rows=f.movimientos.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(m=>`<tr><td>${escHtml(m.fecha||'')}</td><td>${escHtml(m.persona)}</td><td>${escHtml(m.actividadNombre||'')}</td><td>${escHtml(m.tipo)}</td><td>${escHtml(m.metodo||'')}</td><td>${dineroBOB(m.monto)}</td><td>${escHtml(m.observacion||'')}</td></tr>`).join('');
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Reporte de Finanzas y Actividades</h2><p><b>Grupo:</b> ${escHtml(grupoActual)} · <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p><p><b>Total cobrado:</b> ${dineroBOB(pagos)} &nbsp; <b>Devoluciones:</b> ${dineroBOB(dev)} &nbsp; <b>En caja:</b> ${dineroBOB(pagos-dev)}</p><table style="width:100%;border-collapse:collapse"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th></tr></thead><tbody>${rows||'<tr><td colspan="7">Sin movimientos</td></tr>'}</tbody></table>`,'Reporte_Finanzas_'+grupoActual);
+    }
+    document.addEventListener('DOMContentLoaded',()=>{const f=document.getElementById('fin-fecha');if(f)f.value=fechaISOHoy();});
 </script>
 
 <script id="v9-live-sync">
@@ -3753,7 +3834,7 @@ main{width:100%!important;max-width:none!important;padding:16px 12px calc(112px 
   window.iniciarSincronizacionTiempoReal=function(){if(v9Timer)clearTimeout(v9Timer);if(!nubeActiva()){actualizarEstadoTiempoReal('off','Solo local');return}const ciclo=async()=>{if(document.visibilityState!=='hidden')await sincronizarTiempoReal();v9Timer=setTimeout(ciclo,V9_SYNC_MS)};v9Timer=setTimeout(ciclo,500)};
   if(v9Channel)v9Channel.onmessage=function(ev){if(!ev.data||ev.data.equipo!==equipoActualLogin||!ev.data.data)return;const ts=Number(ev.data.data._actualizado||0),lt=Number(sistemaDatos&&sistemaDatos._actualizado||0);if(ts>lt&&!cambiosLocalesPendientes){const pass=sistemaDatos&&sistemaDatos.password;sistemaDatos=ev.data.data;if(!sistemaDatos.password&&pass)sistemaDatos.password=pass;migrarDatosAntiguos();guardarEquipoLocal(equipoActualLogin,sistemaDatos);inicializarApp()}};
   window.addEventListener('online',()=>{actualizarEstadoTiempoReal('ok','Conectando…');sincronizarTiempoReal()});window.addEventListener('offline',()=>actualizarEstadoTiempoReal('off','Sin conexión'));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sincronizarTiempoReal()});
-  window.sincronizarConNube=async function(mostrar){if(!equipoActualLogin)return;cambiosLocalesPendientes=true;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);if(v9Channel){try{v9Channel.postMessage({equipo:equipoActualLogin,data:sistemaDatos})}catch(e){}}if(!nubeActiva()){cambiosLocalesPendientes=false;actualizarEstadoTiempoReal('off','Solo local');if(mostrar)try{toast('✔ Guardado en este dispositivo')}catch(e){}return}if(mostrar)showLoading(true,'Sincronizando…');const ok=await postNube({action:'merge_equipo',equipo:equipoActualLogin,data:sistemaDatos});cambiosLocalesPendientes=false;actualizarEstadoTiempoReal(ok?'ok':'off',ok?'En vivo · '+hora():'Guardado local; reintentando…');if(mostrar){showLoading(false);try{toast(ok?'✔ Sincronizado en todos tus dispositivos':'✔ Guardado local; se reintentará')}catch(e){}}};
+  window.sincronizarConNubeV9Legacy=async function(mostrar){if(!equipoActualLogin)return;cambiosLocalesPendientes=true;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);if(v9Channel){try{v9Channel.postMessage({equipo:equipoActualLogin,data:sistemaDatos})}catch(e){}}if(!nubeActiva()){cambiosLocalesPendientes=false;actualizarEstadoTiempoReal('off','Solo local');if(mostrar)try{toast('✔ Guardado en este dispositivo')}catch(e){}return}if(mostrar)showLoading(true,'Sincronizando…');const ok=await postNube({action:'merge_equipo',equipo:equipoActualLogin,data:sistemaDatos});cambiosLocalesPendientes=false;actualizarEstadoTiempoReal(ok?'ok':'off',ok?'En vivo · '+hora():'Guardado local; reintentando…');if(mostrar){showLoading(false);try{toast(ok?'✔ Sincronizado en todos tus dispositivos':'✔ Guardado local; se reintentará')}catch(e){}}};
 })();
 </script>
 </body>
