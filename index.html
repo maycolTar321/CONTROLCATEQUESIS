@@ -145,13 +145,8 @@
         #loading-overlay p { margin-top: 15px; font-weight: 600; color: var(--text-color); }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        #toast {
-            position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(150%);
-            background: #0b1324; color: var(--text-color); border: 1px solid var(--primary-color);
-            padding: 12px 20px; border-radius: 14px; font-weight: 600; font-size: 0.9rem; z-index: 30000;
-            box-shadow: var(--shadow-md); transition: transform 0.35s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
-        }
-        #toast.show { transform: translateX(-50%) translateY(0); }
+        /* Avisos internos: se conserva la función, pero no se muestra el recuadro flotante. */
+        #toast { display: none !important; }
 
         /* =====================================================
            LAYOUT APP – PC: DASHBOARD CON MENÚ LATERAL
@@ -288,6 +283,58 @@
             50% { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(16,185,129,0.5)); }
         }
 
+        /* BUSCADOR DE CATEQUIZANDOS */
+        .buscador-jovenes-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.35rem;
+        }
+        .buscador-jovenes-wrap input {
+            width: 100%;
+            min-height: 48px;
+            padding: 0.85rem 3rem 0.85rem 2.9rem !important;
+            border-radius: 14px !important;
+            border: 1px solid var(--border-color) !important;
+            background: rgba(15,23,42,0.72) !important;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .buscador-jovenes-wrap input:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.12) !important;
+            outline: none;
+        }
+        .buscador-jovenes-icon {
+            position: absolute;
+            left: 15px;
+            z-index: 2;
+            color: var(--accent);
+            pointer-events: none;
+        }
+        .limpiar-buscador-jovenes {
+            position: absolute;
+            right: 9px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            color: var(--medium-gray);
+            cursor: pointer;
+            z-index: 2;
+        }
+        .limpiar-buscador-jovenes:hover {
+            background: rgba(255,255,255,0.14);
+            color: var(--text-color);
+        }
+        .resultado-busqueda-jovenes {
+            min-height: 20px;
+            margin: 0 2px 0.8rem;
+            color: var(--medium-gray);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
         /* =====================================================
            CELULAR – FORMATO APP CON BARRA INFERIOR
            ===================================================== */
@@ -406,10 +453,6 @@
                 <button onclick="abrirRegistro()" class="btn-outline"><i class="fa-solid fa-user-plus"></i> Crear Nuevo Usuario</button>
             </div>
 
-            <div style="margin-top: 20px; display:flex; justify-content:center; gap: 15px;">
-                <button onclick="exportarBackup()" style="background: transparent; color: var(--primary-color); border:none; cursor:pointer; font-size: 0.85rem;"><i class="fa-solid fa-download"></i> Backup</button>
-                <button onclick="importarBackup()" style="background: transparent; color: var(--danger-color); border:none; cursor:pointer; font-size: 0.85rem;"><i class="fa-solid fa-upload"></i> Restaurar</button>
-            </div>
         </div>
     </div>
 
@@ -548,14 +591,6 @@
                 </div>
             </header>
 
-            <div id="install-banner" style="display: none; background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 12px 15px; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="logo.jpg" style="width:36px; height:36px; border-radius: 8px;">
-                    <span style="font-weight: 600;">Lleva el sistema en tu celular</span>
-                </div>
-                <button onclick="instalarApp()" class="btn btn-warning"><i class="fa-solid fa-download"></i> Instalar App</button>
-            </div>
-
             <main>
                 <!-- DASHBOARD -->
                 <section id="dashboard" class="section active">
@@ -568,10 +603,11 @@
                     </div>
 
                     <div id="cumpleanos-container"></div>
-                    <div class="card" id="proximos-cumpleanos-card" style="margin-bottom:1.5rem;">
+                    <div id="proximos-cumpleanos-card" class="card" style="margin-bottom:1.5rem;">
                         <h2><i class="fa-solid fa-cake-candles"></i> Próximos Cumpleaños</h2>
                         <div id="lista-proximos-cumpleanos"></div>
                     </div>
+
                     <div class="stats-grid">
                         <div class="stat-card">
                             <h3><i class="fa-solid fa-users" style="color:var(--accent);"></i> Total Inscritos</h3>
@@ -756,10 +792,14 @@
 
                     <div class="card">
                         <h2><i class="fa-solid fa-users-gear"></i> Lista del Grupo</h2>
-                        <div style="margin-bottom: 1rem; position: relative;">
-                            <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--medium-gray);"></i>
-                            <input type="text" id="buscador-jovenes" placeholder="Buscar joven por nombre o apellido..." oninput="filtrarJovenes()" style="padding-left:42px;">
+                        <div class="buscador-jovenes-wrap">
+                            <i class="fa-solid fa-magnifying-glass buscador-jovenes-icon"></i>
+                            <input type="search" id="buscador-jovenes" placeholder="Buscar por nombre o apellido..." autocomplete="off" oninput="filtrarJovenes()" aria-label="Buscar joven por nombre o apellido">
+                            <button type="button" id="limpiar-buscador-jovenes" class="limpiar-buscador-jovenes" onclick="limpiarBuscadorJovenes()" title="Limpiar búsqueda" aria-label="Limpiar búsqueda" style="display:none;">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
                         </div>
+                        <div id="resultado-busqueda-jovenes" class="resultado-busqueda-jovenes"></div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
@@ -1863,10 +1903,11 @@
             // --- Lista del grupo ---
             const tbody = document.getElementById('tabla-lista-alumnos');
             const buscador = document.getElementById('buscador-jovenes');
-            const textoBusqueda = buscador ? buscador.value.trim().toLowerCase() : '';
+            const textoBusqueda = buscador ? normalizarTextoBusqueda(buscador.value) : '';
+            const palabrasBusqueda = textoBusqueda.split(/\\s+/).filter(Boolean);
             const alumnosFiltrados = grupo.alumnos
                 .map((al, idx) => ({ al, idx }))
-                .filter(item => !textoBusqueda || item.al.nombre.toLowerCase().includes(textoBusqueda));
+                .filter(item => !palabrasBusqueda.length || palabrasBusqueda.every(palabra => normalizarTextoBusqueda(item.al.nombre).includes(palabra)));
 
             if (grupo.alumnos.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--medium-gray);">Sin alumnos registrados.</td></tr>`;
@@ -1891,32 +1932,62 @@
             }
         }
 
+        function normalizarTextoBusqueda(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\\u0300-\\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
         function filtrarJovenes() {
             const grupo = sistemaDatos.grupos[grupoActual];
-            if (!grupo) return;
-
             const buscador = document.getElementById('buscador-jovenes');
             const tbody = document.getElementById('tabla-lista-alumnos');
-            if (!buscador || !tbody) return;
+            const contador = document.getElementById('resultado-busqueda-jovenes');
+            const limpiar = document.getElementById('limpiar-buscador-jovenes');
 
-            const textoBusqueda = buscador.value.trim().toLowerCase();
+            if (!grupo || !buscador || !tbody) return;
+
+            const textoOriginal = buscador.value.trim();
+            const textoBusqueda = normalizarTextoBusqueda(textoOriginal);
+            const palabras = textoBusqueda.split(/\\s+/).filter(Boolean);
+
+            if (limpiar) limpiar.style.display = textoOriginal ? 'block' : 'none';
+
+            const resultados = grupo.alumnos
+                .map((al, idx) => ({ al, idx }))
+                .filter(({ al }) => {
+                    const nombre = normalizarTextoBusqueda(al.nombre);
+                    return !palabras.length || palabras.every(palabra => nombre.includes(palabra));
+                });
 
             if (!textoBusqueda) {
+                if (contador) contador.innerHTML = '';
                 actualizarInterfazGrupo();
                 return;
             }
 
-            const resultados = grupo.alumnos
-                .map((al, idx) => ({ al, idx }))
-                .filter(item => item.al.nombre.toLowerCase().includes(textoBusqueda));
+            if (contador) {
+                contador.innerHTML = resultados.length === 1
+                    ? '<i class="fa-solid fa-user-check"></i> 1 joven encontrado'
+                    : `<i class="fa-solid fa-users"></i> ${resultados.length} jóvenes encontrados`;
+            }
 
             if (resultados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--medium-gray);"><i class="fa-solid fa-user-slash" style="font-size:1.5rem; margin-bottom:8px;"></i><br>No se encontró ningún joven con ese nombre.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--medium-gray);">
+                    <i class="fa-solid fa-user-slash" style="font-size:1.5rem; margin-bottom:8px;"></i>
+                    <br><strong>No encontramos a ese joven.</strong>
+                    <br><small>Prueba con otro nombre o apellido.</small>
+                </td></tr>`;
                 return;
             }
 
             tbody.innerHTML = resultados.map(({al, idx}) => {
-                const salud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta">${escHtml(al.salud)}</span>` : '<span style="color:var(--medium-gray)">Ninguna</span>';
+                const salud = al.salud && al.salud.trim() !== ''
+                    ? `<span class="badge-alerta">${escHtml(al.salud)}</span>`
+                    : '<span style="color:var(--medium-gray)">Ninguna</span>';
+
                 return `
                 <tr>
                     <td>${idx + 1}</td>
@@ -1930,6 +2001,14 @@
                     </td>
                 </tr>`;
             }).join('');
+        }
+
+        function limpiarBuscadorJovenes() {
+            const buscador = document.getElementById('buscador-jovenes');
+            if (!buscador) return;
+            buscador.value = '';
+            filtrarJovenes();
+            buscador.focus();
         }
 
         function setEstado(btn, tipo, valor, index) {
@@ -2387,16 +2466,19 @@
 
             // ----- CUMPLEAÑOS DE HOY -----
             const cc = document.getElementById('cumpleanos-container');
-            const hoy = new Date();
-            const hoyMMDD = `${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-            cc.innerHTML = grupo.alumnos.filter(al => al.cumple && al.cumple.substring(5) === hoyMMDD).map(al => {
-                const num = al.celular && al.celular !== '-' ? al.celular.replace(/\D/g, '') : '';
-                const saludo = `¡Feliz cumpleaños ${al.nombre}! 🎂🎉 Que Dios te bendiga inmensamente hoy en tu día y siempre te guíe. Con mucho cariño, tu catequista. ✨🕊️`;
-                const btn = num ? `<button class="btn btn-whatsapp" style="margin-top: 8px; padding: 10px 18px !important; font-size: 0.95rem !important;" onclick="window.open('https://wa.me/${num}?text=${encodeURIComponent(saludo)}', '_blank')"><i class="fa-brands fa-whatsapp"></i> Felicitar por WhatsApp</button>` : `<p style="font-size:0.85rem; opacity:0.8; margin-top: 8px;">(Sin número de celular registrado)</p>`;
-                return `<div style="background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.06)); padding: 1.25rem; border-radius: 16px; border: 1px dashed #f472b6; margin-bottom: 1.25rem; text-align: center; color: #fbcfe8;">
-                    <h3 style="font-size: 1.3rem; margin-bottom: 4px;"><i class="fa-solid fa-cake-candles fa-bounce"></i> ¡Hoy es el cumpleaños de ${escHtml(al.nombre)}!</h3>
-                    <p style="font-size: 0.95rem; opacity: 0.85;">Celebremos este día tan especial enviándole nuestras felicitaciones.</p>${btn}</div>`;
-            }).join('');
+            if (cc) {
+                const hoy = new Date();
+                const hoyMMDD = `${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+                cc.innerHTML = grupo.alumnos.filter(al => al.cumple && al.cumple.substring(5) === hoyMMDD).map(al => {
+                    const num = al.celular && al.celular !== '-' ? al.celular.replace(/\D/g, '') : '';
+                    const saludo = `¡Feliz cumpleaños ${al.nombre}! 🎂🎉 Que Dios te bendiga inmensamente hoy en tu día y siempre te guíe. Con mucho cariño, tu catequista. ✨🕊️`;
+                    const btn = num ? `<button class="btn btn-whatsapp" style="margin-top: 8px; padding: 10px 18px !important; font-size: 0.95rem !important;" onclick="window.open('https://wa.me/${num}?text=${encodeURIComponent(saludo)}', '_blank')"><i class="fa-brands fa-whatsapp"></i> Felicitar por WhatsApp</button>` : `<p style="font-size:0.85rem; opacity:0.8; margin-top: 8px;">(Sin número de celular registrado)</p>`;
+                    return `<div style="background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.06)); padding: 1.25rem; border-radius: 16px; border: 1px dashed #f472b6; margin-bottom: 1.25rem; text-align: center; color: #fbcfe8;">
+                        <h3 style="font-size: 1.3rem; margin-bottom: 4px;"><i class="fa-solid fa-cake-candles fa-bounce"></i> ¡Hoy es el cumpleaños de ${escHtml(al.nombre)}!</h3>
+                        <p style="font-size: 0.95rem; opacity: 0.85;">Celebremos este día tan especial enviándole nuestras felicitaciones.</p>${btn}</div>`;
+                }).join('');
+            }
+
         }
 
         function renderizarProximosCumpleanos() {
@@ -2405,58 +2487,55 @@
             if (!contenedor || !grupo) return;
 
             const hoy = new Date();
-            const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+            const hoyDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
 
             const proximos = grupo.alumnos
                 .filter(al => al.cumple)
                 .map(al => {
-                    const partes = al.cumple.split('-');
+                    const partes = String(al.cumple).split('-');
                     if (partes.length !== 3) return null;
 
                     const mes = parseInt(partes[1], 10);
                     const dia = parseInt(partes[2], 10);
                     if (!mes || !dia) return null;
 
-                    let fechaCumple = new Date(hoy.getFullYear(), mes - 1, dia);
-                    if (fechaCumple < hoySinHora) {
-                        fechaCumple = new Date(hoy.getFullYear() + 1, mes - 1, dia);
-                    }
+                    let fecha = new Date(hoy.getFullYear(), mes - 1, dia);
+                    if (fecha < hoyDia) fecha = new Date(hoy.getFullYear() + 1, mes - 1, dia);
 
-                    const dias = Math.round((fechaCumple - hoySinHora) / 86400000);
-                    return { al, mes, dia, fechaCumple, dias };
+                    return {
+                        al,
+                        fecha,
+                        dias: Math.round((fecha - hoyDia) / 86400000)
+                    };
                 })
                 .filter(Boolean)
-                .sort((a, b) => a.fechaCumple - b.fechaCumple);
+                .sort((a, b) => a.fecha - b.fecha)
+                .slice(0, 8);
 
-            if (proximos.length === 0) {
-                contenedor.innerHTML = `<p style="color:var(--medium-gray); text-align:center; padding:1rem;">No hay fechas de nacimiento registradas.</p>`;
+            if (!proximos.length) {
+                contenedor.innerHTML = '<p style="color:var(--medium-gray); text-align:center; padding:1rem;">No hay fechas de nacimiento registradas.</p>';
                 return;
             }
 
-            const mostrar = proximos.slice(0, 8);
-
-            contenedor.innerHTML = mostrar.map(item => {
-                const fechaTexto = item.fechaCumple.toLocaleDateString('es-BO', {
-                    day: '2-digit',
-                    month: 'long'
-                });
+            contenedor.innerHTML = proximos.map(item => {
+                const fecha = item.fecha.toLocaleDateString('es-BO', { day: '2-digit', month: 'long' });
                 const cuando = item.dias === 0
-                    ? '<span style="color:#f472b6; font-weight:800;">¡HOY!</span>'
+                    ? '<strong style="color:#f472b6;">¡HOY!</strong>'
                     : item.dias === 1
-                        ? '<span style="color:var(--warning-color); font-weight:700;">Mañana</span>'
+                        ? '<strong style="color:var(--warning-color);">Mañana</strong>'
                         : `<span style="color:var(--medium-gray);">En ${item.dias} días</span>`;
 
-                return `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; margin-bottom:8px; background:rgba(236,72,153,0.06); border:1px solid rgba(236,72,153,0.18); border-radius:12px;">
-                    <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                        <div style="width:42px; height:42px; border-radius:50%; background:rgba(236,72,153,0.15); color:#f472b6; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;margin-bottom:8px;background:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.18);border-radius:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:rgba(236,72,153,0.15);color:#f472b6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <i class="fa-solid fa-cake-candles"></i>
                         </div>
                         <div style="min-width:0;">
                             <strong style="display:block;">${escHtml(item.al.nombre)}</strong>
-                            <small style="color:var(--medium-gray);">${fechaTexto}</small>
+                            <small style="color:var(--medium-gray);">${fecha}</small>
                         </div>
                     </div>
-                    <div style="text-align:right; white-space:nowrap;">${cuando}</div>
+                    <div style="white-space:nowrap;">${cuando}</div>
                 </div>`;
             }).join('');
         }
@@ -2464,24 +2543,6 @@
         // =========================================================================
         // INSTALACIÓN PWA
         // =========================================================================
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-banner').style.display = 'flex';
-        });
-
-        async function instalarApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
-                deferredPrompt = null;
-            } else {
-                alert("Android: toca los 3 puntitos del navegador → 'Instalar aplicación'.\n\niPhone: toca Compartir → 'Agregar a Inicio'.");
-            }
-        }
-
         if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW', err));
