@@ -1012,6 +1012,147 @@ select:-webkit-autofill {
 }
 </style>
 </style>
+
+<style id="ui-polish-2026">
+/* ===== PULIDO VISUAL Y FLUIDEZ ===== */
+:root{
+  --ui-bg:#0b1220;
+  --ui-surface:#121c2d;
+  --ui-surface-2:#172337;
+  --ui-surface-3:#1b2940;
+  --ui-border:rgba(148,163,184,.18);
+  --ui-border-strong:rgba(148,163,184,.28);
+  --ui-text:#f8fafc;
+  --ui-muted:#9aa8ba;
+  --ui-accent:#10b981;
+  --ui-accent-2:#0ea5a4;
+  --ui-danger:#ef4444;
+  --ui-radius:16px;
+  --ui-shadow:0 12px 30px rgba(0,0,0,.22);
+}
+
+html{background:var(--ui-bg)}
+body{
+  background:
+    radial-gradient(900px 500px at 8% -5%,rgba(16,185,129,.055),transparent 65%),
+    radial-gradient(850px 500px at 100% 100%,rgba(59,130,246,.045),transparent 65%),
+    var(--ui-bg)!important;
+  color:var(--ui-text)!important;
+}
+
+/* Navegación y cabecera */
+.sidebar,.topbar,.app-header{
+  border-color:var(--ui-border)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.14)!important;
+}
+.sidebar{background:linear-gradient(180deg,#101a2b 0%,#0d1626 100%)!important}
+.topbar{background:rgba(15,23,42,.94)!important;backdrop-filter:blur(10px)}
+.sidebar a,.sidebar button,.tab-btn{transition:background-color .16s ease,color .16s ease,border-color .16s ease,transform .16s ease!important}
+.sidebar a:hover,.sidebar button:hover{transform:translateX(2px)}
+
+/* Tarjetas: más limpias y con jerarquía */
+.card,.v4-panel,.stat-card,.finance-kpi,.finance-status,.reunion-summary{
+  background:linear-gradient(180deg,rgba(23,35,55,.96),rgba(18,29,46,.96))!important;
+  border:1px solid var(--ui-border)!important;
+  box-shadow:var(--ui-shadow)!important;
+  border-radius:var(--ui-radius)!important;
+}
+.card:hover,.v4-panel:hover,.stat-card:hover,.finance-kpi:hover{
+  border-color:var(--ui-border-strong)!important;
+}
+
+.section-intro{color:var(--ui-muted)!important;line-height:1.6}
+.page-head{margin-bottom:18px!important}
+.page-head h2{letter-spacing:-.025em!important}
+
+/* Botones más suaves: menos movimiento = sensación más fluida */
+button,.btn,.btn-primary,.btn-outline,.icon-btn,.chip{
+  -webkit-tap-highlight-color:transparent;
+}
+button.btn:hover,.btn-primary:hover,.btn-outline:hover,.icon-btn:hover,.chip:hover{
+  transform:translateY(-1px)!important;
+}
+button.btn:active,.btn-primary:active,.btn-outline:active,.icon-btn:active,.chip:active{
+  transform:translateY(0)!important;
+}
+.btn,.btn-primary,.btn-outline{box-shadow:0 5px 14px rgba(0,0,0,.16)!important}
+
+/* Campos: sobrios y consistentes */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),textarea,select{
+  background:#172235!important;
+  border-color:#526176!important;
+  border-radius:11px!important;
+  color:#f8fafc!important;
+  transition:border-color .14s ease,background-color .14s ease,box-shadow .14s ease!important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover,textarea:hover,select:hover{
+  border-color:#718096!important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,textarea:focus,select:focus{
+  background:#18263a!important;
+  border-color:#8a98aa!important;
+  box-shadow:0 0 0 2px rgba(148,163,184,.10)!important;
+}
+
+/* Tablas más legibles */
+.table-responsive{border:1px solid var(--ui-border)!important;border-radius:14px!important;background:#111b2b!important;box-shadow:0 8px 22px rgba(0,0,0,.14)!important}
+table{border-collapse:separate!important;border-spacing:0!important}
+thead th{background:#18253a!important;color:#dbe5f0!important;border-bottom:1px solid var(--ui-border-strong)!important}
+tbody tr{transition:background-color .12s ease!important}
+tbody tr:hover{background:rgba(148,163,184,.045)!important}
+td,th{border-color:var(--ui-border)!important}
+
+/* Estadísticas */
+.stat-card,.finance-kpi{position:relative;overflow:hidden}
+.stat-card::after,.finance-kpi::after{
+  content:"";position:absolute;inset:auto 0 0 0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(16,185,129,.55),transparent);
+  opacity:.55;pointer-events:none;
+}
+.v4-kpi,.finance-kpi .number{font-variant-numeric:tabular-nums}
+
+/* Modales más modernos */
+.modal{background:rgba(2,6,23,.72)!important;backdrop-filter:blur(5px)!important}
+.modal-content{
+  background:linear-gradient(180deg,#18263a,#111c2d)!important;
+  border:1px solid var(--ui-border-strong)!important;
+  border-radius:20px!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.48)!important;
+}
+.close-btn{transition:transform .15s ease,background-color .15s ease!important}
+.close-btn:hover{transform:rotate(3deg) scale(1.03)!important}
+
+/* Listas y bloques */
+.group-action,.reunion-chip,.attendance-pill,.badge-alerta{
+  border-color:var(--ui-border)!important;
+}
+.group-action:hover,.reunion-chip:hover{border-color:var(--ui-border-strong)!important;background-color:rgba(148,163,184,.045)!important}
+
+/* Scrollbars discretas */
+*{scrollbar-width:thin;scrollbar-color:#334155 transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#334155;border-radius:20px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:#475569;background-clip:padding-box}
+
+/* Reduce trabajo de pintura en elementos repetitivos sin cambiar el layout */
+.card,.v4-panel,.stat-card,.finance-kpi,.table-responsive{isolation:isolate}
+
+/* Estados vacíos */
+.empty-state,.sin-datos{color:var(--ui-muted)!important}
+
+/* Móvil: controles cómodos sin hacer la interfaz pesada */
+@media(max-width:700px){
+  .card,.v4-panel{box-shadow:0 8px 22px rgba(0,0,0,.18)!important}
+  .page-head{align-items:stretch!important}
+  .page-head .acciones{width:100%}
+  .page-head .acciones .btn{flex:1 1 auto}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+</style>
 </head>
 <body>
 
@@ -1330,24 +1471,28 @@ select:-webkit-autofill {
                     <div class="finance-kpi"><small>Pendiente por cobrar</small><strong id="fin-kpi-pendiente">Bs 0,00</strong></div>
                     <div class="finance-kpi"><small>Movimientos</small><strong id="fin-kpi-movimientos">0</strong></div>
                 </div>
-                <div class="card finance-activity-create">
-                    <div class="finance-section-title">
+                <div class="card finance-activity-create collapsible-card">
+                    <div class="finance-section-title collapsible-header">
                         <div><h2><i class="fa-solid fa-calendar-plus"></i> Nueva actividad</h2><p>Organiza aquí toda la información de la actividad antes de registrar cobros.</p></div>
-                        <span class="finance-badge"><i class="fa-solid fa-layer-group"></i> Actividades</span>
+                        <div class="collapsible-head-actions"><span class="finance-badge"><i class="fa-solid fa-layer-group"></i> Actividades</span><button type="button" class="btn btn-info collapse-toggle" data-target="panel-nueva-actividad" aria-expanded="false"><i class="fa-solid fa-chevron-down"></i><span>Abrir formulario</span></button></div>
                     </div>
+                    <div id="panel-nueva-actividad" class="collapsible-body">
                     <div class="activity-form-grid">
                         <div class="activity-main-field"><label>Nombre de la actividad</label><input id="fin-nueva-actividad" placeholder="Ej: Retiro espiritual, paseo, convivencia, materiales..."></div>
                         <div><label>Costo por catequizando (Bs)</label><input type="number" id="fin-nuevo-precio" min="0" step="0.01" placeholder="0,00"></div>
-                        <div><label>Fecha de la actividad</label><input type="date" id="fin-nueva-fecha"></div>
+                        <div><label>Fecha de inicio</label><input type="date" id="fin-nueva-fecha"></div>
+                        <div><label>Fecha de finalización</label><input type="date" id="fin-nueva-fecha-fin"></div>
                         <div><label>Hora de inicio</label><input type="time" id="fin-nueva-inicio"></div>
                         <div><label>Hora de finalización</label><input type="time" id="fin-nueva-fin"></div>
                         <div><label>Estado</label><select id="fin-nueva-estado"><option value="planificada">Planificada</option><option value="confirmada">Confirmada</option><option value="realizada">Realizada</option><option value="cancelada">Cancelada</option></select></div>
                         <div class="activity-description-field"><label>Descripción / detalles</label><textarea id="fin-nueva-descripcion" rows="3" placeholder="Lugar, materiales, transporte, responsables, indicaciones para los padres..."></textarea></div>
                     </div>
-                    <div class="activity-create-footer"><small><i class="fa-solid fa-circle-info"></i> Puedes dejar horarios y costo en cero si todavía no están definidos.</small><button class="btn" onclick="agregarActividadFinanzas()"><i class="fa-solid fa-plus"></i> Crear actividad</button></div>
+                    <div class="activity-create-footer"><small><i class="fa-solid fa-circle-info"></i> Para actividades de varios días, indica la fecha de finalización. Los horarios son opcionales.</small><button class="btn" onclick="agregarActividadFinanzas()"><i class="fa-solid fa-plus"></i> Crear actividad</button></div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h2><i class="fa-solid fa-cash-register"></i> Registrar pago o devolución</h2>
+                <div class="card collapsible-card">
+                    <div class="section-toolbar collapsible-header"><div><h2 style="margin:0"><i class="fa-solid fa-cash-register"></i> Registrar pago o devolución</h2><p class="section-intro" style="margin:.45rem 0 0">Registra movimientos solamente cuando los necesites.</p></div><button type="button" class="btn btn-info collapse-toggle" data-target="panel-registro-pago" aria-expanded="false"><i class="fa-solid fa-chevron-down"></i><span>Abrir formulario</span></button></div>
+                    <div id="panel-registro-pago" class="collapsible-body">
                     <div class="finance-grid">
                         <div><label>Catequizando / persona</label><select id="fin-persona"></select></div>
                         <div><label>Actividad</label><select id="fin-actividad"></select></div>
@@ -1358,6 +1503,7 @@ select:-webkit-autofill {
                         <div style="grid-column:1/-1"><label>Observación / comprobante</label><input id="fin-observacion" placeholder="Ej: QR enviado, devolución por suspensión, recibo N°..." ></div>
                     </div>
                     <button class="btn" style="margin-top:12px" onclick="registrarMovimientoFinanzas()"><i class="fa-solid fa-floppy-disk"></i> Guardar movimiento</button>
+                    </div>
                 </div>
                 <div class="card">
                     <h2><i class="fa-solid fa-list"></i> Estado por actividad</h2>
@@ -1495,17 +1641,25 @@ select:-webkit-autofill {
                 <div class="card">
                     <h2><i class="fa-solid fa-book"></i> Gestión de Tareas y Temas</h2>
                     <p style="margin-bottom: 1.25rem; color: var(--medium-gray);">Crea las tareas aquí para que luego puedas seleccionarlas rápidamente al tomar la lista.</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="nueva-tarea-input" placeholder="Ej: Investigar los 7 Sacramentos" style="flex:2; min-width:200px;">
-                        <input type="date" id="nueva-tarea-fecha" title="Fecha de Entrega" style="flex:1; min-width:140px;">
-                        <button class="btn" onclick="agregarTarea()"><i class="fa-solid fa-plus"></i> Crear Tarea</button>
+                    <div class="inline-collapsible">
+                        <button type="button" class="btn btn-info collapse-toggle" data-target="panel-nueva-tarea" aria-expanded="false"><i class="fa-solid fa-plus"></i><span>Nueva tarea</span></button>
+                        <div id="panel-nueva-tarea" class="collapsible-body compact-collapsible">
+                            <div class="compact-form-row">
+                                <input type="text" id="nueva-tarea-input" placeholder="Ej: Investigar los 7 Sacramentos">
+                                <input type="date" id="nueva-tarea-fecha" title="Fecha de Entrega">
+                                <button class="btn" onclick="agregarTarea()"><i class="fa-solid fa-check"></i> Guardar tarea</button>
+                            </div>
+                        </div>
                     </div>
                     <ul class="task-list" id="lista-tareas-creadas"></ul>
                 </div>
 
                 <div class="card" style="border-left: 5px solid var(--primary-color);">
                     <div class="section-toolbar"><div><h2 style="margin:0"><i class="fa-solid fa-people-roof"></i> Reuniones y Minutas</h2><p class="section-intro" style="margin:.45rem 0 0">Programa reuniones, registra asistencia de padres, acuerdos y próximos compromisos.</p></div><div class="toolbar-actions"><button class="btn btn-info" onclick="abrirNuevaReunionDetallada()"><i class="fa-solid fa-plus"></i> Nueva reunión</button><button class="btn btn-slate" onclick="imprimirReuniones()"><i class="fa-solid fa-print"></i> Imprimir minutas</button></div></div>
-                    <div class="meeting-form-grid">
+                    <div class="inline-collapsible meeting-collapsible">
+                        <button type="button" class="btn btn-info collapse-toggle" data-target="panel-nueva-reunion" aria-expanded="false"><i class="fa-solid fa-plus"></i><span>Nueva reunión</span></button>
+                        <div id="panel-nueva-reunion" class="collapsible-body compact-collapsible">
+                        <div class="meeting-form-grid">
                         <div><label>Título / motivo</label><input type="text" id="nueva-reunion-motivo" placeholder="Ej: Reunión general de padres"></div>
                         <div><label>Fecha</label><input type="date" id="nueva-reunion-fecha"></div>
                         <div><label>Hora</label><input type="time" id="nueva-reunion-hora"></div>
@@ -1514,6 +1668,8 @@ select:-webkit-autofill {
                     </div>
                     <button class="btn" style="margin-top:12px" onclick="agregarReunionPadres()"><i class="fa-solid fa-calendar-plus"></i> Programar Reunión</button>
                     <div id="lista-reuniones-creadas"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -3528,7 +3684,9 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
   -webkit-text-fill-color:#f8fafc !important;
   caret-color:#f8fafc !important;
 }
-</style></head><body>${contenido}<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);w.document.close();
+</style></head><body>${contenido}<script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script>
+
+</body></html>`);w.document.close();
     }
     function imprimirTemario(){
         const ano=document.getElementById('temario-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';
@@ -3987,11 +4145,12 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
     function dineroBOB(v){return 'Bs '+Number(v||0).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});}
     function fechaISOHoy(){return new Date().toISOString().slice(0,10);}
     function agregarActividadFinanzas(){
-        const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, precio=Number(document.getElementById('fin-nuevo-precio').value||0), descripcion=(document.getElementById('fin-nueva-descripcion')?.value||'').trim(), inicio=document.getElementById('fin-nueva-inicio')?.value||'', fin=document.getElementById('fin-nueva-fin')?.value||'', estado=document.getElementById('fin-nueva-estado')?.value||'planificada';
+        const f=obtenerFinanzasActual(), nombre=document.getElementById('fin-nueva-actividad').value.trim(), fecha=document.getElementById('fin-nueva-fecha').value, fechaFin=document.getElementById('fin-nueva-fecha-fin')?.value||fecha, precio=Number(document.getElementById('fin-nuevo-precio').value||0), descripcion=(document.getElementById('fin-nueva-descripcion')?.value||'').trim(), inicio=document.getElementById('fin-nueva-inicio')?.value||'', fin=document.getElementById('fin-nueva-fin')?.value||'', estado=document.getElementById('fin-nueva-estado')?.value||'planificada';
         if(!nombre){alert('Escribe el nombre de la actividad.');return;}
-        f.actividades.push({id:'act_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),nombre,fecha,precio,descripcion,inicio,fin,estado,creadaEn:new Date().toISOString()});
+        if(fechaFin && fecha && fechaFin < fecha){alert('La fecha de finalización no puede ser anterior a la fecha de inicio.');return;}
+        f.actividades.push({id:'act_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),nombre,fecha,fechaFin,precio,descripcion,inicio,fin,estado,creadaEn:new Date().toISOString()});
         sincronizarConNube(false);
-        ['fin-nueva-actividad','fin-nueva-fecha','fin-nuevo-precio','fin-nueva-descripcion','fin-nueva-inicio','fin-nueva-fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+        ['fin-nueva-actividad','fin-nueva-fecha','fin-nueva-fecha-fin','fin-nuevo-precio','fin-nueva-descripcion','fin-nueva-inicio','fin-nueva-fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
         const es=document.getElementById('fin-nueva-estado');if(es)es.value='planificada';
         renderizarFinanzas();toast('✔ Actividad creada');
     }
@@ -4042,7 +4201,7 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
         f.actividades.slice().reverse().forEach(a=>{
             const det=alumnos.map(al=>({al,e:estadoPagoFinanzas(al.nombre,a)}));
             const pag=det.filter(x=>x.e.neto>=x.e.precio&&x.e.precio>0).length, parc=det.filter(x=>x.e.neto>0&&x.e.neto<x.e.precio).length, pend=det.filter(x=>x.e.saldo>0).length;
-            rows.push(`<div class="activity-summary-card"><div class="activity-summary-head"><div><div class="activity-title-line"><strong>${escHtml(a.nombre)}</strong><span class="finance-badge">${escHtml(a.estado||'planificada')}</span></div><div class="activity-meta"><span><i class="fa-regular fa-calendar"></i> ${a.fecha?formatearFecha(a.fecha):'Sin fecha'}</span><span><i class="fa-solid fa-clock"></i> ${a.inicio||'--:--'}${a.fin?' – '+a.fin:''}</span><span><i class="fa-solid fa-tag"></i> ${dineroBOB(a.precio)}</span></div>${a.descripcion?`<p class="activity-description">${escHtml(a.descripcion)}</p>`:''}</div><button class="btn btn-danger" style="padding:7px 10px" onclick="eliminarActividadFinanzas('${jsStr(a.id)}')"><i class="fa-solid fa-trash"></i></button></div><div class="activity-stat-row"><span class="finance-status ok">Pagados: ${pag}</span><span class="finance-status warn">Parciales: ${parc}</span><span class="finance-status bad">Pendientes: ${pend}</span></div><div class="activity-table-wrap"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${det.map(x=>{const e=x.e;let st=e.precio===0?'Sin costo':e.saldo<=0?'Pagado':e.neto>0?'Parcial':'Pendiente';let cl=st==='Pagado'?'ok':st==='Parcial'?'warn':'bad';return `<tr><td>${escHtml(x.al.nombre)}</td><td>${dineroBOB(e.neto)}</td><td class="${e.saldo>0?'money-negative':'money-positive'}">${dineroBOB(Math.max(0,e.saldo))}</td><td><span class="finance-status ${cl}">${st}</span></td></tr>`}).join('')}</tbody></table></div></div>`);
+            rows.push(`<div class="activity-summary-card"><div class="activity-summary-head"><div><div class="activity-title-line"><strong>${escHtml(a.nombre)}</strong><span class="finance-badge">${escHtml(a.estado||'planificada')}</span></div><div class="activity-meta"><span><i class="fa-regular fa-calendar"></i> ${a.fecha?(a.fechaFin&&a.fechaFin!==a.fecha?formatearFecha(a.fecha)+' → '+formatearFecha(a.fechaFin):formatearFecha(a.fecha)):'Sin fecha'}</span><span><i class="fa-solid fa-clock"></i> ${a.inicio||'--:--'}${a.fin?' – '+a.fin:''}</span>${a.fecha&&a.fechaFin&&a.fechaFin!==a.fecha?`<span><i class="fa-solid fa-calendar-days"></i> ${Math.max(1,Math.round((new Date(a.fechaFin+'T00:00:00')-new Date(a.fecha+'T00:00:00'))/86400000)+1)} días</span>`:''}<span><i class="fa-solid fa-tag"></i> ${dineroBOB(a.precio)}</span></div>${a.descripcion?`<p class="activity-description">${escHtml(a.descripcion)}</p>`:''}</div><button class="btn btn-danger" style="padding:7px 10px" onclick="eliminarActividadFinanzas('${jsStr(a.id)}')"><i class="fa-solid fa-trash"></i></button></div><div class="activity-stat-row"><span class="finance-status ok">Pagados: ${pag}</span><span class="finance-status warn">Parciales: ${parc}</span><span class="finance-status bad">Pendientes: ${pend}</span></div><div class="activity-table-wrap"><table class="finance-table"><thead><tr><th>Persona</th><th>Pagado neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${det.map(x=>{const e=x.e;let st=e.precio===0?'Sin costo':e.saldo<=0?'Pagado':e.neto>0?'Parcial':'Pendiente';let cl=st==='Pagado'?'ok':st==='Parcial'?'warn':'bad';return `<tr><td>${escHtml(x.al.nombre)}</td><td>${dineroBOB(e.neto)}</td><td class="${e.saldo>0?'money-negative':'money-positive'}">${dineroBOB(Math.max(0,e.saldo))}</td><td><span class="finance-status ${cl}">${st}</span></td></tr>`}).join('')}</tbody></table></div></div>`);
         });
         document.getElementById('fin-resumen-actividades').innerHTML=rows.join('')||'<p style="color:var(--medium-gray)">Todavía no hay actividades. Crea la primera arriba.</p>';
         const personaRows=alumnos.map(al=>{
@@ -4083,6 +4242,12 @@ select option { background:#111c30 !important; color:#f8fafc !important; }
   window.addEventListener('online',()=>{actualizarEstadoTiempoReal('ok','Conectando…');sincronizarTiempoReal()});window.addEventListener('offline',()=>actualizarEstadoTiempoReal('off','Sin conexión'));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sincronizarTiempoReal()});
   window.sincronizarConNubeV9Legacy=async function(mostrar){if(!equipoActualLogin)return;cambiosLocalesPendientes=true;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);if(v9Channel){try{v9Channel.postMessage({equipo:equipoActualLogin,data:sistemaDatos})}catch(e){}}if(!nubeActiva()){cambiosLocalesPendientes=false;actualizarEstadoTiempoReal('off','Solo local');if(mostrar)try{toast('✔ Guardado en este dispositivo')}catch(e){}return}if(mostrar)showLoading(true,'Sincronizando…');const ok=await postNube({action:'merge_equipo',equipo:equipoActualLogin,data:sistemaDatos});cambiosLocalesPendientes=false;actualizarEstadoTiempoReal(ok?'ok':'off',ok?'En vivo · '+hora():'Guardado local; reintentando…');if(mostrar){showLoading(false);try{toast(ok?'✔ Sincronizado en todos tus dispositivos':'✔ Guardado local; se reintentará')}catch(e){}}};
 })();
+</script>
+<style id="ux-fluid-clean-2026">
+.collapsible-card{overflow:hidden}.collapsible-header{margin-bottom:0!important;align-items:center!important}.collapsible-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.collapsible-body{display:none;padding-top:18px;animation:collapseIn .16s ease-out}.collapsible-body.open{display:block}.collapse-toggle{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.collapse-toggle i{transition:transform .18s ease}.collapse-toggle[aria-expanded="true"] i{transform:rotate(180deg)}.inline-collapsible{margin-top:10px}.compact-collapsible{padding:14px 0 2px}.compact-form-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,220px) auto;gap:10px;align-items:end}.meeting-collapsible{margin-top:14px}@keyframes collapseIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}#fin-nueva-fecha-fin{min-height:52px}@media(max-width:760px){.collapsible-header{align-items:flex-start!important;flex-direction:column}.collapsible-head-actions{width:100%;justify-content:space-between}.compact-form-row{grid-template-columns:1fr}.compact-form-row .btn{width:100%}}@media(prefers-reduced-motion:reduce){.collapsible-body,.collapse-toggle i{animation:none;transition:none}}
+</style>
+<script id="ux-fluid-clean-js">
+(function(){function togglePanel(btn){const id=btn.getAttribute('data-target'),panel=id&&document.getElementById(id);if(!panel)return;const open=panel.classList.toggle('open');btn.setAttribute('aria-expanded',String(open));const label=btn.querySelector('span');if(label)label.textContent=open?'Cerrar formulario':(btn.dataset.closedLabel||'Abrir formulario')}document.addEventListener('click',function(e){const btn=e.target.closest('.collapse-toggle');if(btn)togglePanel(btn)})})();
 </script>
 </body>
 </html>
