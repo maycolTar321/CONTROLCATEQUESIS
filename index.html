@@ -1275,6 +1275,92 @@ td,th{border-color:var(--ui-border)!important}
 }
 </style>
 
+
+<style id="barra-inferior-animada-v1">
+/* ===== BARRA INFERIOR MÓVIL ANIMADA ===== */
+@media(max-width:900px){
+  .mobile-nav{
+    overflow:visible!important;
+    isolation:isolate!important;
+    transform:translateZ(0);
+    transition:box-shadow .28s ease, border-color .28s ease, background .28s ease;
+  }
+  .mobile-nav::before{
+    content:"";
+    position:absolute;
+    inset:5px;
+    border-radius:17px;
+    background:linear-gradient(90deg,rgba(16,185,129,.04),rgba(59,130,246,.035),rgba(16,185,129,.04));
+    opacity:.75;
+    pointer-events:none;
+    z-index:-1;
+  }
+  .mobile-nav-btn{
+    position:relative!important;
+    overflow:visible!important;
+    transform:translateY(0) scale(1)!important;
+    transition:transform .2s cubic-bezier(.2,.8,.2,1),color .2s ease,background .2s ease,box-shadow .2s ease!important;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mobile-nav-btn::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:4px;
+    width:0;
+    height:3px;
+    border-radius:999px;
+    background:var(--primary-color);
+    box-shadow:0 0 10px rgba(16,185,129,.45);
+    transform:translateX(-50%);
+    opacity:0;
+    transition:width .24s ease,opacity .2s ease;
+  }
+  .mobile-nav-btn i{
+    transform:translateY(0) scale(1) rotate(0deg);
+    transition:transform .24s cubic-bezier(.2,.8,.2,1),filter .24s ease;
+  }
+  .mobile-nav-btn.active{
+    transform:translateY(-3px) scale(1.02)!important;
+    background:linear-gradient(180deg,rgba(16,185,129,.19),rgba(16,185,129,.08))!important;
+    box-shadow:0 7px 18px rgba(0,0,0,.18),0 0 0 1px rgba(16,185,129,.10) inset!important;
+  }
+  .mobile-nav-btn.active::after{
+    width:24px;
+    opacity:1;
+  }
+  .mobile-nav-btn.active i{
+    transform:translateY(-1px) scale(1.13) rotate(-3deg);
+    filter:drop-shadow(0 4px 8px rgba(16,185,129,.30));
+  }
+  .mobile-nav-btn:not(.active):hover{
+    transform:translateY(-1px) scale(1.01)!important;
+    color:#cbd5e1!important;
+  }
+  .mobile-nav-btn:not(.active):hover i{
+    transform:translateY(-1px) scale(1.06);
+  }
+  .mobile-nav-btn:active{
+    transform:translateY(1px) scale(.94)!important;
+    transition-duration:.08s!important;
+  }
+  .mobile-nav-btn:active i{
+    transform:scale(.92)!important;
+  }
+  .mobile-nav-btn.active:active{
+    transform:translateY(0) scale(.96)!important;
+  }
+}
+@media(max-width:520px){
+  .mobile-nav-btn.active{transform:translateY(-2px) scale(1.015)!important}
+  .mobile-nav-btn::after{bottom:3px}
+  .mobile-nav-btn.active::after{width:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .mobile-nav,.mobile-nav-btn,.mobile-nav-btn i,.mobile-nav-btn::after{transition:none!important}
+}
+</style>
+
 </head>
 <body>
 
@@ -1415,15 +1501,13 @@ td,th{border-color:var(--ui-border)!important}
             <button class="tab-btn" onclick="switchTab(event, 'herramientas')" title="Respaldo y diagnóstico"><i class="fa-solid fa-shield-halved"></i><span class="lbl-pc">Herramientas</span><span class="lbl-m">Backup</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control"><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'temario')" title="Temario de Primer y Segundo Año"><i class="fa-solid fa-list-check"></i><span class="lbl-pc">Temario / Checklist</span><span class="lbl-m">Temario</span></button>
-            <button class="tab-btn" onclick="switchTab(event, 'actividades-pastoral')" title="Actividades pastorales con jóvenes y catequistas"><i class="fa-solid fa-people-group"></i><span class="lbl-pc">Actividades</span><span class="lbl-m">Actividades</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'finanzas')" title="Pagos, devoluciones y actividades"><i class="fa-solid fa-money-bill-transfer"></i><span class="lbl-pc">Finanzas</span><span class="lbl-m">Pagos</span></button>
         </nav>
-        <div class="mobile-nav">
-            <button class="mobile-nav-btn active" data-mobile-tab="dashboard" onclick="mobileSwitchTab(event,'dashboard')"><i class="fa-solid fa-house-chimney"></i><span>Inicio</span></button>
-            <button class="mobile-nav-btn" data-mobile-tab="asistencia" onclick="mobileSwitchTab(event,'asistencia')"><i class="fa-solid fa-user-check"></i><span>Asistencia</span></button>
-            <button class="mobile-nav-btn" data-mobile-tab="temario" onclick="mobileSwitchTab(event,'temario')"><i class="fa-solid fa-book-open-reader"></i><span>Temario</span></button>
-            <button class="mobile-nav-btn" data-mobile-tab="actividades-pastoral" onclick="mobileSwitchTab(event,'actividades-pastoral')"><i class="fa-solid fa-people-group"></i><span>Actividades</span></button>
-            <button class="mobile-nav-btn" data-mobile-tab="finanzas" onclick="mobileSwitchTab(event,'finanzas')"><i class="fa-solid fa-wallet"></i><span>Pagos</span></button>
+        <div class="mobile-nav" id="mobile-bottom-nav">
+            <button class="mobile-nav-btn nav-slot" data-nav-slot="0"></button>
+            <button class="mobile-nav-btn nav-slot" data-nav-slot="1"></button>
+            <button class="mobile-nav-btn nav-slot" data-nav-slot="2"></button>
+            <button class="mobile-nav-btn nav-slot" data-nav-slot="3"></button>
             <button class="mobile-nav-btn" data-mobile-tab="more" onclick="abrirMenuMas(event)"><i class="fa-solid fa-grip"></i><span>Más</span></button>
         </div>
         <div id="mobile-more-menu" class="mobile-action-sheet" aria-hidden="true">
@@ -1431,6 +1515,15 @@ td,th{border-color:var(--ui-border)!important}
             <div class="mobile-sheet-panel">
                 <div class="mobile-sheet-handle"></div>
                 <div class="mobile-sheet-head"><div><strong>Más opciones</strong><small>Todo lo demás queda aquí, sin amontonar la pantalla.</small></div><button onclick="cerrarMenuMas()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
+                <button type="button" class="mobile-customize-trigger" onclick="alternarPersonalizarBarra()"><i class="fa-solid fa-sliders"></i><span>Personalizar barra</span><i class="fa-solid fa-chevron-down chevron"></i></button>
+                <div id="mobile-nav-customizer" class="mobile-nav-customizer" hidden>
+                    <div class="mobile-nav-customizer-head"><strong>¿Qué quieres ver en la barra?</strong><small>Elige hasta 4 accesos. Todo lo demás seguirá en “Más”.</small></div>
+                    <div id="mobile-nav-options" class="mobile-nav-options"></div>
+                    <div class="mobile-nav-customizer-actions">
+                        <button type="button" class="btn btn-slate" onclick="restaurarBarraPredeterminada()"><i class="fa-solid fa-rotate-left"></i> Predeterminada</button>
+                        <button type="button" class="btn btn-primary" onclick="guardarPersonalizacionBarra()"><i class="fa-solid fa-check"></i> Aplicar</button>
+                    </div>
+                </div>
                 <div class="mobile-sheet-grid">
                     <button onclick="mobileSwitchTab(event,'tareas')"><i class="fa-solid fa-book-bible"></i><span>Tareas y reuniones</span></button>
                     <button onclick="mobileSwitchTab(event,'alumnos')"><i class="fa-solid fa-user-graduate"></i><span>Catequizandos</span></button>
@@ -1951,23 +2044,16 @@ td,th{border-color:var(--ui-border)!important}
                         <div><label>Ver año</label><select id="temario-filtro-ano" onchange="renderizarTemario()"><option value="primerAno">Primer Año</option><option value="segundoAno">Segundo Año</option></select></div>
                         <div><label>Desde</label><input type="date" id="temario-filtro-desde" onchange="renderizarTemario()"></div>
                         <div><label>Hasta</label><input type="date" id="temario-filtro-hasta" onchange="renderizarTemario()"></div>
-                        <div style="display:flex;align-items:end"><button class="btn btn-info" style="width:100%" onclick="marcarTemarioTodos(true)"><i class="fa-solid fa-check-double"></i> Marcar todo</button></div>
+                        <div style="display:flex;align-items:end"><button id="btn-marcar-temario-todo" class="btn btn-info" style="width:100%" onclick="alternarMarcarTemarioTodos()"><i class="fa-solid fa-check-double"></i> <span>Marcar todo</span></button></div>
                     </div>
                     <div id="temario-progreso" style="margin:12px 0;color:var(--medium-gray)"></div>
                     <div id="lista-temario" class="temario-grid"></div>
                 </div>
-            </section>
-
-            <!-- ACTIVIDADES PASTORALES: separadas del temario -->
-            <section id="actividades-pastoral" class="section">
-                <div class="page-head">
-                    <div>
-                        <h2><i class="fa-solid fa-people-group"></i> Actividades Pastorales</h2>
-                        <p class="section-intro" style="margin:.35rem 0 0">Aquí van las actividades que realizamos con los jóvenes y catequistas. No son temas de formación y por eso están separadas del Temario.</p>
-                    </div>
-                    <div class="acciones"><button class="btn btn-slate" type="button" onclick="imprimirActividadesPastoral()"><i class="fa-solid fa-print"></i> Imprimir</button></div>
-                </div>
-                <div class="card">
+                <details class="temario-actividades-apartado" id="temario-actividades-apartado">
+                    <summary><span><i class="fa-solid fa-people-group"></i> Actividades Pastorales</span><small>Actividades con jóvenes y catequistas</small></summary>
+                    <div class="temario-actividades-body">
+                        <div class="actividad-apartado-head"><p>Actividades que realizamos con los jóvenes y catequistas. Se mantienen separadas de los temas de formación.</p><button class="btn btn-slate" type="button" onclick="imprimirActividadesPastoral()"><i class="fa-solid fa-print"></i> Imprimir</button></div>
+                        <div class="card">
                     <div class="filters-grid">
                         <div><label>Ver año</label><select id="actividades-filtro-ano" onchange="renderizarActividadesPastoral()"><option value="primerAno">Primer Año</option><option value="segundoAno">Segundo Año</option></select></div>
                         <div><label>Desde</label><input type="date" id="actividades-filtro-desde" onchange="renderizarActividadesPastoral()"></div>
@@ -1977,6 +2063,8 @@ td,th{border-color:var(--ui-border)!important}
                     <div id="actividades-pastoral-progreso" style="margin:12px 0;color:var(--medium-gray)"></div>
                     <div id="lista-actividades-pastoral" class="temario-grid"></div>
                 </div>
+                    </div>
+                </details>
             </section>
 
             <!-- NOTAS (POST-ITS) -->
@@ -3038,6 +3126,15 @@ td,th{border-color:var(--ui-border)!important}
     }
 
     function switchTab(evt, sectionId) {
+        // Actividades Pastorales ahora viven dentro de Temario para ahorrar espacio.
+        if (sectionId === 'actividades-pastoral') {
+            sectionId = 'temario';
+            localStorage.setItem('catequesis_tab_actual', 'temario');
+            setTimeout(function(){
+                const ap = document.getElementById('temario-actividades-apartado');
+                if (ap) { ap.open = true; try { renderizarActividadesPastoral(); } catch(e) {} }
+            }, 0);
+        }
         document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
@@ -3825,11 +3922,29 @@ td,th{border-color:var(--ui-border)!important}
         obtenerTemarioActual()[ano].forEach(x=>{if((!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta))x.completado=valor});
         sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarTemario();
     }
+    function alternarMarcarTemarioTodos(){
+        const ano=document.getElementById('temario-filtro-ano').value,desde=document.getElementById('temario-filtro-desde').value,hasta=document.getElementById('temario-filtro-hasta').value;
+        const items=(obtenerTemarioActual()[ano]||[]).filter(x=>(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta));
+        if(!items.length)return;
+        marcarTemarioTodos(!items.every(x=>!!x.completado));
+    }
+
+    function actualizarBotonMarcarTemario(){
+        const btn=document.getElementById('btn-marcar-temario-todo'); if(!btn)return;
+        const ano=document.getElementById('temario-filtro-ano')?.value,desde=document.getElementById('temario-filtro-desde')?.value||'',hasta=document.getElementById('temario-filtro-hasta')?.value||'';
+        const items=ano?(obtenerTemarioActual()[ano]||[]).filter(x=>(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta)):[];
+        const todos=items.length>0&&items.every(x=>!!x.completado);
+        btn.classList.toggle('btn-danger',todos); btn.classList.toggle('btn-info',!todos);
+        btn.innerHTML=todos?'<i class="fa-solid fa-xmark"></i> <span>Desmarcar todo</span>':'<i class="fa-solid fa-check-double"></i> <span>Marcar todo</span>';
+        btn.title=todos?'Desmarcar todo':'Marcar todo';
+    }
+
     function renderizarTemario(){
         const cont=document.getElementById('lista-temario'),pro=document.getElementById('temario-progreso');if(!cont)return;
         const ano=document.getElementById('temario-filtro-ano').value,desde=document.getElementById('temario-filtro-desde').value,hasta=document.getElementById('temario-filtro-hasta').value;
         const items=(obtenerTemarioActual()[ano]||[]).filter(x=>(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta)).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
         const hechos=items.filter(x=>x.completado).length;if(pro)pro.innerHTML=`<strong>${hechos}/${items.length}</strong> temas completados (${items.length?Math.round(hechos/items.length*100):0}%)`;
+        actualizarBotonMarcarTemario();
         cont.innerHTML=items.length?items.map(x=>`<div class="temario-item ${x.completado?'completado':''}"><div class="temario-item-head"><input class="temario-check" type="checkbox" ${x.completado?'checked':''} onchange="cambiarEstadoTemaTemario('${ano}','${jsStr(x.id)}',this.checked)"><div style="flex:1"><h4>${escHtml(x.titulo)}</h4><small>${x.fecha?formatearFecha(x.fecha):'Sin fecha'}</small>${x.descripcion?`<p>${escHtml(x.descripcion)}</p>`:''}</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario('${ano}','${jsStr(x.id)}')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario('${ano}','${jsStr(x.id)}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join(''):`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>`;
     }
     const ACTIVIDADES_PASTORALES_OFICIALES_2026 = {
@@ -4769,11 +4884,43 @@ td,th{border-color:var(--ui-border)!important}
   document.addEventListener('click',function(e){const b=e.target.closest('[onclick*="switchTab(event, \'actividades-pastoral\')"]');if(b)setTimeout(function(){renderizarActividadesPastoral()},0)});
 })();
 </script>
+
+<style id="temario-actividades-apartado-styles">
+.temario-actividades-apartado{margin-top:16px;border:1px solid var(--line-soft);border-radius:18px;background:rgba(15,23,42,.30);overflow:hidden}
+.temario-actividades-apartado summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;font-weight:800;color:var(--text);user-select:none}
+.temario-actividades-apartado summary::-webkit-details-marker{display:none}
+.temario-actividades-apartado summary span{display:flex;align-items:center;gap:9px}
+.temario-actividades-apartado summary span i{color:#60a5fa}
+.temario-actividades-apartado summary small{font-weight:600;color:var(--medium-gray)}
+.temario-actividades-apartado[open] summary{border-bottom:1px solid var(--line-soft);background:rgba(30,41,59,.35)}
+.temario-actividades-apartado summary:after{content:'\f078';font-family:'Font Awesome 6 Free';font-weight:900;transition:transform .18s ease}
+.temario-actividades-apartado[open] summary:after{transform:rotate(180deg)}
+.temario-actividades-body{padding:14px}
+.temario-actividades-body .card{margin:0}
+.actividad-apartado-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.actividad-apartado-head p{margin:0;color:var(--medium-gray);font-size:.86rem;line-height:1.45}
+@media(max-width:700px){.temario-actividades-apartado summary{padding:13px 12px}.temario-actividades-apartado summary small{display:none}.temario-actividades-body{padding:10px}.actividad-apartado-head{align-items:stretch;flex-direction:column}.actividad-apartado-head .btn{width:100%}}
+</style>
+
+<script id="temario-actividades-apartado-script">
+(function(){
+  function enlazar(){
+    const ap=document.getElementById('temario-actividades-apartado');
+    if(!ap || ap.__actividadesEnlazado) return;
+    ap.__actividadesEnlazado=true;
+    ap.addEventListener('toggle',function(){
+      if(ap.open){ try{ renderizarActividadesPastoral(); }catch(e){} }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',enlazar,{once:true}); else enlazar();
+  setTimeout(enlazar,500);
+})();
+</script>
 <style id="estilos-actividades-pastoral">
 #actividades-pastoral .section-intro{color:var(--medium-gray);max-width:760px}
 #actividades-pastoral .temario-item h4{display:flex;align-items:center;gap:2px}
 #actividades-pastoral .temario-item p{margin:.45rem 0 0;color:var(--medium-gray);line-height:1.45}
-@media(max-width:700px){#actividades-pastoral .page-head{align-items:flex-start;gap:10px}#actividades-pastoral .page-head .acciones{width:auto}.mobile-nav-btn[data-mobile-tab="actividades-pastoral"]{display:flex}}
+@media(max-width:700px){#actividades-pastoral .page-head{align-items:flex-start;gap:10px}#actividades-pastoral .page-head .acciones{width:auto}}
 </style>
 
 <style id="ui-mobile-compact-toolbar-final">
@@ -5570,5 +5717,72 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   .mobile-nav-btn i{font-size:1.04rem!important}
 }
 </style>
+
+<style id="barra-movil-personalizable">
+.mobile-customize-trigger{width:100%;min-height:48px;margin:0 0 10px;padding:11px 13px;border:1px solid rgba(148,163,184,.16);border-radius:15px;background:rgba(30,41,59,.72);color:#e2e8f0;display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer;text-align:left}
+.mobile-customize-trigger>i:first-child{color:#6ee7b7}.mobile-customize-trigger .chevron{margin-left:auto;transition:transform .2s ease}.mobile-customize-trigger.open .chevron{transform:rotate(180deg)}
+.mobile-nav-customizer{padding:12px;margin:0 0 10px;border:1px solid rgba(16,185,129,.18);border-radius:16px;background:rgba(15,23,42,.72);animation:mobileNavConfigIn .2s ease}
+@keyframes mobileNavConfigIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.mobile-nav-customizer-head{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}.mobile-nav-customizer-head strong{font-size:.88rem}.mobile-nav-customizer-head small{color:#94a3b8;font-size:.72rem;line-height:1.4}
+.mobile-nav-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.mobile-nav-option{display:flex;align-items:center;gap:8px;min-width:0;padding:9px;border:1px solid rgba(148,163,184,.12);border-radius:12px;background:rgba(30,41,59,.55);color:#cbd5e1;font-size:.76rem;font-weight:700;cursor:pointer}.mobile-nav-option:has(input:checked){border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:#6ee7b7}.mobile-nav-option input{accent-color:#10b981;flex:0 0 auto}.mobile-nav-option span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mobile-nav-customizer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.mobile-nav-customizer-actions .btn{min-height:42px;padding:9px 10px;font-size:.78rem}
+@media(max-width:520px){.mobile-nav-options{grid-template-columns:1fr}.mobile-nav-customizer-actions{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.mobile-nav-customizer{animation:none!important}.mobile-customize-trigger .chevron{transition:none}}
+</style>
+<script id="barra-movil-personalizable-script">
+(function(){
+  const KEY='catequesis_barra_movil_personalizada';
+  const ITEMS={
+    dashboard:{label:'Inicio',icon:'fa-house-chimney'},
+    asistencia:{label:'Asistencia',icon:'fa-user-check'},
+    temario:{label:'Temario',icon:'fa-book-open-reader'},
+    finanzas:{label:'Pagos',icon:'fa-wallet'},
+    tareas:{label:'Tareas',icon:'fa-book-bible'},
+    alumnos:{label:'Catequizandos',icon:'fa-user-graduate'},
+    notas:{label:'Notas',icon:'fa-note-sticky'},
+    'centro-v4':{label:'Centro',icon:'fa-gauge-high'},
+    herramientas:{label:'Herramientas',icon:'fa-shield-halved'}
+  };
+  const DEFAULT=['dashboard','asistencia','temario','finanzas'];
+  function leer(){try{const a=JSON.parse(localStorage.getItem(KEY)||'null');return Array.isArray(a)&&a.length===4&&a.every(x=>ITEMS[x])?a:DEFAULT.slice();}catch(e){return DEFAULT.slice();}}
+  function pintarOpciones(){
+    const box=document.getElementById('mobile-nav-options'); if(!box)return;
+    const actual=leer();
+    box.innerHTML=Object.keys(ITEMS).map(id=>`<label class="mobile-nav-option"><input type="checkbox" value="${id}" ${actual.includes(id)?'checked':''} onchange="limitarOpcionesBarra(this)"><span><i class="fa-solid ${ITEMS[id].icon}"></i> ${ITEMS[id].label}</span></label>`).join('');
+  }
+  function render(){
+    const actual=leer();
+    document.querySelectorAll('.nav-slot').forEach((btn,i)=>{
+      const id=actual[i]||DEFAULT[i]; const item=ITEMS[id];
+      btn.dataset.mobileTab=id;
+      btn.innerHTML=`<i class="fa-solid ${item.icon}"></i><span>${item.label}</span>`;
+      btn.onclick=function(e){mobileSwitchTab(e,id)};
+    });
+    const current=document.querySelector('.section.active')?.id||'dashboard';
+    document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.mobileTab===current));
+  }
+  window.limitarOpcionesBarra=function(chk){
+    const checks=[...document.querySelectorAll('#mobile-nav-options input[type="checkbox"]')];
+    const selected=checks.filter(x=>x.checked);
+    if(selected.length>4){chk.checked=false;return;}
+  };
+  window.alternarPersonalizarBarra=function(){
+    const box=document.getElementById('mobile-nav-customizer'),btn=document.querySelector('.mobile-customize-trigger'); if(!box||!btn)return;
+    const abrir=box.hidden; box.hidden=!abrir; btn.classList.toggle('open',abrir);
+    if(abrir)pintarOpciones();
+  };
+  window.guardarPersonalizacionBarra=function(){
+    const selected=[...document.querySelectorAll('#mobile-nav-options input:checked')].map(x=>x.value);
+    if(selected.length!==4){alert('Selecciona exactamente 4 accesos para la barra inferior.');return;}
+    localStorage.setItem(KEY,JSON.stringify(selected)); render();
+    const box=document.getElementById('mobile-nav-customizer'),btn=document.querySelector('.mobile-customize-trigger'); if(box)box.hidden=true;if(btn)btn.classList.remove('open');
+    cerrarMenuMas();
+  };
+  window.restaurarBarraPredeterminada=function(){localStorage.setItem(KEY,JSON.stringify(DEFAULT));pintarOpciones();render();};
+  window.renderizarBarraMovil=render;
+  document.addEventListener('DOMContentLoaded',render,{once:true});
+  setTimeout(render,300);
+})();
+</script>
 </body>
 </html>
