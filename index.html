@@ -1518,7 +1518,7 @@ td,th{border-color:var(--ui-border)!important}
                 <div class="mobile-sheet-head"><div><strong>Más opciones</strong><small>Todo lo demás queda aquí, sin amontonar la pantalla.</small></div><button onclick="cerrarMenuMas()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
                 <button type="button" class="mobile-customize-trigger" onclick="alternarPersonalizarBarra()"><i class="fa-solid fa-sliders"></i><span>Personalizar barra</span><i class="fa-solid fa-chevron-down chevron"></i></button>
                 <div id="mobile-nav-customizer" class="mobile-nav-customizer" hidden>
-                    <div class="mobile-nav-customizer-head"><strong>¿Qué quieres ver en la barra?</strong><small>Elige hasta 5 accesos. Todo lo demás seguirá en “Más”.</small></div>
+                    <div class="mobile-nav-customizer-head"><strong>¿Qué quieres ver en la barra?</strong><small>Puedes elegir todos los accesos que quieras. <b>Más</b> siempre queda visible al final.</small></div>
                     <div id="mobile-nav-options" class="mobile-nav-options"></div>
                     <div class="mobile-nav-customizer-actions">
                         <button type="button" class="btn btn-slate" onclick="restaurarBarraPredeterminada()"><i class="fa-solid fa-rotate-left"></i> Predeterminada</button>
@@ -5724,7 +5724,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 
 /* ===== AJUSTE FINAL: ICONOS DE BARRA MOVIL + ACTIVIDADES SEPARADAS ===== */
 @media(max-width:900px){
-  .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:5px!important;height:74px!important;padding:7px!important}
+  .mobile-nav{grid-template-columns:none!important;grid-auto-flow:column!important;grid-auto-columns:minmax(76px,1fr)!important;justify-content:start!important;overflow-x:auto!important;overflow-y:hidden!important;gap:5px!important;height:74px!important;padding:7px!important}
   .mobile-nav-btn{height:60px!important;min-height:60px!important;padding:7px 4px!important;font-size:.70rem!important;gap:5px!important}
   .mobile-nav-btn i{font-size:1.42rem!important;line-height:1!important}
 }
@@ -5757,8 +5757,17 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
     'centro-v4':{label:'Centro',icon:'fa-gauge-high'},
     herramientas:{label:'Herramientas',icon:'fa-shield-halved'}
   };
-  const DEFAULT=['dashboard','asistencia','temario','finanzas'];
-  function leer(){try{const a=JSON.parse(localStorage.getItem(KEY)||'null');return Array.isArray(a)&&a.length===4&&a.every(x=>ITEMS[x])?a:DEFAULT.slice();}catch(e){return DEFAULT.slice();}}
+  const DEFAULT=['dashboard','asistencia','temario','finanzas','tareas'];
+  function leer(){
+    try{
+      const a=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(Array.isArray(a)){
+        const valid=a.filter(x=>ITEMS[x]);
+        if(valid.length>0) return valid.concat(DEFAULT.filter(x=>!valid.includes(x))).slice(0,Math.max(valid.length,5));
+      }
+    }catch(e){}
+    return DEFAULT.slice();
+  }
   function pintarOpciones(){
     const box=document.getElementById('mobile-nav-options'); if(!box)return;
     const actual=leer();
@@ -5778,7 +5787,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   window.limitarOpcionesBarra=function(chk){
     const checks=[...document.querySelectorAll('#mobile-nav-options input[type="checkbox"]')];
     const selected=checks.filter(x=>x.checked);
-    if(selected.length>5){chk.checked=false;return;}
+    /* Sin límite: se pueden seleccionar todos los accesos disponibles. */
   };
   window.alternarPersonalizarBarra=function(){
     const box=document.getElementById('mobile-nav-customizer'),btn=document.querySelector('.mobile-customize-trigger'); if(!box||!btn)return;
@@ -5787,7 +5796,10 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   };
   window.guardarPersonalizacionBarra=function(){
     const selected=[...document.querySelectorAll('#mobile-nav-options input:checked')].map(x=>x.value);
-    if(selected.length!==5){alert('Selecciona exactamente 5 accesos para la barra inferior.');return;}
+    if(!selected.length){
+      try{toast('Selecciona al menos un acceso.');}catch(e){alert('Selecciona al menos un acceso.');}
+      return;
+    }
     localStorage.setItem(KEY,JSON.stringify(selected)); render();
     const box=document.getElementById('mobile-nav-customizer'),btn=document.querySelector('.mobile-customize-trigger'); if(box)box.hidden=true;if(btn)btn.classList.remove('open');
     cerrarMenuMas();
@@ -5799,14 +5811,14 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 })();
 </script>
 
-<style id="barra-movil-seis-iconos-final">
+<style id="barra-movil-mas-iconos-final">
 @media(max-width:900px){
-  .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:5px!important;height:74px!important;padding:7px!important}
+  .mobile-nav{grid-template-columns:none!important;grid-auto-flow:column!important;grid-auto-columns:minmax(76px,1fr)!important;justify-content:start!important;overflow-x:auto!important;overflow-y:hidden!important;gap:5px!important;height:74px!important;padding:7px!important}
   .mobile-nav-btn{min-width:0!important;height:60px!important;min-height:60px!important;padding:6px 2px!important;font-size:.68rem!important;gap:4px!important}
   .mobile-nav-btn i{font-size:1.38rem!important}
 }
 @media(max-width:520px){
-  .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:2px!important;height:70px!important;padding:6px!important}
+  .mobile-nav{grid-auto-columns:minmax(68px,1fr)!important;gap:3px!important;height:70px!important;padding:6px!important}
   .mobile-nav-btn{height:58px!important;min-height:58px!important;padding:5px 1px!important;font-size:.57rem!important;gap:3px!important}
   .mobile-nav-btn i{font-size:1.22rem!important}
 }
