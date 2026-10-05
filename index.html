@@ -1415,12 +1415,14 @@ td,th{border-color:var(--ui-border)!important}
             <button class="tab-btn" onclick="switchTab(event, 'herramientas')" title="Respaldo y diagnóstico"><i class="fa-solid fa-shield-halved"></i><span class="lbl-pc">Herramientas</span><span class="lbl-m">Backup</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'centro-v4')" title="Centro de Control"><i class="fa-solid fa-gauge-high"></i><span class="lbl-pc">Centro de Control</span><span class="lbl-m">Centro</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'temario')" title="Temario de Primer y Segundo Año"><i class="fa-solid fa-list-check"></i><span class="lbl-pc">Temario / Checklist</span><span class="lbl-m">Temario</span></button>
+            <button class="tab-btn" onclick="switchTab(event, 'actividades-pastoral')" title="Actividades pastorales con jóvenes y catequistas"><i class="fa-solid fa-people-group"></i><span class="lbl-pc">Actividades</span><span class="lbl-m">Actividades</span></button>
             <button class="tab-btn" onclick="switchTab(event, 'finanzas')" title="Pagos, devoluciones y actividades"><i class="fa-solid fa-money-bill-transfer"></i><span class="lbl-pc">Finanzas</span><span class="lbl-m">Pagos</span></button>
         </nav>
         <div class="mobile-nav">
             <button class="mobile-nav-btn active" data-mobile-tab="dashboard" onclick="mobileSwitchTab(event,'dashboard')"><i class="fa-solid fa-house-chimney"></i><span>Inicio</span></button>
             <button class="mobile-nav-btn" data-mobile-tab="asistencia" onclick="mobileSwitchTab(event,'asistencia')"><i class="fa-solid fa-user-check"></i><span>Asistencia</span></button>
             <button class="mobile-nav-btn" data-mobile-tab="temario" onclick="mobileSwitchTab(event,'temario')"><i class="fa-solid fa-book-open-reader"></i><span>Temario</span></button>
+            <button class="mobile-nav-btn" data-mobile-tab="actividades-pastoral" onclick="mobileSwitchTab(event,'actividades-pastoral')"><i class="fa-solid fa-people-group"></i><span>Actividades</span></button>
             <button class="mobile-nav-btn" data-mobile-tab="finanzas" onclick="mobileSwitchTab(event,'finanzas')"><i class="fa-solid fa-wallet"></i><span>Pagos</span></button>
             <button class="mobile-nav-btn" data-mobile-tab="more" onclick="abrirMenuMas(event)"><i class="fa-solid fa-grip"></i><span>Más</span></button>
         </div>
@@ -1939,7 +1941,7 @@ td,th{border-color:var(--ui-border)!important}
                         <div><label>Año</label><select id="temario-ano"><option value="primerAno">Primer Año</option><option value="segundoAno">Segundo Año</option></select></div>
                         <div><label>Fecha</label><input type="date" id="temario-fecha"></div>
                         <div style="flex:2"><label>Tema</label><input type="text" id="temario-titulo" placeholder="Ej: Los Sacramentos"></div>
-                        <div style="flex:2"><label>Descripción / actividad</label><input type="text" id="temario-descripcion" placeholder="Actividad, tarea, material..."></div>
+                        <div style="flex:2"><label>Descripción del tema</label><input type="text" id="temario-descripcion" placeholder="Descripción, explicación o material del tema..."></div>
                         <button id="btn-temario-guardar" class="btn" onclick="agregarTemaTemario()"><i class="fa-solid fa-plus"></i> Agregar</button>
                         <button id="btn-temario-cancelar" type="button" class="btn btn-slate" style="display:none" onclick="cancelarEdicionTemaTemario()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     </div>
@@ -1953,6 +1955,27 @@ td,th{border-color:var(--ui-border)!important}
                     </div>
                     <div id="temario-progreso" style="margin:12px 0;color:var(--medium-gray)"></div>
                     <div id="lista-temario" class="temario-grid"></div>
+                </div>
+            </section>
+
+            <!-- ACTIVIDADES PASTORALES: separadas del temario -->
+            <section id="actividades-pastoral" class="section">
+                <div class="page-head">
+                    <div>
+                        <h2><i class="fa-solid fa-people-group"></i> Actividades Pastorales</h2>
+                        <p class="section-intro" style="margin:.35rem 0 0">Aquí van las actividades que realizamos con los jóvenes y catequistas. No son temas de formación y por eso están separadas del Temario.</p>
+                    </div>
+                    <div class="acciones"><button class="btn btn-slate" type="button" onclick="imprimirActividadesPastoral()"><i class="fa-solid fa-print"></i> Imprimir</button></div>
+                </div>
+                <div class="card">
+                    <div class="filters-grid">
+                        <div><label>Ver año</label><select id="actividades-filtro-ano" onchange="renderizarActividadesPastoral()"><option value="primerAno">Primer Año</option><option value="segundoAno">Segundo Año</option></select></div>
+                        <div><label>Desde</label><input type="date" id="actividades-filtro-desde" onchange="renderizarActividadesPastoral()"></div>
+                        <div><label>Hasta</label><input type="date" id="actividades-filtro-hasta" onchange="renderizarActividadesPastoral()"></div>
+                        <div style="display:flex;align-items:end"><button class="btn btn-info" style="width:100%" type="button" onclick="marcarActividadesPastoralTodos(true)"><i class="fa-solid fa-check-double"></i> Marcar realizadas</button></div>
+                    </div>
+                    <div id="actividades-pastoral-progreso" style="margin:12px 0;color:var(--medium-gray)"></div>
+                    <div id="lista-actividades-pastoral" class="temario-grid"></div>
                 </div>
             </section>
 
@@ -2129,7 +2152,7 @@ td,th{border-color:var(--ui-border)!important}
     const PASSWORD_ACCESO = "5230";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin5230";
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2CNhf615CRPH2ChYLBDgnxsJ9Rd3OIbfbHikb1u32_p1pONA_ePTaGE6VkJn1bBgqSw/exec";
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIxlY-tFOcpDYVwWpjQ9ewCeZAOqUyG6QrIC74T9UsZAJoZN5151knleLv78I0TmCXeg/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('db')) {
@@ -3809,6 +3832,95 @@ td,th{border-color:var(--ui-border)!important}
         const hechos=items.filter(x=>x.completado).length;if(pro)pro.innerHTML=`<strong>${hechos}/${items.length}</strong> temas completados (${items.length?Math.round(hechos/items.length*100):0}%)`;
         cont.innerHTML=items.length?items.map(x=>`<div class="temario-item ${x.completado?'completado':''}"><div class="temario-item-head"><input class="temario-check" type="checkbox" ${x.completado?'checked':''} onchange="cambiarEstadoTemaTemario('${ano}','${jsStr(x.id)}',this.checked)"><div style="flex:1"><h4>${escHtml(x.titulo)}</h4><small>${x.fecha?formatearFecha(x.fecha):'Sin fecha'}</small>${x.descripcion?`<p>${escHtml(x.descripcion)}</p>`:''}</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario('${ano}','${jsStr(x.id)}')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario('${ano}','${jsStr(x.id)}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>`).join(''):`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>`;
     }
+    const ACTIVIDADES_PASTORALES_OFICIALES_2026 = {
+        primerAno: [
+            {fecha:'2026-03-28',titulo:'Triduo Pascual',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-03-29',titulo:'Domingo de Ramos — Procesión',descripcion:'Participación de jóvenes y catequistas en la procesión del Domingo de Ramos.'},
+            {fecha:'2026-04-02',titulo:'Jueves Santo',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-04-03',titulo:'Viernes Santo',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-04-05',titulo:'Pascua de Resurrección',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-04-25',titulo:'Festival de la Pastoral',descripcion:'Participación activa del grupo en la actividad parroquial.'},
+            {fecha:'2026-05-23',titulo:'Vigilia de Pentecostés',descripcion:'Preparación y participación de jóvenes y catequistas en la vigilia parroquial.'},
+            {fecha:'2026-06-04',titulo:'Misa central de Corpus Christi',descripcion:'Participación en la celebración parroquial.'},
+            {fecha:'2026-07-18',titulo:'Convivencia Día de la Amistad',descripcion:'Actividad de convivencia e integración de jóvenes y catequistas.'},
+            {fecha:'2026-07-25',titulo:'Expo Carisma',descripcion:'Participación activa en la actividad parroquial y preparación del grupo.'},
+            {fecha:'2026-08-22',titulo:'Peregrinación',descripcion:'Preparación y participación en la actividad de peregrinación de la parroquia.'},
+            {fecha:'2026-09-19',titulo:'Preparación para la Feria de la Biblia',descripcion:'Preparación y participación del grupo en la actividad parroquial.'},
+            {fecha:'2026-09-20',titulo:'Feria de la Biblia',descripcion:'Participación activa de jóvenes y catequistas en la Feria de la Biblia.'},
+            {fecha:'2026-10-24',titulo:'Retiro Espiritual 2do Año',descripcion:'Participación en el retiro espiritual.'},
+            {fecha:'2026-11-07',titulo:'Limpieza de San Martín',descripcion:'Servicio comunitario y colaboración en la limpieza de la parroquia.'},
+            {fecha:'2026-11-21',titulo:'Ensayo de Confirmación 2do Año',descripcion:'Ensayo y preparación para la celebración de la Confirmación.'},
+            {fecha:'2026-11-28',titulo:'Concurso de Coronas de Adviento',descripcion:'Elaboración y presentación de una Corona de Adviento.'}
+        ],
+        segundoAno: [
+            {fecha:'2026-03-08',titulo:'Ensayo Vía Crucis Viviente',descripcion:'Ensayo y preparación responsable para el Vía Crucis viviente de la parroquia.'},
+            {fecha:'2026-03-15',titulo:'Ensayo Vía Crucis Viviente',descripcion:'Ensayo y preparación responsable para el Vía Crucis viviente de la parroquia.'},
+            {fecha:'2026-03-22',titulo:'Ensayo Vía Crucis Viviente',descripcion:'Ensayo y preparación responsable para el Vía Crucis viviente de la parroquia.'},
+            {fecha:'2026-03-29',titulo:'Domingo de Ramos — Procesión',descripcion:'Participación de jóvenes y catequistas en la procesión del Domingo de Ramos.'},
+            {fecha:'2026-04-02',titulo:'Jueves Santo',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-04-03',titulo:'Viernes Santo',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-04-05',titulo:'Domingo de Pascua',descripcion:'Participación de jóvenes y catequistas en las actividades de la parroquia por Semana Santa.'},
+            {fecha:'2026-05-10',titulo:'Expo Vocacional — San Martín',descripcion:'Participación activa en la actividad parroquial y preparación del grupo.'},
+            {fecha:'2026-05-17',titulo:'Armado de Rosarios',descripcion:'Preparación y participación en el rezo del Rosario.'},
+            {fecha:'2026-05-23',titulo:'Vigilia de Pentecostés',descripcion:'Preparación y participación de jóvenes y catequistas en la vigilia parroquial.'},
+            {fecha:'2026-05-24',titulo:'Rezo del Rosario por grupos',descripcion:'Participación en el rezo comunitario del Rosario.'},
+            {fecha:'2026-05-31',titulo:'Corpus Christi',descripcion:'Participación en la celebración parroquial.'},
+            {fecha:'2026-06-04',titulo:'Misa central de Corpus Christi',descripcion:'Participación en la celebración parroquial.'},
+            {fecha:'2026-07-19',titulo:'Convivencia del Día de la Amistad',descripcion:'Actividad de convivencia e integración de jóvenes y catequistas.'},
+            {fecha:'2026-07-25',titulo:'Expo Carisma',descripcion:'Participación activa en la actividad parroquial y preparación del grupo.'},
+            {fecha:'2026-08-16',titulo:'Preparación para la Peregrinación a Chaguaya',descripcion:'Preparación y organización para la actividad de peregrinación.'},
+            {fecha:'2026-08-23',titulo:'Peregrinación a Chaguaya',descripcion:'Participación en la actividad de peregrinación de la parroquia.'},
+            {fecha:'2026-09-19',titulo:'Feria de la Biblia — Diocesana',descripcion:'Participación activa en la actividad parroquial y preparación del grupo.'},
+            {fecha:'2026-09-20',titulo:'Feria de la Biblia — Diocesana',descripcion:'Participación activa en la actividad parroquial.'},
+            {fecha:'2026-10-24',titulo:'Retiro Espiritual',descripcion:'Participación de jóvenes y catequistas en el retiro espiritual.'},
+            {fecha:'2026-10-25',titulo:'Retiro Espiritual',descripcion:'Continuación y participación en el retiro espiritual.'},
+            {fecha:'2026-11-08',titulo:'Fiesta de San Martín',descripcion:'Participación en la actividad parroquial.'},
+            {fecha:'2026-11-15',titulo:'Convivencia de Despedida',descripcion:'Actividad de convivencia, integración y cierre del año catequético.'},
+            {fecha:'2026-11-21',titulo:'Ensayo Misa de Confirmación y limpieza',descripcion:'Ensayo, preparación y servicio comunitario en la parroquia.'},
+            {fecha:'2026-11-22',titulo:'Confirmaciones',descripcion:'Participación en la celebración de las Confirmaciones.'},
+            {fecha:'',titulo:'Vivencia pastoral — grupos 1 y 2',descripcion:'Vivencia pastoral y servicio en los distintos grupos de la parroquia.'},
+            {fecha:'',titulo:'Vivencia pastoral — grupos 3 y 4',descripcion:'Vivencia pastoral y servicio en los distintos grupos de la parroquia.'},
+            {fecha:'',titulo:'Vivencia pastoral — grupos 5 y 6',descripcion:'Vivencia pastoral y servicio en los distintos grupos de la parroquia.'},
+            {fecha:'',titulo:'Confesiones',descripcion:'Participación en el sacramento de la Reconciliación.'}
+        ]
+    };
+    function claveActividadPastoral(x){return String(x&&x.fecha||'')+'|'+String(x&&x.titulo||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+    function asegurarActividadesPastoral(){
+        if(!window.sistemaDatos||!sistemaDatos.grupos)return false;
+        let cambio=false;
+        Object.keys(sistemaDatos.grupos).forEach(function(nombre){
+            const g=sistemaDatos.grupos[nombre];
+            if(!g.actividadesPastoral||typeof g.actividadesPastoral!=='object'){g.actividadesPastoral={primerAno:[],segundoAno:[]};cambio=true;}
+            ['primerAno','segundoAno'].forEach(function(ano){
+                if(!Array.isArray(g.actividadesPastoral[ano])){g.actividadesPastoral[ano]=[];cambio=true;}
+                const actuales=new Map(g.actividadesPastoral[ano].map(x=>[claveActividadPastoral(x),x]));
+                (ACTIVIDADES_PASTORALES_OFICIALES_2026[ano]||[]).forEach(function(base,i){
+                    const k=claveActividadPastoral(base);
+                    if(!actuales.has(k)){
+                        g.actividadesPastoral[ano].push({id:'actividad2026-'+ano+'-'+String(i+1).padStart(3,'0'),fecha:base.fecha,titulo:base.titulo,descripcion:base.descripcion,realizada:false});
+                        cambio=true;
+                    }
+                });
+                const vistos=new Set();
+                g.actividadesPastoral[ano]=g.actividadesPastoral[ano].filter(function(x){const k=claveActividadPastoral(x);if(vistos.has(k))return false;vistos.add(k);return true;});
+            });
+        });
+        return cambio;
+    }
+    function obtenerActividadesPastoral(){const g=sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual];return g&&g.actividadesPastoral||{primerAno:[],segundoAno:[]};}
+    function renderizarActividadesPastoral(){
+        const cont=document.getElementById('lista-actividades-pastoral'),pro=document.getElementById('actividades-pastoral-progreso');if(!cont)return;
+        asegurarActividadesPastoral();
+        const ano=document.getElementById('actividades-filtro-ano')?.value||'primerAno',desde=document.getElementById('actividades-filtro-desde')?.value||'',hasta=document.getElementById('actividades-filtro-hasta')?.value||'';
+        const items=(obtenerActividadesPastoral()[ano]||[]).filter(x=>(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta)).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
+        const hechas=items.filter(x=>x.realizada).length;if(pro)pro.innerHTML='<strong>'+hechas+'/'+items.length+'</strong> actividades realizadas ('+(items.length?Math.round(hechas/items.length*100):0)+'%)';
+        cont.innerHTML=items.length?items.map(x=>'<div class="temario-item '+(x.realizada?'completado':'')+'"><div class="temario-item-head"><input class="temario-check" type="checkbox" '+(x.realizada?'checked':'')+' onchange="cambiarEstadoActividadPastoral(\''+jsStr(ano)+'\',\''+jsStr(x.id)+'\',this.checked)"><div style="flex:1"><h4><i class="fa-solid fa-people-group" style="margin-right:6px"></i>'+escHtml(x.titulo)+'</h4><small>'+(x.fecha?formatearFecha(x.fecha):'Fecha por definir')+'</small><p>'+escHtml(x.descripcion||'')+'</p></div></div></div>').join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay actividades para este filtro.</div>';
+    }
+    function cambiarEstadoActividadPastoral(ano,id,checked){const g=sistemaDatos.grupos[grupoActual];asegurarActividadesPastoral();const x=(g.actividadesPastoral[ano]||[]).find(v=>String(v.id)===String(id));if(!x)return;x.realizada=!!checked;sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarActividadesPastoral();}
+    function marcarActividadesPastoralTodos(valor){asegurarActividadesPastoral();const ano=document.getElementById('actividades-filtro-ano').value,desde=document.getElementById('actividades-filtro-desde').value,hasta=document.getElementById('actividades-filtro-hasta').value;obtenerActividadesPastoral()[ano].forEach(x=>{if((!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta))x.realizada=valor});sistemaDatos._actualizado=Date.now();guardarEquipoLocal(equipoActualLogin,sistemaDatos);sincronizarConNube(false);renderizarActividadesPastoral();}
+    function imprimirActividadesPastoral(){asegurarActividadesPastoral();const ano=document.getElementById('actividades-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';const filas=(obtenerActividadesPastoral()[ano]||[]).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>'<tr><td>'+escHtml(x.fecha?formatearFecha(x.fecha):'-')+'</td><td>'+escHtml(x.titulo)+'</td><td>'+escHtml(x.descripcion||'')+'</td><td>'+escHtml(x.realizada?'Realizada':'Pendiente')+'</td></tr>').join('');imprimirHTML('<h1>CONTROL DE CATEQUESIS</h1><h2>Actividades Pastorales — '+escHtml(tituloAno)+'</h2><p>Grupo: '+escHtml(grupoActual)+'</p><table><thead><tr><th>Fecha</th><th>Actividad</th><th>Descripción</th><th>Estado</th></tr></thead><tbody>'+filas+'</tbody></table>','Actividades_Pastorales_'+tituloAno);}
+    window.ACTIVIDADES_PASTORALES_OFICIALES_2026=ACTIVIDADES_PASTORALES_OFICIALES_2026;
+
     const reportKpiStyles = document.createElement('style');
     reportKpiStyles.textContent = '.report-kpi{flex:1;min-width:150px;padding:12px 14px;border:1px solid #dbe3ea;border-radius:10px;background:#f8fafc;text-align:center}.report-kpi b{display:block;font-size:20px;color:#0f172a}.report-kpi small{color:#64748b}.report-kpi-ok b{color:#059669}.report-kpi-bad b{color:#dc2626}';
     document.head.appendChild(reportKpiStyles);
@@ -3855,7 +3967,7 @@ td,th{border-color:var(--ui-border)!important}
 .grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;padding:0!important;border-radius:8px!important;box-shadow:none!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.68rem!important;margin:0!important}@media(max-width:900px){.grupo-bar>.topbar-save,.grupo-bar .topbar-save{flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.66rem!important}}
 </style>
 </head><body><div class="report"><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div>
-</body></html>`);
+</html>`);
         w.document.close();
         w.focus();
         setTimeout(()=>w.print(),350);
@@ -3864,7 +3976,7 @@ td,th{border-color:var(--ui-border)!important}
     function imprimirTemario(){
         const ano=document.getElementById('temario-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';
         const filas=(obtenerTemarioActual()[ano]||[]).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>`<tr><td>${escHtml(x.fecha?formatearFecha(x.fecha):'-')}</td><td>${escHtml(x.titulo)}</td><td>${escHtml(x.descripcion||'')}</td><td>${x.completado?'✓ Completado':'Pendiente'}</td></tr>`).join('');
-        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Temario - ${escHtml(tituloAno)}</h2><p>Grupo: ${escHtml(grupoActual)}</p><table><thead><tr><th>Fecha</th><th>Tema</th><th>Actividad</th><th>Estado</th></tr></thead><tbody>${filas||'<tr><td colspan="4">Sin temas.</td></tr>'}</tbody></table>`,`Temario_${tituloAno}`);
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Temario - ${escHtml(tituloAno)}</h2><p>Grupo: ${escHtml(grupoActual)}</p><table><thead><tr><th>Fecha</th><th>Tema</th><th>Descripción</th><th>Estado</th></tr></thead><tbody>${filas||'<tr><td colspan="4">Sin temas.</td></tr>'}</tbody></table>`,`Temario_${tituloAno}`);
     }
     function registroNoPresentoTarea(r){
         return String(r?.tareaEstado||'').trim().toLowerCase().replace(/ó/g,'o') === 'no presento';
@@ -4438,8 +4550,232 @@ td,th{border-color:var(--ui-border)!important}
 <script id="ux-fluid-clean-js">
 (function(){function togglePanel(btn){const id=btn.getAttribute('data-target'),panel=id&&document.getElementById(id);if(!panel)return;const open=panel.classList.toggle('open');btn.setAttribute('aria-expanded',String(open));const label=btn.querySelector('span');if(label)label.textContent=open?'Cerrar formulario':(btn.dataset.closedLabel||'Abrir formulario')}document.addEventListener('click',function(e){const btn=e.target.closest('.collapse-toggle');if(btn)togglePanel(btn)})})();
 </script>
-</body>
-</html>
+
+<script id="temario-oficial-2026-seed">
+(function(){
+  const TEMARIO_OFICIAL_2026 = {
+    primerAno: [{"fecha":"2026-03-07","titulo":"Cuaresma","descripcion":"Reflexión sobre la Cuaresma, propósito personal y actividad de conversión."},{"fecha":"2026-03-14","titulo":"La oración","descripcion":"Práctica de oración personal y comunitaria y elaboración de un compromiso semanal."},{"fecha":"2026-03-28","titulo":"Triduo pascual","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-03-29","titulo":"Domingo de Ramos","descripcion":"Participación en la procesión del Domingo de Ramos."},{"fecha":"2026-04-02","titulo":"Jueves santo","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-03","titulo":"Viernes Santo","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-05","titulo":"Pascua","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-11","titulo":"la eucaristía","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-04-18","titulo":"El ABC de la biblia","descripcion":"Lectura bíblica guiada, búsqueda de citas y actividad de aplicación."},{"fecha":"2026-04-25","titulo":"Posible festival de la pastoral","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-05-09","titulo":"Pentecostés","descripcion":"Lectura de Hechos 2, reflexión sobre el Espíritu Santo y oración."},{"fecha":"2026-05-16","titulo":"Corpus Christi","descripcion":"Reflexión eucarística y participación en la celebración parroquial."},{"fecha":"2026-05-23","titulo":"VIGILIA DE PENTECOSTES","descripcion":"Preparación y participación en la vigilia parroquial."},{"fecha":"2026-05-30","titulo":"Todos somos importantes","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-06-04","titulo":"Misa central de Corpus Christi","descripcion":"Participación en la celebración parroquial y reflexión comunitaria."},{"fecha":"2026-06-06","titulo":"La historia de Salvación","descripcion":"Lectura guiada, línea de tiempo bíblica y reflexión sobre la Historia de Salvación."},{"fecha":"2026-06-13","titulo":"La historia de Salvación","descripcion":"Lectura guiada, línea de tiempo bíblica y reflexión sobre la Historia de Salvación."},{"fecha":"2026-06-20","titulo":"La historia de Salvación","descripcion":"Lectura guiada, línea de tiempo bíblica y reflexión sobre la Historia de Salvación."},{"fecha":"2026-06-27","titulo":"Palestina en tiempos de Jesús – parte 1","descripcion":"Ubicación geográfica y social, trabajo en grupo y reflexión sobre la época de Jesús."},{"fecha":"2026-07-04","titulo":"Palestina en tiempos de Jesús – parte 2","descripcion":"Ubicación geográfica y social, trabajo en grupo y reflexión sobre la época de Jesús."},{"fecha":"2026-07-11","titulo":"Jesús ¿Quién eres?","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-07-18","titulo":"Convivencia Dia de la Amistad","descripcion":"Actividad de convivencia, integración y reflexión en grupo."},{"fecha":"2026-07-25","titulo":"Expo carisma","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-08-01","titulo":"Mujeres de fe","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-08-08","titulo":"María santísima, discípula y madre de la iglesia","descripcion":"Lectura bíblica, reflexión mariana y oración."},{"fecha":"2026-08-15","titulo":"Los sacramentos son vida","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-08-22","titulo":"Tolerancia por la Peregrinación","descripcion":"Preparación y participación en la actividad de peregrinación de la parroquia."},{"fecha":"2026-08-29","titulo":"Sacramento de la reconciliación","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-09-05","titulo":"Profesión de FE","descripcion":"Preparación y práctica de la Profesión de Fe."},{"fecha":"2026-09-12","titulo":"Sacramento de la Eucaristía","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-09-19","titulo":"Preparación para la Feria de la Biblia","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-09-20","titulo":"FERIA DE LA BIBLIA","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-10-03","titulo":"Ser cristiano","descripcion":"Reflexión personal, diálogo en grupo y compromiso de vida cristiana."},{"fecha":"2026-10-17","titulo":"La vida de San Martin de Porres","descripcion":"Investigación, exposición breve y reflexión sobre el testimonio de los santos."},{"fecha":"2026-10-24","titulo":"RETIRO ESPIRITUAL 2DO AÑO","descripcion":"Participación activa en el retiro espiritual."},{"fecha":"2026-11-01","titulo":"Todos santos","descripcion":"Investigación, exposición breve y reflexión sobre el testimonio de los santos."},{"fecha":"2026-11-07","titulo":"Limpieza de San Martin","descripcion":"Servicio comunitario y colaboración en la limpieza de la parroquia."},{"fecha":"2026-11-14","titulo":"Adviento","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-11-21","titulo":"Ensayo de Confirmación 2do año","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-11-28","titulo":"Concurso de Coronas de Adviento","descripcion":"Elaboración y presentación de una Corona de Adviento."},{"fecha":"2026-12-13","titulo":"La anunciación y el Nacimiento de Jesús","descripcion":"Lectura bíblica, reflexión mariana y oración."}],
+    segundoAno: [{"fecha":"2026-02-01","titulo":"BIENVENIDA","descripcion":"Dinámica de bienvenida, integración del grupo y presentación del año catequético."},{"fecha":"2026-02-08","titulo":"Los sacramentos son vida","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-02-15","titulo":"La iglesia de Jesús y La iglesia en nuestra actualidad","descripcion":"Lectura, diálogo grupal y reflexión sobre la Iglesia y la vida comunitaria."},{"fecha":"2026-02-18","titulo":"Miércoles de Ceniza","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-02-22","titulo":"Recuperación de temas","descripcion":"Repaso de los temas vistos, resolución de dudas y actividad de recuperación."},{"fecha":"2026-03-01","titulo":"La iglesia y las iglesias evangélicas","descripcion":"Lectura, diálogo grupal y reflexión sobre la Iglesia y la vida comunitaria."},{"fecha":"2026-03-08","titulo":"Ensayo Via crucis viviente","descripcion":"Ensayo y participación responsable en el Vía Crucis viviente de la parroquia."},{"fecha":"2026-03-15","titulo":"Ensayo Via crucis viviente","descripcion":"Ensayo y participación responsable en el Vía Crucis viviente de la parroquia."},{"fecha":"2026-03-22","titulo":"Ensayo via crucis viviente","descripcion":"Ensayo y participación responsable en el Vía Crucis viviente de la parroquia."},{"fecha":"2026-03-29","titulo":"Domingo de Ramos","descripcion":"Participación en la procesión del Domingo de Ramos."},{"fecha":"2026-04-02","titulo":"Jueves Santo","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-03","titulo":"Viernes Santo","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-05","titulo":"Domingo de Pascua","descripcion":"Participación en las actividades de la parroquia por Semana Santa."},{"fecha":"2026-04-12","titulo":"Santos en nuestros días","descripcion":"Investigación, exposición breve y reflexión sobre el testimonio de los santos."},{"fecha":"2026-04-19","titulo":"Domingo día del Señor – rearmar tema","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-04-26","titulo":"Profesion de fe","descripcion":"Preparación y práctica de la Profesión de Fe."},{"fecha":"2026-05-03","titulo":"Vocación","descripcion":"Reflexión sobre la vocación personal y participación en la actividad vocacional."},{"fecha":"2026-05-10","titulo":"Expo vocacional – San Martin","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-05-17","titulo":"Armado de Rosarios","descripcion":"Preparación y participación en el rezo del Rosario."},{"fecha":"2026-05-23","titulo":"Vigilia de Pentecostés","descripcion":"Preparación y participación en la vigilia parroquial."},{"fecha":"2026-05-24","titulo":"Rezo del Rosario por grupos","descripcion":"Preparación y participación en el rezo del Rosario."},{"fecha":"2026-05-31","titulo":"CORPUS CHRISTI","descripcion":"Reflexión eucarística y participación en la celebración parroquial."},{"fecha":"2026-06-04","titulo":"Misa central de CORPUS CHRISTI","descripcion":"Participación en la celebración parroquial y reflexión comunitaria."},{"fecha":"2026-06-07","titulo":"El amor (enamoramiento y noviazgo)","descripcion":"Diálogo guiado, reflexión desde la fe y elaboración de compromisos personales."},{"fecha":"2026-06-14","titulo":"Sexualidad, desde los ojos de Dios","descripcion":"Diálogo guiado, reflexión desde la fe y elaboración de compromisos personales."},{"fecha":"2026-06-21","titulo":"Los vicios","descripcion":"Dinámica de prevención, reflexión sobre decisiones y compromiso saludable."},{"fecha":"2026-06-28","titulo":"Obras de Misericordia","descripcion":"Trabajo en grupos sobre las Obras de Misericordia y una acción concreta de servicio."},{"fecha":"2026-07-05","titulo":"Los Mandamientos","descripcion":"Dinámica sobre los Mandamientos y aplicación a situaciones de la vida diaria."},{"fecha":"2026-07-12","titulo":"El pecado nos aleja de Dios","descripcion":"Análisis de situaciones cotidianas, reflexión y compromiso de cambio."},{"fecha":"2026-07-19","titulo":"Convivencia del día de la amistad","descripcion":"Actividad de convivencia, integración y reflexión en grupo."},{"fecha":"2026-07-25","titulo":"Expo carisma","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-07-26","titulo":"Ser Cristiano","descripcion":"Reflexión personal, diálogo en grupo y compromiso de vida cristiana."},{"fecha":"2026-08-02","titulo":"Recuperación de temas","descripcion":"Repaso de los temas vistos, resolución de dudas y actividad de recuperación."},{"fecha":"2026-08-09","titulo":"Recuperación de temas","descripcion":"Repaso de los temas vistos, resolución de dudas y actividad de recuperación."},{"fecha":"2026-08-16","titulo":"Preparación para la peregrinación a Chaguaya","descripcion":"Preparación y participación en la actividad de peregrinación de la parroquia."},{"fecha":"2026-08-23","titulo":"Tolerancia peregrinación a Chaguaya","descripcion":"Preparación y participación en la actividad de peregrinación de la parroquia."},{"fecha":"2026-08-30","titulo":"Recuperación de temas","descripcion":"Repaso de los temas vistos, resolución de dudas y actividad de recuperación."},{"fecha":"2026-09-06","titulo":"Cuidado del medio ambiente","descripcion":"Actividad práctica de cuidado del ambiente y compromiso comunitario."},{"fecha":"2026-09-13","titulo":"Sacramento de la confirmación","descripcion":"Explicación del tema, reflexión en grupo y compromiso práctico."},{"fecha":"2026-09-19","titulo":"FERIA DE LA BIBLIA - DIOCESANA","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-09-20","titulo":"FERIA DE LA BIBLIA - DIOCESANA","descripcion":"Participación activa en la actividad parroquial y preparación del grupo."},{"fecha":"2026-09-27","titulo":"Confírmame señor","descripcion":"Explicación del tema, dinámica participativa, reflexión grupal y compromiso de la semana."},{"fecha":"2026-10-04","titulo":"He decidido seguir a Cristo","descripcion":"Reflexión personal, diálogo en grupo y compromiso de vida cristiana."},{"fecha":"2026-10-11","titulo":"Proyecto de vida","descripcion":"Taller de proyecto de vida y definición de metas personales."},{"fecha":"2026-10-24","titulo":"RETIRO ESPIRITUAL","descripcion":"Participación activa en el retiro espiritual."},{"fecha":"2026-10-25","titulo":"RETIRO ESPIRITUAL","descripcion":"Participación activa en el retiro espiritual."},{"fecha":"2026-11-01","titulo":"TODOS SANTOS","descripcion":"Investigación, exposición breve y reflexión sobre el testimonio de los santos."},{"fecha":"2026-11-08","titulo":"FIESTA DE SAN MARTIN","descripcion":"Investigación, exposición breve y reflexión sobre el testimonio de los santos."},{"fecha":"2026-11-15","titulo":"Convivencia de Despedida","descripcion":"Actividad de convivencia, integración y reflexión en grupo."},{"fecha":"2026-11-21","titulo":"Ensayo Misa de Confirmación y limpieza","descripcion":"Servicio comunitario y colaboración en la limpieza de la parroquia."},{"fecha":"2026-11-22","titulo":"CONFIRMACIONES","descripcion":"Participación en la celebración de las Confirmaciones."},{"fecha":"","titulo":"Vivencia pastoral para los grupos 1 y 2, en los distintos grupos de la parroquia","descripcion":"Vivencia pastoral y servicio en los distintos grupos de la parroquia."},{"fecha":"","titulo":"Vivencia pastoral para los grupos 3 y 4, en los distintos grupos de la parroquia","descripcion":"Vivencia pastoral y servicio en los distintos grupos de la parroquia."},{"fecha":"","titulo":"Vivencia pastoral para los grupos 5 y 6, en los distintos grupos de la parroquia","descripcion":"Vivencia pastoral y servicio en los distintos grupos de la parroquia."},{"fecha":"","titulo":"CONFESIONES","descripcion":"Participación en el sacramento de la Reconciliación."}]
+  };
+
+  function norm(v){
+    return String(v==null?'':v).normalize ? String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ') : String(v==null?'':v).toLowerCase().trim().replace(/\s+/g,' ');
+  }
+  function keyTema(item){
+    return norm(item && item.fecha) + '|' + norm(item && (item.titulo || item.nombre || item.tema));
+  }
+  function keyTomb(item){
+    if(!item) return [];
+    const out=[];
+    const titulo=norm(item.titulo||item.nombre||item.tema);
+    if(item.id!==undefined && item.id!==null && item.id!=='') out.push('id:'+String(item.id));
+    out.push('temario:'+norm(item.fecha)+'|'+titulo);
+    if(titulo) out.push('temarioTitulo:'+titulo);
+    return out;
+  }
+  function limpiarTombstonesAntiguos(g){
+    if(!g || !Array.isArray(g.temarioEliminados)) return false;
+    const oficiales=[];
+    ['primerAno','segundoAno'].forEach(function(ano){
+      (TEMARIO_OFICIAL_2026[ano]||[]).forEach(function(base,index){
+        const titulo=norm(base.titulo||base.nombre||base.tema);
+        const fecha=norm(base.fecha||'');
+        oficiales.push({id:'oficial2026-'+ano+'-'+String(index+1).padStart(3,'0'),title:'temarioTitulo:'+titulo,pair:'temario:'+fecha+'|'+titulo});
+      });
+    });
+    const antes=g.temarioEliminados.length;
+    g.temarioEliminados=g.temarioEliminados.filter(function(t){
+      const v=String(t);
+      const hit=oficiales.find(function(o){return o.title===v || o.pair===v;});
+      if(!hit) return true;
+      const idT='id:'+hit.id;
+      if(g.temarioEliminados.some(function(x){return String(x)===idT;})) return true;
+      return false;
+    });
+    return antes!==g.temarioEliminados.length;
+  }
+
+  function eliminado(g,item){
+    const tomb=Array.isArray(g.temarioEliminados)?g.temarioEliminados.map(String):[];
+    const ks=keyTomb(item);
+    return ks.some(k=>String(k).indexOf('id:')===0 && tomb.indexOf(String(k))>=0);
+  }
+  function limpiarDuplicados(arr){
+    if(!Array.isArray(arr)) return [];
+    const vistos=new Set(),salida=[];
+    arr.forEach(function(item){
+      const k=keyTema(item);
+      if(vistos.has(k)) return;
+      vistos.add(k);
+      salida.push(item);
+    });
+    return salida;
+  }
+  function prepararGrupo(g){
+    if(!g || typeof g!=='object') return false;
+    if(!g.temario || typeof g.temario!=='object') g.temario={primerAno:[],segundoAno:[]};
+    if(!Array.isArray(g.temario.primerAno)) g.temario.primerAno=[];
+    if(!Array.isArray(g.temario.segundoAno)) g.temario.segundoAno=[];
+    if(!Array.isArray(g.temarioEliminados)) g.temarioEliminados=[];
+
+    let cambio=limpiarTombstonesAntiguos(g);
+    ['primerAno','segundoAno'].forEach(function(ano){
+      const original=g.temario[ano];
+      const limpio=limpiarDuplicados(original);
+      if(limpio.length!==original.length){g.temario[ano]=limpio;cambio=true;}
+
+      const existentes=new Set(limpio.map(keyTema));
+      TEMARIO_OFICIAL_2026[ano].forEach(function(base,index){
+        const item=Object.assign({},base);
+        if(eliminado(g,item)) return;
+        const k=keyTema(item);
+        if(existentes.has(k)){
+          const actual=g.temario[ano].find(x=>keyTema(x)===k);
+          if(actual && !String(actual.descripcion||'').trim() && item.descripcion){
+            actual.descripcion=item.descripcion;
+            cambio=true;
+          }
+          return;
+        }
+        item.id='oficial2026-'+ano+'-'+String(index+1).padStart(3,'0');
+        item.completado=false;
+        g.temario[ano].push(item);
+        existentes.add(k);
+        cambio=true;
+      });
+    });
+    return cambio;
+  }
+
+  function cargarTemarioOficial2026(){
+    if(!window.sistemaDatos || !sistemaDatos.grupos) return false;
+    let cambio=false;
+    Object.keys(sistemaDatos.grupos).forEach(function(nombre){
+      if(prepararGrupo(sistemaDatos.grupos[nombre])) cambio=true;
+    });
+    if(cambio){
+      sistemaDatos._actualizado=Date.now();
+      try{guardarEquipoLocal(equipoActualLogin,sistemaDatos)}catch(e){}
+      try{renderizarTemario()}catch(e){}
+    }
+    return cambio;
+  }
+
+  // Se ejecuta después de que cargarDatos() haya creado/cargado el equipo.
+  const oldInitOficial=window.inicializarApp;
+  if(typeof oldInitOficial==='function'){
+    window.inicializarApp=function(){
+      oldInitOficial.apply(this,arguments);
+      const cambio=cargarTemarioOficial2026();
+      if(cambio && typeof sincronizarConNube==='function') sincronizarConNube(false);
+    };
+  }
+
+  // También protege grupos creados posteriormente sin modificar datos existentes.
+  const oldGuardarGrupo=window.guardarNuevoGrupo;
+  if(typeof oldGuardarGrupo==='function'){
+    window.guardarNuevoGrupo=function(){
+      oldGuardarGrupo.apply(this,arguments);
+      const cambio=cargarTemarioOficial2026();
+      if(cambio && typeof sincronizarConNube==='function') sincronizarConNube(false);
+    };
+  }
+
+  window.TEMARIO_OFICIAL_2026=JSON.parse(JSON.stringify(TEMARIO_OFICIAL_2026));
+  window.cargarTemarioOficial2026=cargarTemarioOficial2026;
+
+  // MUY IMPORTANTE: cargarDatos() puede recibir primero datos remotos antiguos
+  // después de inicializar el equipo local. Por eso el temario oficial se aplica
+  // TAMBIÉN después de terminar toda la carga nube/local. Así no puede quedar
+  // definido dentro del HTML y desaparecer cuando llega la respuesta del servidor.
+  const oldCargarDatosOficial=window.cargarDatos;
+  if(typeof oldCargarDatosOficial==='function'){
+    window.cargarDatos=async function(){
+      const resultado=await oldCargarDatosOficial.apply(this,arguments);
+      try{
+        const cambio=cargarTemarioOficial2026();
+        if(cambio && typeof sincronizarConNube==='function') await sincronizarConNube(false);
+      }catch(e){}
+      try{renderizarTemario()}catch(e){}
+      return resultado;
+    };
+  }
+
+  // IMPORTANTE: este script se carga al final del HTML. En versiones anteriores
+  // inicializarApp() ya se había ejecutado antes de instalar el wrapper, por eso
+  // el temario oficial quedaba definido en el código pero no aparecía en pantalla.
+  // Lo cargamos ahora y reintentamos unos segundos si el equipo todavía está cargando.
+  (function asegurarCargaInicialTemario(){
+    let intentos=0;
+    function intentar(){
+      intentos++;
+      try{
+        const cambio=cargarTemarioOficial2026();
+        if(cambio && typeof sincronizarConNube==='function') sincronizarConNube(false);
+      }catch(e){}
+      if(intentos<20 && (!window.sistemaDatos || !sistemaDatos.grupos || !Object.keys(sistemaDatos.grupos).length)){
+        setTimeout(intentar,500);
+      }
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',intentar,{once:true});
+    else setTimeout(intentar,0);
+  })();
+})();
+</script>
+<script id="separar-actividades-del-temario">
+(function(){
+  const titulosActividad = new Set([
+    'triduo pascual','domingo de ramos','domingo de ramos — procesion','domingo de ramos — procesión',
+    'jueves santo','jueves santo.','viernes santo','pascua','pascua de resurreccion','pascua de resurrección','domingo de pascua',
+    'posible festival de la pastoral','festival de la pastoral','vigilia de pentecostes','vigilia de pentecostés','misa central de corpus christi',
+    'convivencia dia de la amistad','convivencia día de la amistad','expo carisma','tolerancia por la peregrinacion','tolerancia por la peregrinación',
+    'preparacion para la feria de la biblia','preparación para la feria de la biblia','feria de la biblia','feria de la biblia - diocesana',
+    'retiro espiritual 2do año','retiro espiritual','limpieza de san martin','limpieza de san martín','ensayo de confirmacion 2do año','ensayo de confirmación 2do año',
+    'concurso de coronas de adviento','ensayo via crucis viviente','ensayo vía crucis viviente','expo vocacional – san martin','expo vocacional — san martín',
+    'armado de rosarios','rezo del rosario por grupos','corpus christi','preparacion para la peregrinacion a chaguaya','preparación para la peregrinación a chaguaya',
+    'tolerancia peregrinacion a chaguaya','tolerancia peregrinación a chaguaya','fiesta de san martin','fiesta de san martín','convivencia de despedida',
+    'ensayo misa de confirmacion y limpieza','ensayo misa de confirmación y limpieza','confirmaciones','vivencia pastoral para los grupos 1 y 2, en los distintos grupos de la parroquia',
+    'vivencia pastoral para los grupos 3 y 4, en los distintos grupos de la parroquia','vivencia pastoral para los grupos 5 y 6, en los distintos grupos de la parroquia','confesiones'
+  ]);
+  function n(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+  function separar(){
+    if(typeof asegurarActividadesPastoral!=='function'||!window.sistemaDatos||!sistemaDatos.grupos)return false;
+    const hubo=asegurarActividadesPastoral();let cambio=!!hubo;
+    Object.keys(sistemaDatos.grupos).forEach(function(nombre){
+      const g=sistemaDatos.grupos[nombre];
+      ['primerAno','segundoAno'].forEach(function(ano){
+        if(!g.temario||!Array.isArray(g.temario[ano]))return;
+        const antes=g.temario[ano].length;
+        g.temario[ano]=g.temario[ano].filter(function(x){return !titulosActividad.has(n(x.titulo||x.nombre||x.tema));});
+        if(g.temario[ano].length!==antes)cambio=true;
+      });
+    });
+    if(cambio){sistemaDatos._actualizado=Date.now();try{guardarEquipoLocal(equipoActualLogin,sistemaDatos)}catch(e){}try{sincronizarConNube(false)}catch(e){}}
+    try{renderizarTemario()}catch(e){}try{renderizarActividadesPastoral()}catch(e){}
+    return cambio;
+  }
+  window.separarActividadesDelTemario=separar;
+  function intento(){try{separar()}catch(e){console.warn('Separación de actividades:',e)}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(intento,100)}, {once:true});else setTimeout(intento,100);
+  setTimeout(intento,1200);setTimeout(intento,3000);setTimeout(intento,6000);
+  const oldApply=window.aplicarDatosRemotos;
+  if(typeof oldApply==='function'&&!oldApply.__separarActividades){
+    const wrapped=function(){const r=oldApply.apply(this,arguments);setTimeout(intento,50);return r};wrapped.__separarActividades=true;window.aplicarDatosRemotos=wrapped;
+  }
+  const oldCargar=window.cargarDatos;
+  if(typeof oldCargar==='function'&&!oldCargar.__separarActividades){
+    window.cargarDatos=async function(){const r=await oldCargar.apply(this,arguments);setTimeout(intento,50);return r};window.cargarDatos.__separarActividades=true;
+  }
+  document.addEventListener('click',function(e){const b=e.target.closest('[onclick*="switchTab(event, \'actividades-pastoral\')"]');if(b)setTimeout(function(){renderizarActividadesPastoral()},0)});
+})();
+</script>
+<style id="estilos-actividades-pastoral">
+#actividades-pastoral .section-intro{color:var(--medium-gray);max-width:760px}
+#actividades-pastoral .temario-item h4{display:flex;align-items:center;gap:2px}
+#actividades-pastoral .temario-item p{margin:.45rem 0 0;color:var(--medium-gray);line-height:1.45}
+@media(max-width:700px){#actividades-pastoral .page-head{align-items:flex-start;gap:10px}#actividades-pastoral .page-head .acciones{width:auto}.mobile-nav-btn[data-mobile-tab="actividades-pastoral"]{display:flex}}
+</style>
+
 <style id="ui-mobile-compact-toolbar-final">
 /* =========================================================
    BARRA SUPERIOR COMPACTA — NO OCUPAR ESPACIO INNECESARIO
@@ -4664,7 +5000,36 @@ function renderizarNotificaciones(){
 
 document.addEventListener('click',function(e){if(!e.target.closest('.notificaciones-wrap'))cerrarNotificaciones();});
 </script>
-</body>
+
+<style id="fix-acciones-rapidas-final">
+/* FIX FINAL — menú Acciones rápidas */
+.attendance-bulk-menu-wrap{position:relative!important;display:inline-flex!important;align-items:flex-start!important}
+.attendance-bulk-trigger{display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;box-sizing:border-box!important}
+.attendance-bulk-menu{display:none!important;position:absolute!important;top:calc(100% + 8px)!important;left:0!important;width:300px!important;min-width:300px!important;max-width:calc(100vw - 24px)!important;padding:8px!important;box-sizing:border-box!important;background:#162235!important;border:1px solid rgba(148,163,184,.22)!important;border-radius:14px!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important;z-index:99999!important;overflow:hidden!important}
+.attendance-bulk-menu.open{display:flex!important;flex-direction:column!important;gap:3px!important}
+.attendance-bulk-title{display:flex!important;flex:0 0 auto!important;width:100%!important;box-sizing:border-box!important;align-items:center!important;gap:9px!important;padding:9px 10px 10px!important;margin:0 0 4px!important;border-bottom:1px solid rgba(148,163,184,.14)!important}
+.attendance-bulk-title>i{width:30px!important;min-width:30px!important;height:30px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:9px!important;background:rgba(110,231,183,.10)!important;color:#6ee7b7!important}
+.attendance-bulk-title strong{display:block!important;color:#f8fafc!important;font-size:.78rem!important;font-weight:800!important;line-height:1.2!important}
+.attendance-bulk-title small{display:block!important;color:#94a3b8!important;font-size:.64rem!important;margin-top:3px!important;line-height:1.25!important}
+.attendance-bulk-menu .bulk-option{appearance:none!important;-webkit-appearance:none!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:46px!important;box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;margin:0!important;padding:8px 9px!important;border:1px solid transparent!important;background:transparent!important;color:#e2e8f0!important;border-radius:10px!important;text-align:left!important;font-family:inherit!important;font-size:inherit!important;line-height:1.2!important;white-space:normal!important;cursor:pointer!important;box-shadow:none!important}
+.attendance-bulk-menu .bulk-option:hover{background:rgba(255,255,255,.06)!important;border-color:rgba(148,163,184,.10)!important}
+.attendance-bulk-menu .bulk-option:active{transform:none!important;background:rgba(255,255,255,.09)!important}
+.attendance-bulk-menu .bulk-option>i{width:30px!important;min-width:30px!important;height:30px!important;display:flex!important;align-items:center!important;justify-content:center!important;margin:0!important;border-radius:8px!important;font-size:.72rem!important}
+.attendance-bulk-menu .bulk-option>span{display:block!important;min-width:0!important;flex:1 1 auto!important;overflow:hidden!important}
+.attendance-bulk-menu .bulk-option strong{display:block!important;color:#f1f5f9!important;font-size:.72rem!important;font-weight:800!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.attendance-bulk-menu .bulk-option small{display:block!important;color:#94a3b8!important;font-size:.61rem!important;line-height:1.25!important;margin-top:3px!important;white-space:normal!important}
+.attendance-bulk-menu .bulk-option.present>i{background:rgba(16,185,129,.13)!important;color:#6ee7b7!important}
+.attendance-bulk-menu .bulk-option.delay>i{background:rgba(245,158,11,.13)!important;color:#fcd34d!important}
+.attendance-bulk-menu .bulk-option.absent>i{background:rgba(239,68,68,.13)!important;color:#fca5a5!important}
+.attendance-bulk-menu .bulk-option.reset>i,.attendance-bulk-menu .bulk-option.copy>i{background:rgba(148,163,184,.12)!important;color:#cbd5e1!important}
+@media(max-width:700px){
+  .attendance-bulk-menu{position:fixed!important;left:12px!important;right:12px!important;top:auto!important;bottom:calc(72px + env(safe-area-inset-bottom))!important;width:auto!important;min-width:0!important;max-width:none!important}
+  .attendance-bulk-menu .bulk-option{min-height:50px!important;padding:9px 10px!important}
+  .attendance-bulk-menu .bulk-option strong{font-size:.74rem!important}
+  .attendance-bulk-menu .bulk-option small{font-size:.64rem!important}
+}
+</style>
+
 <script id="acciones-asistencia-menu-js">
 function toggleAccionesAsistencia(e){if(e)e.stopPropagation();const wrap=document.querySelector('.attendance-bulk-menu-wrap'),menu=document.getElementById('menu-acciones-asistencia'),btn=document.querySelector('.attendance-bulk-trigger');if(!wrap||!menu)return;const abrir=!menu.classList.contains('open');menu.classList.toggle('open',abrir);wrap.classList.toggle('open',abrir);if(btn)btn.setAttribute('aria-expanded',String(abrir));}
 function cerrarAccionesAsistencia(){const wrap=document.querySelector('.attendance-bulk-menu-wrap'),menu=document.getElementById('menu-acciones-asistencia'),btn=document.querySelector('.attendance-bulk-trigger');if(menu)menu.classList.remove('open');if(wrap)wrap.classList.remove('open');if(btn)btn.setAttribute('aria-expanded','false');}
@@ -4684,7 +5049,7 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   function normT(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ')}
   function ensureT(g){if(!g)return;if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[]}
   function addT(arr,k){if(!Array.isArray(arr))return [k];if(!arr.some(x=>String(x)===String(k)))arr.push(k);return arr}
-  function keysT(item){if(!item)return [];const out=[];if(item.id!==undefined&&item.id!==null&&item.id!=='')out.push('id:'+String(item.id));out.push('temario:'+normT(item.fecha)+'|'+normT(item.titulo||item.nombre||item.tema));return [...new Set(out)]}
+  function keysT(item){if(!item)return [];const out=[];const titulo=normT(item.titulo||item.nombre||item.tema);if(item.id!==undefined&&item.id!==null&&item.id!=='')out.push('id:'+String(item.id));out.push('temario:'+normT(item.fecha)+'|'+titulo);if(titulo)out.push('temarioTitulo:'+titulo);return [...new Set(out)]}
   function cleanGroupT(g){if(!g)return;ensureT(g);if(!g.temario)return;['primerAno','segundoAno'].forEach(function(ano){if(!Array.isArray(g.temario[ano]))g.temario[ano]=[];g.temario[ano]=g.temario[ano].filter(function(item){const ks=keysT(item);return !ks.some(k=>g.temarioEliminados.some(t=>String(t)===String(k)))})})}
   function cleanAllT(){Object.values(sistemaDatos.grupos||{}).forEach(cleanGroupT)}
   const oldApplyT=window.aplicarDatosRemotos;
@@ -4693,33 +5058,149 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
   cleanAllT();try{renderizarTemario()}catch(e){}
 })();
 </script>
-</html>
-<style id="asistencia-iconos-compactos">
-/* Asistencia: controles más compactos para ganar espacio sin quitar funciones */
-#asistencia .attendance-head-actions{gap:6px}
-#asistencia .attendance-head-actions .btn{padding:.42rem .65rem!important;min-height:34px!important;font-size:.78rem!important;border-radius:9px!important}
-#asistencia .attendance-head-actions .btn i{font-size:.78rem!important;margin-right:4px!important}
-#asistencia .attendance-toolbar{gap:8px!important;padding:9px!important}
-#asistencia .session-tools{display:flex;gap:5px!important;flex-wrap:wrap}
-#asistencia .session-tools .btn{padding:.4rem .58rem!important;min-height:32px!important;font-size:.74rem!important;border-radius:8px!important;line-height:1.1!important}
-#asistencia .session-tools .btn i{font-size:.72rem!important;margin-right:3px!important}
-#asistencia .quick-actions{display:flex;gap:6px!important;flex-wrap:wrap}
-#asistencia .quick-actions .btn{padding:.4rem .62rem!important;min-height:32px!important;font-size:.74rem!important;border-radius:8px!important}
-#asistencia .quick-actions .btn i{font-size:.72rem!important;margin-right:3px!important}
-#asistencia .attendance-pill{padding:6px 8px!important;font-size:.68rem!important;border-radius:9px!important}
-@media(max-width:700px){
-  #asistencia .attendance-head-actions{display:flex!important;gap:5px!important;margin-top:8px!important}
-  #asistencia .attendance-head-actions .btn{width:auto!important;flex:1;padding:.38rem .5rem!important}
-  #asistencia .session-tools{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px!important}
-  #asistencia .session-tools .btn,#asistencia .quick-actions .btn{width:100%;padding:.38rem .45rem!important}
-  #asistencia .quick-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:5px!important}
-}
-</style>
+
+
+
 
 <style id="forzar-guardar-igual-antena-absoluto">
 /* Igualar botón Guardar (verde) EXACTAMENTE al botón Antena en todas las pantallas */
+#app-container .grupo-bar .topbar-save {
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    flex: 0 0 40px !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important;
+    height: 40px !important; min-height: 40px !important; max-height: 40px !important;
+    padding: 0 !important; margin: 0 !important; border-radius: 12px !important; box-sizing: border-box !important;
+}
+#app-container .grupo-bar .topbar-save span { display: none !important; }
+#app-container .grupo-bar .topbar-save i { display: block !important; margin: 0 !important; font-size: 1rem !important; line-height: 1 !important; }
+@media (max-width: 900px) {
+    #app-container .grupo-bar .topbar-save {
+        flex: 0 0 36px !important; width: 36px !important; min-width: 36px !important; max-width: 36px !important;
+        height: 36px !important; min-height: 36px !important; max-height: 36px !important; border-radius: 10px !important;
+    }
+    #app-container .grupo-bar .topbar-save i { font-size: 0.95rem !important; }
+}
+@media (max-width: 380px) {
+    #app-container .grupo-bar .topbar-save {
+        flex: 0 0 34px !important; width: 34px !important; min-width: 34px !important; max-width: 34px !important;
+        height: 34px !important; min-height: 34px !important; max-height: 34px !important; border-radius: 9px !important;
+    }
+}
+</style>
 
-/* 1. PC / Escritorio (40px) */
+
+<script id="temario-estable-global-final">
+(function(){
+  'use strict';
+
+  function ejecutarSemillaTemario(origen){
+    try{
+      if(typeof window.cargarTemarioOficial2026!=='function') return false;
+      if(!window.sistemaDatos || !sistemaDatos.grupos || !Object.keys(sistemaDatos.grupos).length) return false;
+      const cambio=!!window.cargarTemarioOficial2026();
+      if(cambio){
+        try{guardarEquipoLocal(equipoActualLogin,sistemaDatos)}catch(e){}
+        try{renderizarTemario()}catch(e){}
+        try{
+          if(typeof sincronizarConNube==='function' && equipoActualLogin) sincronizarConNube(false);
+        }catch(e){}
+      }
+      return cambio;
+    }catch(e){
+      console.warn('Temario oficial: no se pudo aplicar desde '+(origen||'inicio'),e);
+      return false;
+    }
+  }
+
+  window.asegurarTemarioOficialTodosLosGrupos=function(){
+    return ejecutarSemillaTemario('manual');
+  };
+
+  // Cada vez que se renderiza el Temario, primero se garantiza que el grupo
+  // actual tenga el temario oficial. Esto evita que una respuesta de la nube
+  // deje temporalmente el apartado vacío.
+  const renderOriginal=window.renderizarTemario;
+  if(typeof renderOriginal==='function' && !renderOriginal.__temarioEstable){
+    const wrappedRender=function(){
+      ejecutarSemillaTemario('render');
+      return renderOriginal.apply(this,arguments);
+    };
+    wrappedRender.__temarioEstable=true;
+    window.renderizarTemario=wrappedRender;
+  }
+
+  // Los grupos nuevos reciben el temario automáticamente antes/después de guardar.
+  const guardarGrupoOriginal=window.guardarNuevoGrupo;
+  if(typeof guardarGrupoOriginal==='function' && !guardarGrupoOriginal.__temarioEstable){
+    const wrappedGrupo=function(){
+      const r=guardarGrupoOriginal.apply(this,arguments);
+      setTimeout(function(){ejecutarSemillaTemario('grupo nuevo')},0);
+      return r;
+    };
+    wrappedGrupo.__temarioEstable=true;
+    window.guardarNuevoGrupo=wrappedGrupo;
+  }
+
+  // Un catequista nuevo también recibe el temario completo en su primer equipo.
+  const registrarOriginal=window.registrarNuevoEquipo;
+  if(typeof registrarOriginal==='function' && !registrarOriginal.__temarioEstable){
+    const wrappedRegistro=async function(){
+      const r=await registrarOriginal.apply(this,arguments);
+      try{
+        const equipo=document.getElementById('input-equipo')?.value?.trim() || document.getElementById('reg-equipo')?.value?.trim();
+        if(equipo){
+          const local=leerEquipoLocal(equipo);
+          if(local){
+            equipoActualLogin=equipo;
+            sistemaDatos=local.data;
+            const cambio=ejecutarSemillaTemario('cuenta nueva');
+            if(cambio && typeof sincronizarConNube==='function') await sincronizarConNube(false);
+          }
+        }
+      }catch(e){console.warn('Temario oficial: cuenta nueva',e)}
+      return r;
+    };
+    wrappedRegistro.__temarioEstable=true;
+    window.registrarNuevoEquipo=wrappedRegistro;
+  }
+
+  // Cuando llega información desde otro dispositivo, el servidor no puede
+  // borrar accidentalmente el catálogo oficial de temas.
+  const aplicarOriginal=window.aplicarDatosRemotos;
+  if(typeof aplicarOriginal==='function' && !aplicarOriginal.__temarioEstable){
+    const wrappedAplicar=function(){
+      const r=aplicarOriginal.apply(this,arguments);
+      setTimeout(function(){ejecutarSemillaTemario('datos remotos')},0);
+      return r;
+    };
+    wrappedAplicar.__temarioEstable=true;
+    window.aplicarDatosRemotos=wrappedAplicar;
+  }
+
+  // Cambio de grupo: garantiza el temario inmediatamente en el grupo seleccionado.
+  document.addEventListener('change',function(e){
+    if(e.target && e.target.id==='selector-grupos') setTimeout(function(){ejecutarSemillaTemario('cambio de grupo')},0);
+  });
+
+  // Inicio: varios intentos cubren localStorage, respuesta de Apps Script y
+  // restauración de sesión sin tocar datos existentes.
+  let intentos=0;
+  const timer=setInterval(function(){
+    intentos++;
+    const listo=!!(window.sistemaDatos && sistemaDatos.grupos && Object.keys(sistemaDatos.grupos).length);
+    if(listo) ejecutarSemillaTemario('inicio/reintento');
+    if(intentos>=30) clearInterval(timer);
+  },500);
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){ejecutarSemillaTemario('DOMContentLoaded')},50)},{once:true});
+  }else{
+    setTimeout(function(){ejecutarSemillaTemario('documento listo')},50);
+  }
+})();
+</script>
+
+<style id="guardar-igual-antena-definitivo">
+/* Botón Guardar: exactamente las medidas solicitadas, sin texto. */
 #app-container .grupo-bar .topbar-save {
     display: inline-flex !important;
     align-items: center !important;
@@ -4736,19 +5217,13 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
     border-radius: 12px !important;
     box-sizing: border-box !important;
 }
-
-#app-container .grupo-bar .topbar-save span {
-    display: none !important;
-}
-
+#app-container .grupo-bar .topbar-save span { display: none !important; }
 #app-container .grupo-bar .topbar-save i {
     display: block !important;
     margin: 0 !important;
     font-size: 1rem !important;
     line-height: 1 !important;
 }
-
-/* 2. Tablets y Celulares (36px) */
 @media (max-width: 900px) {
     #app-container .grupo-bar .topbar-save {
         flex: 0 0 36px !important;
@@ -4760,12 +5235,8 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
         max-height: 36px !important;
         border-radius: 10px !important;
     }
-    #app-container .grupo-bar .topbar-save i {
-        font-size: 0.95rem !important;
-    }
+    #app-container .grupo-bar .topbar-save i { font-size: 0.95rem !important; }
 }
-
-/* 3. Celulares pequeños (34px) */
 @media (max-width: 380px) {
     #app-container .grupo-bar .topbar-save {
         flex: 0 0 34px !important;
@@ -4778,5 +5249,300 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
         border-radius: 9px !important;
     }
 }
-
 </style>
+
+
+<script id="temario-bootstrap-definitivo-2026">
+(function(){
+  'use strict';
+  /*
+   * ARREGLO DEFINITIVO DEL TEMARIO 2026
+   * - No depende de las capas antiguas de seed/render.
+   * - Los temas oficiales se reconstruyen dentro de cada grupo.
+   * - Las actividades quedan fuera del Temario.
+   * - Las antiguas tombstones oficiales por id/titulo/fecha NO bloquean el catalogo.
+   * - Las eliminaciones nuevas de temas oficiales usan temarioOficialEliminados.
+   */
+  const ACTIVIDAD_KEYS = new Set([
+    'triduo pascual','domingo de ramos','domingo de ramos — procesion','domingo de ramos — procesión',
+    'jueves santo','jueves santo.','viernes santo','pascua','pascua de resurreccion','pascua de resurrección','domingo de pascua',
+    'posible festival de la pastoral','festival de la pastoral','vigilia de pentecostes','vigilia de pentecostés',
+    'misa central de corpus christi','convivencia dia de la amistad','convivencia día de la amistad','expo carisma',
+    'tolerancia por la peregrinacion','tolerancia por la peregrinación','preparacion para la feria de la biblia',
+    'preparación para la feria de la biblia','feria de la biblia','feria de la biblia - diocesana','retiro espiritual 2do año',
+    'retiro espiritual','limpieza de san martin','limpieza de san martín','ensayo de confirmacion 2do año','ensayo de confirmación 2do año',
+    'concurso de coronas de adviento','ensayo via crucis viviente','ensayo vía crucis viviente','expo vocacional – san martin','expo vocacional — san martín',
+    'armado de rosarios','rezo del rosario por grupos','corpus christi','preparacion para la peregrinacion a chaguaya',
+    'preparación para la peregrinación a chaguaya','tolerancia peregrinacion a chaguaya','tolerancia peregrinación a chaguaya',
+    'fiesta de san martin','fiesta de san martín','convivencia de despedida','ensayo misa de confirmacion y limpieza',
+    'ensayo misa de confirmación y limpieza','confirmaciones','vivencia pastoral para los grupos 1 y 2, en los distintos grupos de la parroquia',
+    'vivencia pastoral para los grupos 3 y 4, en los distintos grupos de la parroquia','vivencia pastoral para los grupos 5 y 6, en los distintos grupos de la parroquia','confesiones'
+  ]);
+  function n(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+  function key(x){return n(x&&x.fecha)+'|'+n(x&&(x.titulo||x.nombre||x.tema));}
+  function esActividad(x){
+    const t=n(x&&(x.titulo||x.nombre||x.tema));
+    return ACTIVIDAD_KEYS.has(t)||t.indexOf('domingo de ramos')===0||t.indexOf('pascua')===0;
+  }
+  function idOficial(ano,i){return 'oficial2026-'+ano+'-'+String(i+1).padStart(3,'0');}
+  function oficialEliminado(g,id){
+    return Array.isArray(g.temarioOficialEliminados) && g.temarioOficialEliminados.some(function(v){return String(v)==='id:'+id||String(v)===id;});
+  }
+  function limpiarTombstonesLegacy(g,oficiales){
+    if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[];
+    const ids=new Set(oficiales.map(o=>'id:'+o.id));
+    const pares=new Set(oficiales.map(o=>'temario:'+n(o.fecha)+'|'+n(o.titulo)));
+    const titulos=new Set(oficiales.map(o=>'temarioTitulo:'+n(o.titulo)));
+    const antes=g.temarioEliminados.length;
+    g.temarioEliminados=g.temarioEliminados.filter(function(v){
+      v=String(v);
+      if(ids.has(v)||pares.has(v)||titulos.has(v))return false;
+      return !/^id:oficial2026-/.test(v);
+    });
+    return antes!==g.temarioEliminados.length;
+  }
+  function prepararGrupo(g){
+    if(!g||typeof g!=='object')return false;
+    if(!g.temario||typeof g.temario!=='object')g.temario={};
+    if(!Array.isArray(g.temario.primerAno))g.temario.primerAno=[];
+    if(!Array.isArray(g.temario.segundoAno))g.temario.segundoAno=[];
+    if(!Array.isArray(g.temarioOficialEliminados))g.temarioOficialEliminados=[];
+    let cambio=false;
+    const oficiales=[];
+    ['primerAno','segundoAno'].forEach(function(ano){
+      (window.TEMARIO_OFICIAL_2026[ano]||[]).forEach(function(base,i){
+        oficiales.push({ano:ano,index:i,id:idOficial(ano,i),fecha:base.fecha||'',titulo:base.titulo||base.nombre||base.tema||''});
+      });
+    });
+    if(limpiarTombstonesLegacy(g,oficiales))cambio=true;
+    ['primerAno','segundoAno'].forEach(function(ano){
+      const arr=g.temario[ano];
+      const vistos=new Set();
+      const limpio=[];
+      arr.forEach(function(x){
+        const k=key(x);
+        if(vistos.has(k))return;
+        if(esActividad(x))return;
+        vistos.add(k);limpio.push(x);
+      });
+      if(limpio.length!==arr.length){g.temario[ano]=limpio;cambio=true;}
+      const existentes=new Set(limpio.map(key));
+      (window.TEMARIO_OFICIAL_2026[ano]||[]).forEach(function(base,i){
+        if(esActividad(base))return;
+        const id=idOficial(ano,i);
+        if(oficialEliminado(g,id))return;
+        const k=key(base);
+        if(existentes.has(k))return;
+        g.temario[ano].push(Object.assign({},base,{id:id,completado:false}));
+        existentes.add(k);cambio=true;
+      });
+    });
+    return cambio;
+  }
+  function asegurarCatalogo(){
+    if(typeof sistemaDatos==='undefined'||!sistemaDatos.grupos||!window.TEMARIO_OFICIAL_2026)return false;
+    let cambio=false;
+    Object.keys(sistemaDatos.grupos).forEach(function(nombre){if(prepararGrupo(sistemaDatos.grupos[nombre]))cambio=true;});
+    // Lista de claves oficiales: permite al backend ignorar tombstones antiguos
+    // de este catalogo sin afectar eliminaciones de temas personalizados.
+    const claves=[];
+    ['primerAno','segundoAno'].forEach(function(ano){
+      (window.TEMARIO_OFICIAL_2026[ano]||[]).forEach(function(base){
+        const titulo=n(base.titulo||base.nombre||base.tema||'');
+        const fecha=n(base.fecha||'');
+        claves.push('temario:'+fecha+'|'+titulo);
+        if(titulo)claves.push('temarioTitulo:'+titulo);
+      });
+    });
+    sistemaDatos._temarioOficial2026Claves=claves;
+    if(cambio){
+      sistemaDatos._actualizado=Date.now();
+      try{guardarEquipoLocal(equipoActualLogin,sistemaDatos);}catch(e){}
+    }
+    return cambio;
+  }
+  function anoDelGrupo(){
+    const g=sistemaDatos&&sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual];
+    const nivel=n(g&&g.metadata&&g.metadata.nivel||grupoActual);
+    return nivel.indexOf('segundo')>=0?'segundoAno':'primerAno';
+  }
+  function ajustarFiltroAno(){
+    const f=document.getElementById('temario-filtro-ano');
+    if(f)f.value=anoDelGrupo();
+    const a=document.getElementById('actividades-filtro-ano');
+    if(a)a.value=anoDelGrupo();
+  }
+  function renderFinal(){
+    try{asegurarCatalogo();}catch(e){console.warn('Temario catalogo:',e);}
+    ajustarFiltroAno();
+    const cont=document.getElementById('lista-temario'),pro=document.getElementById('temario-progreso');
+    if(!cont)return;
+    const ano=document.getElementById('temario-filtro-ano')?.value||anoDelGrupo();
+    const desde=document.getElementById('temario-filtro-desde')?.value||'';
+    const hasta=document.getElementById('temario-filtro-hasta')?.value||'';
+    const g=sistemaDatos&&sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual];
+    const arr=g&&g.temario&&Array.isArray(g.temario[ano])?g.temario[ano]:[];
+    const items=arr.filter(function(x){return !esActividad(x)&&(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta);}).slice().sort(function(a,b){return String(a.fecha||'').localeCompare(String(b.fecha||''));});
+    const hechos=items.filter(x=>x.completado).length;
+    if(pro)pro.innerHTML='<strong>'+hechos+'/'+items.length+'</strong> temas completados ('+(items.length?Math.round(hechos/items.length*100):0)+'%)';
+    cont.innerHTML=items.length?items.map(function(x){return '<div class="temario-item '+(x.completado?'completado':'')+'"><div class="temario-item-head"><input class="temario-check" type="checkbox" '+(x.completado?'checked':'')+' onchange="cambiarEstadoTemaTemario(\''+ano+'\',\''+jsStr(x.id)+'\',this.checked)"><div style="flex:1"><h4>'+escHtml(x.titulo)+'</h4><small>'+(x.fecha?formatearFecha(x.fecha):'Sin fecha')+'</small>'+(x.descripcion?'<p>'+escHtml(x.descripcion)+'</p>':'')+'</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario(\''+ano+'\',\''+jsStr(x.id)+'\')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario(\''+ano+'\',\''+jsStr(x.id)+'\')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>';}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>';
+  }
+  function eliminarFinal(ano,id){
+    const g=sistemaDatos&&sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual],arr=g&&g.temario&&g.temario[ano],item=Array.isArray(arr)?arr.find(function(x){return String(x.id)===String(id);}):null;
+    if(!g||!item)return;
+    if(!confirm('¿Eliminar este tema del temario?'))return;
+    const oficial=/^oficial2026-/.test(String(item.id));
+    if(!Array.isArray(g.temarioOficialEliminados))g.temarioOficialEliminados=[];
+    if(oficial){const v='id:'+String(item.id);if(!g.temarioOficialEliminados.some(function(x){return String(x)===v;}))g.temarioOficialEliminados.push(v);}
+    else{if(!Array.isArray(g.temarioEliminados))g.temarioEliminados=[];const v='id:'+String(item.id);if(!g.temarioEliminados.some(function(x){return String(x)===v;}))g.temarioEliminados.push(v);}
+    g.temario[ano]=arr.filter(function(x){return String(x.id)!==String(id);});
+    sistemaDatos._actualizado=Date.now();
+    try{guardarEquipoLocal(equipoActualLogin,sistemaDatos);}catch(e){}
+    renderFinal();
+    try{sincronizarConNube(false);}catch(e){}
+    try{toast('✔ Tema eliminado');}catch(e){}
+  }
+  window.cargarTemarioOficial2026=asegurarCatalogo;
+  window.bootstrapTemarioDefinitivo2026=asegurarCatalogo;
+  window.renderizarTemario=renderFinal;
+  window.eliminarTemaTemario=eliminarFinal;
+  const oldCambiar=window.cambiarGrupoSeleccionado;
+  if(typeof oldCambiar==='function'&&!oldCambiar.__temarioFinal){
+    const f=function(){const r=oldCambiar.apply(this,arguments);ajustarFiltroAno();renderFinal();return r;};
+    f.__temarioFinal=true;window.cambiarGrupoSeleccionado=f;
+  }
+  function ejecutar(){
+    const cambio=asegurarCatalogo();
+    ajustarFiltroAno();
+    renderFinal();
+    try{if(typeof asegurarActividadesPastoral==='function')asegurarActividadesPastoral();}catch(e){}
+    try{if(typeof renderizarActividadesPastoral==='function')renderizarActividadesPastoral();}catch(e){}
+    if(cambio){try{sincronizarConNube(false);}catch(e){}}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(ejecutar,100)},{once:true});else setTimeout(ejecutar,100);
+  setTimeout(ejecutar,1200);setTimeout(ejecutar,3000);
+})();
+</script>
+
+
+
+<script id="temario-actividades-forzado-final-2026">
+(function(){
+  'use strict';
+
+  function n(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+  function clave(x){return n(x&&x.fecha)+'|'+n(x&&(x.titulo||x.nombre||x.tema));}
+  function grupo(){return (typeof sistemaDatos!=='undefined' && sistemaDatos.grupos) ? sistemaDatos.grupos[grupoActual] : null;}
+  function ano(){
+    var g=grupo(), s=n((g&&g.metadata&&g.metadata.nivel)||window.grupoActual||'');
+    return s.indexOf('segundo')>=0?'segundoAno':'primerAno';
+  }
+  function actividades(){
+    return new Set([
+      'triduo pascual','domingo de ramos','jueves santo','viernes santo','pascua','domingo de pascua',
+      'posible festival de la pastoral','festival de la pastoral','vigilia de pentecostes','misa central de corpus christi',
+      'convivencia dia de la amistad','expo carisma','tolerancia por la peregrinacion','preparacion para la feria de la biblia',
+      'feria de la biblia','retiro espiritual 2do ano','retiro espiritual','limpieza de san martin',
+      'ensayo de confirmacion 2do ano','concurso de coronas de adviento','ensayo via crucis viviente','expo vocacional san martin',
+      'armado de rosarios','rezo del rosario por grupos','corpus christi','preparacion para la peregrinacion a chaguaya',
+      'tolerancia peregrinacion a chaguaya','feria de la biblia - diocesana','fiesta de san martin','convivencia de despedida',
+      'ensayo misa de confirmacion y limpieza','confirmaciones','vivencia pastoral para los grupos 1 y 2, en los distintos grupos de la parroquia',
+      'vivencia pastoral para los grupos 3 y 4, en los distintos grupos de la parroquia',
+      'vivencia pastoral para los grupos 5 y 6, en los distintos grupos de la parroquia','confesiones'
+    ]);
+  }
+  function esActividad(x){
+    var t=n(x&&(x.titulo||x.nombre||x.tema));
+    var a=actividades();
+    return a.has(t)||t.indexOf('domingo de ramos')===0||t.indexOf('jueves santo')===0||t.indexOf('viernes santo')===0||t.indexOf('pascua')===0||t.indexOf('retiro espiritual')===0||t.indexOf('feria de la biblia')===0;
+  }
+  function asegurar(){
+    if(typeof sistemaDatos==='undefined'||!sistemaDatos.grupos||!window.TEMARIO_OFICIAL_2026)return false;
+    var g=grupo(); if(!g)return false;
+    if(!g.temario||typeof g.temario!=='object')g.temario={primerAno:[],segundoAno:[]};
+    if(!Array.isArray(g.temario.primerAno))g.temario.primerAno=[];
+    if(!Array.isArray(g.temario.segundoAno))g.temario.segundoAno=[];
+    if(!g.actividadesPastoral||typeof g.actividadesPastoral!=='object')g.actividadesPastoral={primerAno:[],segundoAno:[]};
+    if(!Array.isArray(g.actividadesPastoral.primerAno))g.actividadesPastoral.primerAno=[];
+    if(!Array.isArray(g.actividadesPastoral.segundoAno))g.actividadesPastoral.segundoAno=[];
+    var cambio=false;
+    ['primerAno','segundoAno'].forEach(function(a){
+      var arr=g.temario[a], vistos=new Set(), limpio=[];
+      arr.forEach(function(x){var k=clave(x);if(vistos.has(k))return;vistos.add(k);if(!esActividad(x))limpio.push(x);});
+      if(limpio.length!==arr.length){g.temario[a]=limpio;cambio=true;}
+      var keys=new Set(limpio.map(clave));
+      (window.TEMARIO_OFICIAL_2026[a]||[]).forEach(function(x,i){
+        if(esActividad(x))return;
+        var k=clave(x);if(keys.has(k))return;
+        g.temario[a].push(Object.assign({},x,{id:x.id||('oficial2026-'+a+'-'+String(i+1).padStart(3,'0')),completado:false}));
+        keys.add(k);cambio=true;
+      });
+      var aa=g.actividadesPastoral[a], ak=new Set(aa.map(clave));
+      if(window.ACTIVIDADES_PASTORALES_OFICIALES_2026){
+        (window.ACTIVIDADES_PASTORALES_OFICIALES_2026[a]||[]).forEach(function(x,i){
+          var k=clave(x);if(ak.has(k))return;
+          aa.push({id:x.id||('actividad2026-'+a+'-'+String(i+1).padStart(3,'0')),fecha:x.fecha||'',titulo:x.titulo||'',descripcion:x.descripcion||'',realizada:false});
+          ak.add(k);cambio=true;
+        });
+      }
+    });
+    if(cambio){
+      sistemaDatos._actualizado=Date.now();
+      try{guardarEquipoLocal(equipoActualLogin,sistemaDatos);}catch(e){}
+    }
+    return cambio;
+  }
+  function filtro(id,a){var e=document.getElementById(id);if(e)e.value=a;}
+  function renderTemarioForzado(){
+    if(typeof sistemaDatos==='undefined'||!sistemaDatos.grupos||!grupo())return;
+    asegurar();
+    var sel=document.getElementById('temario-filtro-ano');
+    var a=(sel&&sel.value)?sel.value:ano();
+    var g=grupo(),arr=(g.temario&&g.temario[a])||[],desde=(document.getElementById('temario-filtro-desde')||{}).value||'',hasta=(document.getElementById('temario-filtro-hasta')||{}).value||'';
+    var items=arr.filter(function(x){return !esActividad(x)&&(!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta);}).slice().sort(function(x,y){return String(x.fecha||'').localeCompare(String(y.fecha||''));});
+    var pro=document.getElementById('temario-progreso'),cont=document.getElementById('lista-temario');if(!cont)return;
+    var hechos=items.filter(function(x){return !!x.completado;}).length;
+    if(pro)pro.innerHTML='<strong>'+hechos+'/'+items.length+'</strong> temas completados ('+(items.length?Math.round(hechos/items.length*100):0)+'%)';
+    cont.innerHTML=items.length?items.map(function(x){return '<div class="temario-item '+(x.completado?'completado':'')+'"><div class="temario-item-head"><input class="temario-check" type="checkbox" '+(x.completado?'checked':'')+' onchange="cambiarEstadoTemaTemario(\''+a+'\',\''+jsStr(x.id)+'\',this.checked)"><div style="flex:1"><h4>'+escHtml(x.titulo)+'</h4><small>'+(x.fecha?formatearFecha(x.fecha):'Sin fecha')+'</small>'+(x.descripcion?'<p>'+escHtml(x.descripcion)+'</p>':'')+'</div><div class="temario-actions"><button class="btn btn-info" style="padding:6px 9px" onclick="editarTemaTemario(\''+a+'\',\''+jsStr(x.id)+'\')" title="Editar"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" style="padding:6px 9px" onclick="eliminarTemaTemario(\''+a+'\',\''+jsStr(x.id)+'\')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></div></div></div>';}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay temas para este filtro.</div>';
+  }
+  function renderActividadesForzado(){
+    if(typeof sistemaDatos==='undefined'||!sistemaDatos.grupos||!grupo())return;
+    asegurar();
+    var sel=document.getElementById('actividades-filtro-ano');
+    var a=(sel&&sel.value)?sel.value:ano();
+    var g=grupo(),arr=(g.actividadesPastoral&&g.actividadesPastoral[a])||[],desde=(document.getElementById('actividades-filtro-desde')||{}).value||'',hasta=(document.getElementById('actividades-filtro-hasta')||{}).value||'',cont=document.getElementById('lista-actividades-pastoral'),pro=document.getElementById('actividades-pastoral-progreso');if(!cont)return;
+    var items=arr.filter(function(x){return (!desde||!x.fecha||x.fecha>=desde)&&(!hasta||!x.fecha||x.fecha<=hasta);}).slice().sort(function(x,y){return String(x.fecha||'').localeCompare(String(y.fecha||''));});
+    var hechas=items.filter(function(x){return !!x.realizada;}).length;if(pro)pro.innerHTML='<strong>'+hechas+'/'+items.length+'</strong> actividades realizadas ('+(items.length?Math.round(hechas/items.length*100):0)+'%)';
+    cont.innerHTML=items.length?items.map(function(x){return '<div class="temario-item '+(x.realizada?'completado':'')+'"><div class="temario-item-head"><input class="temario-check" type="checkbox" '+(x.realizada?'checked':'')+' onchange="cambiarEstadoActividadPastoral(\''+a+'\',\''+jsStr(x.id)+'\',this.checked)"><div style="flex:1"><h4><i class="fa-solid fa-people-group" style="margin-right:6px"></i>'+escHtml(x.titulo)+'</h4><small>'+(x.fecha?formatearFecha(x.fecha):'Fecha por definir')+'</small><p>'+escHtml(x.descripcion||'')+'</p></div></div></div>';}).join(''):'<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--medium-gray)">No hay actividades para este filtro.</div>';
+  }
+  window.renderizarTemario=renderTemarioForzado;
+  window.renderizarActividadesPastoral=renderActividadesForzado;
+  window.asegurarCatalogoTemarioActividades2026=asegurar;
+  function seleccionarAnoDelGrupo(){
+    var a=ano();
+    filtro('temario-filtro-ano',a);
+    filtro('actividades-filtro-ano',a);
+  }
+  function ejecutar(inicializarAno){
+    try{
+      var c=asegurar();
+      if(inicializarAno)seleccionarAnoDelGrupo();
+      renderTemarioForzado();
+      renderActividadesForzado();
+      if(c&&typeof sincronizarConNube==='function')sincronizarConNube(false);
+    }catch(e){console.error('CATALOGO FINAL 2026',e);}
+  }
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.id==='selector-grupos'){setTimeout(function(){ejecutar(true);},50);return;}
+    if(e.target&&(e.target.id==='temario-filtro-ano'||e.target.id==='temario-filtro-desde'||e.target.id==='temario-filtro-hasta'))setTimeout(renderTemarioForzado,0);
+    if(e.target&&(e.target.id==='actividades-filtro-ano'||e.target.id==='actividades-filtro-desde'||e.target.id==='actividades-filtro-hasta'))setTimeout(renderActividadesForzado,0);
+  });
+  setTimeout(function(){ejecutar(true);},300);
+  setTimeout(function(){ejecutar(false);},1200);
+  setTimeout(function(){ejecutar(false);},3000);
+  setInterval(function(){if(typeof sistemaDatos!=='undefined'&&grupo())ejecutar(false);},5000);
+})();
+</script>
+
+</body>
+</html>
