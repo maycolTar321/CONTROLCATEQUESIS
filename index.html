@@ -5544,5 +5544,31 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 })();
 </script>
 
+
+<style id="mobile-nav-seis-opciones-final">
+/* Restaurar las 6 opciones de la barra móvil: Inicio, Asistencia, Temario, Actividades, Pagos y Más. */
+@media(max-width:900px){
+  .mobile-nav{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    overflow:visible!important;
+  }
+  .mobile-nav-btn{
+    min-width:0!important;
+    flex:1 1 0!important;
+  }
+}
+@media(max-width:520px){
+  .mobile-nav{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:3px!important;
+  }
+  .mobile-nav-btn{
+    padding-left:1px!important;
+    padding-right:1px!important;
+    font-size:.57rem!important;
+  }
+  .mobile-nav-btn i{font-size:1.04rem!important}
+}
+</style>
 </body>
 </html>
