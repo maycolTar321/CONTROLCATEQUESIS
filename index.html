@@ -7273,3 +7273,157 @@ document.addEventListener('click',e=>{
   if(menu && !menu.contains(e.target))toggleFinanceActionsMenu(false);
 });
 </script>
+
+<style id="finance-collapsible-sections">
+.finance-report-section-collapsible{border:1px solid var(--line-soft,#334155);border-radius:14px;margin:10px 0;overflow:hidden;background:var(--card-bg,#111827)}
+.finance-report-section-collapsible>summary{list-style:none;cursor:pointer;padding:11px 13px;display:flex;align-items:center;gap:9px;font-size:.78rem;font-weight:800;color:var(--text-color,#fff);background:rgba(148,163,184,.045)}
+.finance-report-section-collapsible>summary::-webkit-details-marker{display:none}
+.finance-report-section-collapsible>summary:before{content:"\\f0da";font-family:"Font Awesome 6 Free";font-weight:900;font-size:.7rem;transition:transform .15s ease;color:#34d399}
+.finance-report-section-collapsible[open]>summary:before{transform:rotate(90deg)}
+.finance-report-section-collapsible .finance-section-body{padding:0 10px 10px}
+.finance-report-section-collapsible .finance-section-body table{margin-top:4px}
+.finance-report-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.68rem;overflow:hidden;border:1px solid #d9e2e8;border-radius:10px}
+.finance-report-table th{position:sticky;top:0;background:#123b3a!important;color:#fff!important;font-weight:800;letter-spacing:.02em;padding:8px 7px;border-bottom:1px solid #0b2b2a}
+.finance-report-table td{padding:7px;border-bottom:1px solid #e7edf0;background:#fff;color:#172033}
+.finance-report-table tbody tr:nth-child(even) td{background:#f7fafb}
+.finance-report-table tbody tr:hover td{background:#eef8f5}
+.finance-report-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}
+.finance-report-kpi-card{padding:10px;border:1px solid #dce5e9;border-radius:10px;background:#f8fafc}
+.finance-report-kpi-card small{display:block;color:#64748b;font-size:.62rem}
+.finance-report-kpi-card strong{display:block;color:#123b3a;font-size:.92rem;margin-top:3px}
+@media(max-width:650px){
+ .finance-report-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .finance-report-table{font-size:.62rem;min-width:720px}
+ .finance-section-body{overflow-x:auto}
+}
+</style>
+
+<script id="finance-collapsible-engine">
+(function(){
+  window.mejorarReporteFinancieroUI=function(root){
+    if(!root || root.dataset.financeEnhanced==='1') return root;
+    root.dataset.financeEnhanced='1';
+
+    const tables=[...root.querySelectorAll('table')];
+    tables.forEach((table,idx)=>{
+      if(table.classList.contains('finance-report-table')) return;
+      table.classList.add('finance-report-table');
+      const heading=table.previousElementSibling;
+      let title='';
+      if(heading && /^H[1-4]$/.test(heading.tagName)){
+        title=heading.textContent.trim();
+        const details=document.createElement('details');
+        details.className='finance-report-section-collapsible';
+        details.open=idx===0;
+        const summary=document.createElement('summary');
+        const icon=document.createElement('i');
+        icon.className='fa-solid '+(
+          /persona/i.test(title)?'fa-user-group':
+          /actividad/i.test(title)?'fa-layer-group':
+          /movimiento/i.test(title)?'fa-money-bill-transfer':
+          /plan/i.test(title)?'fa-calendar-check':'fa-table'
+        );
+        summary.append(icon,document.createTextNode(title||'Detalle financiero'));
+        const body=document.createElement('div');
+        body.className='finance-section-body';
+        heading.remove();
+        table.parentNode.insertBefore(details,table);
+        details.append(summary,body);
+        body.appendChild(table);
+      }
+    });
+
+    // If the report already contains a section with person/activity details,
+    // make it explicitly expandable without duplicating the data.
+    root.querySelectorAll('[data-finance-person], [data-finance-activity]').forEach(el=>{
+      if(el.tagName.toLowerCase()==='details') el.open=false;
+    });
+    return root;
+  };
+
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('[data-finance-toggle-all]');
+    if(!btn)return;
+    const root=document.querySelector(btn.dataset.financeToggleAll);
+    if(!root)return;
+    const open=btn.dataset.state!=='open';
+    root.querySelectorAll('.finance-report-section-collapsible').forEach(d=>d.open=open);
+    btn.dataset.state=open?'open':'closed';
+    btn.innerHTML=open
+      ? '<i class="fa-solid fa-compress"></i> Contraer'
+      : '<i class="fa-solid fa-expand"></i> Expandir';
+  });
+})();
+</script>
+
+<script id="finance-summary-views">
+function mostrarVistaFinanciera(tipo){
+  const d = (typeof getReportData==='function') ? getReportData() : null;
+  if(!d){ alert('No hay datos financieros para generar esta vista.'); return; }
+
+  let rows=[], title='', icon='';
+  if(tipo==='persona'){
+    title='Resumen financiero por persona'; icon='fa-user-group';
+    const nombres=[...new Set(d.movimientos.map(m=>m.persona).filter(Boolean))];
+    rows=nombres.map(nombre=>{
+      const mov=d.movimientos.filter(m=>m.persona===nombre);
+      const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+      const dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+      return [nombre,pag,dev,pag-dev,mov.length];
+    });
+  }else{
+    title='Estado financiero por actividad'; icon='fa-chart-column';
+    rows=d.actividades.map(a=>{
+      const mov=d.movimientos.filter(m=>String(m.actividadId)===String(a.id));
+      const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+      const dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+      return [a.nombre,Number(a.precio||0),pag,dev,pag-dev];
+    });
+  }
+
+  const modal=document.createElement('div');
+  modal.className='modal active';
+  modal.innerHTML=`
+    <div class="modal-content finance-view-modal">
+      <div class="modal-header">
+        <h2><i class="fa-solid ${icon}"></i> ${title}</h2>
+        <button type="button" class="modal-close" onclick="this.closest('.modal').remove()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button type="button" class="btn btn-outline" data-finance-toggle-all="#finance-view-table-wrap">
+            <i class="fa-solid fa-expand"></i> Expandir
+          </button>
+        </div>
+        <details id="finance-view-table-wrap" class="finance-report-section-collapsible" open>
+          <summary><i class="fa-solid ${icon}"></i> Ver detalle</summary>
+          <div class="finance-section-body">
+            <div style="overflow:auto">
+              <table class="finance-report-table">
+                <thead>${tipo==='persona'
+                  ? '<tr><th>PERSONA</th><th>PAGADO (Bs)</th><th>DEVUELTO (Bs)</th><th>NETO (Bs)</th><th>MOVIMIENTOS</th></tr>'
+                  : '<tr><th>ACTIVIDAD</th><th>COSTO (Bs)</th><th>PAGADO (Bs)</th><th>DEVUELTO (Bs)</th><th>NETO (Bs)</th></tr>'}
+                </thead>
+                <tbody>${rows.length?rows.map(r=>'<tr>'+r.map((v,i)=>'<td>'+((typeof v==='number'&&i>0)?Number(v).toFixed(2):String(v||''))+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="5">No hay datos registrados.</td></tr>'}</tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+</script>
+
+<style id="finance-icon-polish">
+.finanzas .fa-solid,.finanzas .fa-regular,.finanzas .fa-brands,
+#finanzas .fa-solid,#finanzas .fa-regular,#finanzas .fa-brands{
+  line-height:1;vertical-align:middle
+}
+#finanzas .btn i{font-size:.78em}
+#finanzas .acciones .btn{min-height:34px}
+.finance-view-chooser{display:flex;flex-wrap:wrap;gap:6px}
+.finance-view-chooser .btn{font-size:.7rem;padding:7px 10px}
+.finance-view-modal{max-width:1100px}
+.finance-view-modal .modal-header h2{font-size:1rem}
+</style>
