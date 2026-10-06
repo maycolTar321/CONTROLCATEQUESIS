@@ -6651,69 +6651,143 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
       return s+Math.max(0,Number(a.precio||0)-net);
     },0),0);
 
+    const detalleActividad=(a)=>{
+      return d.alumnos.map(al=>{
+        const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
+        const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+        const dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+        const net=pag-dev, saldo=Math.max(0,Number(a.precio||0)-net);
+        const estado=Number(a.precio||0)<=0?'Sin costo':saldo<=0?'Pagado':net>0?'Parcial':'Pendiente';
+        return `<tr>
+          <td>${finEsc(al.nombre)}</td>
+          <td>${finMoney(a.precio)}</td>
+          <td>${finMoney(pag)}</td>
+          <td>${finMoney(dev)}</td>
+          <td>${finMoney(net)}</td>
+          <td>${finMoney(saldo)}</td>
+          <td><span class="${estado==='Pagado'?'fin-ok':estado==='Pendiente'?'fin-danger':'fin-warn'}">${estado}</span></td>
+        </tr>`;
+      }).join('');
+    };
+
+    const detallePersona=(al)=>{
+      return d.actividades.map(a=>{
+        const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
+        const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+        const dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+        const net=pag-dev, saldo=Math.max(0,Number(a.precio||0)-net);
+        const estado=Number(a.precio||0)<=0?'Sin costo':saldo<=0?'Pagado':net>0?'Parcial':'Pendiente';
+        return `<tr><td>${finEsc(a.nombre)}</td><td>${finMoney(a.precio)}</td><td>${finMoney(pag)}</td><td>${finMoney(dev)}</td><td>${finMoney(net)}</td><td>${finMoney(saldo)}</td><td><span class="${estado==='Pagado'?'fin-ok':estado==='Pendiente'?'fin-danger':'fin-warn'}">${estado}</span></td></tr>`;
+      }).join('');
+    };
+
     let sections='';
     if(d.seleccion.includes('resumen'))sections+=`
       <section class="fin-report-section"><h3>01 · Resumen ejecutivo</h3>
       <div class="fin-report-kpis">
-       <div><b>${finMoney(pagos)}</b><span>Total cobrado</span></div><div><b>${finMoney(dev)}</b><span>Devoluciones</span></div>
-       <div><b>${finMoney(caja)}</b><span>Saldo neto en caja</span></div><div><b>${finMoney(pendiente)}</b><span>Pendiente por cobrar</span></div>
-       <div><b>${d.movimientos.length}</b><span>Movimientos analizados</span></div><div><b>${d.actividades.length}</b><span>Actividades</span></div>
+       <div><b>${finMoney(pagos)}</b><span>Total cobrado</span></div>
+       <div><b>${finMoney(dev)}</b><span>Devoluciones</span></div>
+       <div><b>${finMoney(caja)}</b><span>Saldo neto</span></div>
+       <div><b>${finMoney(pendiente)}</b><span>Pendiente por cobrar</span></div>
+       <div><b>${d.movimientos.length}</b><span>Movimientos</span></div>
+       <div><b>${d.actividades.length}</b><span>Actividades financieras</span></div>
       </div>
       <div class="fin-report-meta"><span><b>Grupo:</b> ${finEsc(grupoActual)}</span><span><b>Generado:</b> ${new Date().toLocaleString('es-BO')}</span><span><b>Filtro:</b> ${d.act?'Actividad seleccionada':'Todas las actividades'}</span></div></section>`;
 
     if(d.seleccion.includes('actividades'))sections+=`
-      <section class="fin-report-section"><h3>02 · Estado financiero por actividad</h3>
-      <table><thead><tr><th>Actividad</th><th>Costo unitario</th><th>Pagados</th><th>Parciales</th><th>Pendientes</th><th>Cobrado</th><th>Saldo</th></tr></thead><tbody>
-      ${d.actividades.map(a=>{
-        const det=d.alumnos.map(al=>{
-          const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
-          const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0),dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0),net=pag-dev,saldo=Math.max(0,Number(a.precio||0)-net);
-          return {pag,net,saldo};
-        });
-        const paid=det.filter(x=>Number(a.precio||0)>0&&x.saldo<=0).length, partial=det.filter(x=>x.net>0&&x.saldo>0).length, pending=det.filter(x=>x.saldo>0&&x.net===0).length;
-        const cob=det.reduce((s,x)=>s+x.net,0), sal=det.reduce((s,x)=>s+x.saldo,0);
-        return `<tr><td><strong>${finEsc(a.nombre)}</strong><br><small>${finEsc(a.estado||'planificada')} · ${finEsc(a.fecha||'Sin fecha')}</small></td><td>${finMoney(a.precio)}</td><td>${paid}</td><td>${partial}</td><td>${pending}</td><td>${finMoney(cob)}</td><td>${finMoney(sal)}</td></tr>`;
-      }).join('')||'<tr><td colspan="7">No hay actividades para el filtro seleccionado.</td></tr>'}
-      </tbody></table></section>`;
+      <section class="fin-report-section">
+        <h3>02 · Estado financiero por actividad</h3>
+        <p class="fin-report-help">Cada actividad es desplegable. Dentro encontrarás el estado de cada catequizando, con sus importes y saldo.</p>
+        <div class="finance-detail-list">
+        ${d.actividades.map(a=>{
+          const det=d.alumnos.map(al=>{
+            const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
+            const pag=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+            const dev=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+            const net=pag-dev,saldo=Math.max(0,Number(a.precio||0)-net);
+            return {saldo,net};
+          });
+          const paid=det.filter(x=>Number(a.precio||0)>0&&x.saldo<=0).length;
+          const partial=det.filter(x=>x.net>0&&x.saldo>0).length;
+          const pending=det.filter(x=>x.saldo>0&&x.net===0).length;
+          const cob=det.reduce((s,x)=>s+x.net,0), sal=det.reduce((s,x)=>s+x.saldo,0);
+          return `<details class="finance-detail-card">
+            <summary>
+              <span class="finance-detail-title"><i class="fa-solid fa-wallet"></i><strong>${finEsc(a.nombre)}</strong><small>${finEsc(a.estado||'Planificada')} · ${finEsc(a.fecha||'Sin fecha')}</small></span>
+              <span class="finance-detail-metrics"><b>${finMoney(cob)}</b><small>Cobrado</small><b>${finMoney(sal)}</b><small>Saldo</small><i class="fa-solid fa-chevron-down"></i></span>
+            </summary>
+            <div class="finance-detail-body">
+              <div class="finance-mini-cells">
+                <div><small>Costo unitario</small><strong>${finMoney(a.precio)}</strong></div>
+                <div><small>Pagados</small><strong>${paid}</strong></div>
+                <div><small>Parciales</small><strong>${partial}</strong></div>
+                <div><small>Pendientes</small><strong>${pending}</strong></div>
+                <div><small>Cobrado</small><strong>${finMoney(cob)}</strong></div>
+                <div><small>Saldo</small><strong>${finMoney(sal)}</strong></div>
+              </div>
+              <div class="finance-table-scroll"><table class="finance-detail-table"><thead><tr><th>Catequizando</th><th>Costo</th><th>Pagado</th><th>Devuelto</th><th>Neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${detalleActividad(a)||'<tr><td colspan="7">No hay catequizandos registrados.</td></tr>'}</tbody></table></div>
+            </div>
+          </details>`;
+        }).join('')||'<div class="fin-report-empty">No hay actividades para el filtro seleccionado.</div>'}
+        </div>
+      </section>`;
 
     if(d.seleccion.includes('personas'))sections+=`
-      <section class="fin-report-section"><h3>03 · Estado de cuenta por persona</h3>
-      <table><thead><tr><th>Catequizando</th><th>Pagado</th><th>Devuelto</th><th>Neto</th><th>Saldo pendiente</th><th>Situación</th></tr></thead><tbody>
-      ${d.alumnos.map(al=>{
-        let pag=0,dev=0,pend=0;
-        d.actividades.forEach(a=>{
-          const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
-          pag+=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
-          dev+=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
-          const net=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0)-mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
-          pend+=Math.max(0,Number(a.precio||0)-net);
-        });
-        const net=pag-dev;
-        return `<tr><td><strong>${finEsc(al.nombre)}</strong></td><td>${finMoney(pag)}</td><td>${finMoney(dev)}</td><td>${finMoney(net)}</td><td>${finMoney(pend)}</td><td>${pend>0?'<span class="fin-danger">Pendiente</span>':'<span class="fin-ok">Al día</span>'}</td></tr>`;
-      }).join('')||'<tr><td colspan="6">No hay personas registradas.</td></tr>'}
-      </tbody></table></section>`;
+      <section class="fin-report-section">
+        <h3>03 · Resumen por persona</h3>
+        <p class="fin-report-help">Cada persona es desplegable para revisar cuánto pagó en cada actividad y cuánto le queda pendiente.</p>
+        <div class="finance-detail-list">
+        ${d.alumnos.map(al=>{
+          let pag=0,dev=0,pend=0;
+          d.actividades.forEach(a=>{
+            const mov=d.f.movimientos.filter(m=>m.persona===al.nombre&&String(m.actividadId)===String(a.id));
+            pag+=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0);
+            dev+=mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+            const net=mov.filter(m=>m.tipo==='pago').reduce((s,m)=>s+Number(m.monto||0),0)-mov.filter(m=>m.tipo==='devolucion').reduce((s,m)=>s+Number(m.monto||0),0);
+            pend+=Math.max(0,Number(a.precio||0)-net);
+          });
+          const net=pag-dev;
+          return `<details class="finance-detail-card">
+            <summary>
+              <span class="finance-detail-title"><i class="fa-solid fa-user"></i><strong>${finEsc(al.nombre)}</strong><small>${pend>0?'Tiene saldo pendiente':'Cuenta al día'}</small></span>
+              <span class="finance-detail-metrics"><b>${finMoney(net)}</b><small>Neto</small><b>${finMoney(pend)}</b><small>Pendiente</small><i class="fa-solid fa-chevron-down"></i></span>
+            </summary>
+            <div class="finance-detail-body">
+              <div class="finance-mini-cells">
+                <div><small>Pagado</small><strong>${finMoney(pag)}</strong></div>
+                <div><small>Devuelto</small><strong>${finMoney(dev)}</strong></div>
+                <div><small>Neto</small><strong>${finMoney(net)}</strong></div>
+                <div><small>Pendiente</small><strong>${finMoney(pend)}</strong></div>
+              </div>
+              <div class="finance-table-scroll"><table class="finance-detail-table"><thead><tr><th>Actividad</th><th>Costo</th><th>Pagado</th><th>Devuelto</th><th>Neto</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>${detallePersona(al)||'<tr><td colspan="7">No hay actividades financieras.</td></tr>'}</tbody></table></div>
+            </div>
+          </details>`;
+        }).join('')||'<div class="fin-report-empty">No hay personas registradas.</div>'}
+        </div>
+      </section>`;
 
     if(d.seleccion.includes('movimientos'))sections+=`
-      <section class="fin-report-section"><h3>04 · Libro detallado de movimientos</h3>
-      <table><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th></tr></thead><tbody>
-      ${d.movimientos.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(m=>`<tr><td>${finEsc(m.fecha)}</td><td>${finEsc(m.persona)}</td><td>${finEsc(m.actividadNombre)}</td><td>${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${finEsc(m.metodo)}</td><td><strong>${finMoney(m.monto)}</strong></td><td>${finEsc(m.observacion||'-')}</td></tr>`).join('')||'<tr><td colspan="7">No hay movimientos para el filtro seleccionado.</td></tr>'}
-      </tbody></table></section>`;
+      <section class="fin-report-section">
+        <h3>04 · Libro detallado de movimientos</h3>
+        <div class="finance-table-scroll"><table class="finance-detail-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Método</th><th>Monto</th><th>Observación</th></tr></thead><tbody>
+        ${d.movimientos.slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(m=>`<tr><td>${finEsc(m.fecha)}</td><td>${finEsc(m.persona)}</td><td>${finEsc(m.actividadNombre)}</td><td>${m.tipo==='pago'?'<span class="fin-ok">Pago</span>':'<span class="fin-danger">Devolución</span>'}</td><td>${finEsc(m.metodo)}</td><td><strong>${finMoney(m.monto)}</strong></td><td>${finEsc(m.observacion||'-')}</td></tr>`).join('')||'<tr><td colspan="7">No hay movimientos.</td></tr>'}
+        </tbody></table></div>
+      </section>`;
 
     if(d.seleccion.includes('actividades_info'))sections+=`
-      <section class="fin-report-section"><h3>05 · Ficha y planificación de actividades</h3>
-      <table><thead><tr><th>Actividad</th><th>Fecha</th><th>Horario</th><th>Estado</th><th>Costo</th><th>Descripción / indicaciones</th></tr></thead><tbody>
+      <section class="fin-report-section"><h3>05 · Ficha y planificación financiera</h3>
+      <div class="finance-table-scroll"><table class="finance-detail-table"><thead><tr><th>Actividad</th><th>Fecha</th><th>Horario</th><th>Estado</th><th>Costo</th><th>Descripción</th></tr></thead><tbody>
       ${d.actividades.map(a=>`<tr><td><strong>${finEsc(a.nombre)}</strong></td><td>${finEsc(a.fecha||'-')}${a.fechaFin&&a.fechaFin!==a.fecha?' → '+finEsc(a.fechaFin):''}</td><td>${finEsc(a.inicio||'--:--')} ${a.fin?'– '+finEsc(a.fin):''}</td><td>${finEsc(a.estado||'-')}</td><td>${finMoney(a.precio)}</td><td>${finEsc(a.descripcion||'-')}</td></tr>`).join('')||'<tr><td colspan="6">No hay actividades.</td></tr>'}
-      </tbody></table></section>`;
+      </tbody></table></div></section>`;
 
     if(d.seleccion.includes('comprobantes'))sections+=`
       <section class="fin-report-section"><h3>06 · Control de respaldo y observaciones</h3>
-      <table><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Monto</th><th>Observación / respaldo</th></tr></thead><tbody>
+      <div class="finance-table-scroll"><table class="finance-detail-table"><thead><tr><th>Fecha</th><th>Persona</th><th>Actividad</th><th>Tipo</th><th>Monto</th><th>Observación / respaldo</th></tr></thead><tbody>
       ${d.movimientos.map(m=>`<tr><td>${finEsc(m.fecha)}</td><td>${finEsc(m.persona)}</td><td>${finEsc(m.actividadNombre)}</td><td>${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${finMoney(m.monto)}</td><td>${finEsc(m.observacion||'Sin observación registrada')}</td></tr>`).join('')||'<tr><td colspan="6">No hay movimientos.</td></tr>'}
-      </tbody></table></section>`;
+      </tbody></table></div></section>`;
 
     return `<div class="fin-report-document"><header><div><div class="fin-report-org">CONTROL DE CATEQUESIS</div><h1>Informe de Control Financiero</h1><p>Documento de gestión · ${finEsc(grupoActual)}</p></div><div class="fin-report-date">${new Date().toLocaleDateString('es-BO')}</div></header>${sections||'<div class="fin-report-empty">Selecciona al menos una sección del reporte.</div>'}<footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer></div>`;
   }
-
 
   function finXml(v){
     return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -7304,7 +7378,7 @@ document.addEventListener('click',e=>{
     if(!root || root.dataset.financeEnhanced==='1') return root;
     root.dataset.financeEnhanced='1';
 
-    const tables=[...root.querySelectorAll('table')];
+    const tables=[...root.querySelectorAll('table')].filter(t=>!t.closest('.finance-detail-card'));
     tables.forEach((table,idx)=>{
       if(table.classList.contains('finance-report-table')) return;
       table.classList.add('finance-report-table');
@@ -7426,4 +7500,41 @@ function mostrarVistaFinanciera(tipo){
 .finance-view-chooser .btn{font-size:.7rem;padding:7px 10px}
 .finance-view-modal{max-width:1100px}
 .finance-view-modal .modal-header h2{font-size:1rem}
+</style>
+
+<style id="finance-cells-v2">
+.fin-report-help{margin:-4px 0 12px;color:#64748b;font-size:.72rem}
+.finance-detail-list{display:flex;flex-direction:column;gap:8px}
+.finance-detail-card{border:1px solid #d8e2e7;border-radius:13px;background:#fff;overflow:hidden;box-shadow:0 2px 8px #0f172a0a}
+.finance-detail-card>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;background:#f8fbfb}
+.finance-detail-card>summary::-webkit-details-marker{display:none}
+.finance-detail-card>summary:before{content:"";width:4px;height:30px;border-radius:4px;background:#34d399;flex:0 0 4px}
+.finance-detail-title{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
+.finance-detail-title>i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#e8f6f1;color:#0f766e;font-size:.75rem}
+.finance-detail-title strong{font-size:.78rem;color:#172033;display:block}
+.finance-detail-title small{display:block;color:#64748b;font-size:.62rem;margin-top:2px}
+.finance-detail-metrics{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.finance-detail-metrics b{font-size:.72rem;color:#123b3a}
+.finance-detail-metrics small{font-size:.57rem;color:#64748b}
+.finance-detail-metrics>i{color:#64748b;font-size:.68rem;margin-left:4px;transition:transform .15s}
+.finance-detail-card[open] .finance-detail-metrics>i{transform:rotate(180deg)}
+.finance-detail-body{padding:10px 12px 13px;border-top:1px solid #e4ecef}
+.finance-mini-cells{display:grid;grid-template-columns:repeat(6,minmax(90px,1fr));gap:6px;margin-bottom:9px}
+.finance-mini-cells>div{border:1px solid #dbe5e9;border-radius:9px;background:#f8fafb;padding:8px 9px;min-height:45px}
+.finance-mini-cells small{display:block;color:#64748b;font-size:.57rem}
+.finance-mini-cells strong{display:block;color:#123b3a;font-size:.75rem;margin-top:3px}
+.finance-table-scroll{width:100%;overflow-x:auto;border-radius:10px;border:1px solid #dbe5e9}
+.finance-detail-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;font-size:.65rem;background:#fff}
+.finance-detail-table th{background:#123b3a;color:#fff;padding:8px 7px;text-align:left;font-size:.58rem;letter-spacing:.02em;white-space:nowrap}
+.finance-detail-table td{padding:7px;border-top:1px solid #e7edf0;color:#172033;background:#fff;vertical-align:middle}
+.finance-detail-table tbody tr:nth-child(even) td{background:#f8fafb}
+.finance-detail-table tbody tr:hover td{background:#eef8f5}
+.fin-ok,.fin-danger,.fin-warn{display:inline-flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:999px;font-size:.56rem;font-weight:800}
+.fin-ok{background:#dcfce7;color:#166534}.fin-danger{background:#fee2e2;color:#991b1b}.fin-warn{background:#fef3c7;color:#92400e}
+@media(max-width:650px){
+ .finance-detail-card>summary{align-items:flex-start}
+ .finance-detail-metrics{max-width:48%;gap:3px}
+ .finance-detail-metrics small{display:none}
+ .finance-mini-cells{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
