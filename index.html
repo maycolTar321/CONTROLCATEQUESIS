@@ -6911,7 +6911,22 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
   async function descargarExcelFinanzas(d){
     const ok=await cargarLibreriaExcel();
     if(!ok || !window.XLSX){
-      alert('No se pudo cargar el generador de Excel. Conéctate a Internet y vuelve a intentarlo.');
+      const data=finRows(d);
+      const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const sheet=(name,rows)=>`<h2>${esc(name)}</h2><table><thead><tr>${rows[0].map(v=>`<th>${esc(v)}</th>`).join('')}</tr></thead><tbody>${rows.slice(1).map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      let book=`<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:6px}th{background:#123b3a;color:#fff}h2{color:#0f766e}</style></head><body><h1>Control Financiero</h1>`;
+      if(d.seleccion.includes('resumen'))book+=sheet('Resumen financiero',data.resumen);
+      if(d.seleccion.includes('actividades'))book+=sheet('Actividades financieras',data.actividades);
+      if(d.seleccion.includes('personas'))book+=sheet('Estado por persona',data.personas);
+      if(d.seleccion.includes('movimientos'))book+=sheet('Movimientos',data.movimientos);
+      if(d.seleccion.includes('actividades_info'))book+=sheet('Planificación financiera',data.plan);
+      if(d.seleccion.includes('comprobantes'))book+=sheet('Respaldo financiero',data.movimientos);
+      book+='</body></html>';
+      const blob=new Blob([book],{type:'application/vnd.ms-excel;charset=utf-8'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+      a.download='Control_Financiero_'+String(grupoActual||'Grupo').replace(/[^\wáéíóúñ-]+/gi,'_')+'.xls';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1500);
       return;
     }
 
@@ -6949,7 +6964,21 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
   }
 
   async function descargarPDFFinanzas(d){
-    if(!(await cargarPDF())){alert('No se pudo cargar el generador PDF. Revisa tu conexión a internet.');return;}
+    if(!(await cargarPDF())){
+      const printNode=document.createElement('div');
+      printNode.id='finance-native-print';
+      printNode.innerHTML=reportHTML(d);
+      document.body.appendChild(printNode);
+      const oldTitle=document.title;
+      document.title='Control Financiero - '+String(grupoActual||'Grupo');
+      const cleanup=()=>{
+        printNode.remove();
+        document.title=oldTitle;
+      };
+      window.addEventListener('afterprint',cleanup,{once:true});
+      window.print();
+      return;
+    }
     const staging=document.createElement('div');
     staging.className='finance-pdf-staging';
     // El PDF necesita recibir el mismo CSS de impresión que usa la vista previa.
@@ -7620,4 +7649,42 @@ document.addEventListener('click',function(e){
   b.disabled=true;
   setTimeout(()=>b.disabled=false,900);
 });
+</script>
+
+<style id="finance-native-print">
+#finance-native-print{display:none}
+@media print{
+  body>*:not(#finance-native-print){display:none!important}
+  #finance-native-print{display:block!important;background:#fff!important;color:#172033!important}
+  #finance-native-print .fin-report-document{display:block!important;width:auto!important;max-width:none!important;padding:8mm!important;background:#fff!important;color:#172033!important}
+  #finance-native-print .finance-detail-card{break-inside:avoid;page-break-inside:avoid}
+  #finance-native-print .finance-detail-card[open] .finance-detail-body{display:block!important}
+  #finance-native-print .finance-table-scroll{overflow:visible!important}
+  #finance-native-print .finance-detail-table{min-width:0!important;width:100%!important;font-size:8pt!important}
+  #finance-native-print .finance-detail-table th{background:#123b3a!important;color:#fff!important}
+}
+</style>
+<script id="finance-pdf-loader-v3">
+cargarPDF=function(){
+  if(window.html2pdf)return Promise.resolve(true);
+  if(pdfLoadingPromise)return pdfLoadingPromise;
+  pdfLoadingPromise=new Promise(resolve=>{
+    const urls=[
+      'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+      'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'
+    ];
+    let i=0;
+    const next=()=>{
+      if(window.html2pdf){resolve(true);return;}
+      if(i>=urls.length){resolve(false);return;}
+      const s=document.createElement('script');
+      s.src=urls[i++];
+      s.onload=()=>resolve(!!window.html2pdf);
+      s.onerror=next;
+      document.head.appendChild(s);
+    };
+    next();
+  });
+  return pdfLoadingPromise;
+};
 </script>
