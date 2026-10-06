@@ -1534,13 +1534,6 @@ td,th{border-color:var(--ui-border)!important}
                     <button onclick="mobileSwitchTab(event,'notas')" type="button"><i class="fa-solid fa-note-sticky"></i><span>Notas</span></button><button onclick="mobileSwitchTab(event,'agenda')" type="button"><i class="fa-solid fa-calendar-days"></i><span>Agenda</span></button>
                     <button onclick="mobileSwitchTab(event,'centro-v4')" type="button"><i class="fa-solid fa-gauge-high"></i><span>Centro</span></button>
                     <button onclick="mobileSwitchTab(event,'herramientas')" type="button"><i class="fa-solid fa-shield-halved"></i><span>Herramientas</span></button>
-                    <button onclick="abrirPerfil();cerrarMenuMas()" type="button"><i class="fa-solid fa-user-gear"></i><span>Mi perfil</span></button>
-                    <button onclick="exportarRespaldoJSON();cerrarMenuMas()" type="button"><i class="fa-solid fa-download"></i><span>Crear backup</span></button>
-                    <button onclick="sincronizarConNube(true);cerrarMenuMas()" type="button"><i class="fa-solid fa-cloud-arrow-up"></i><span>Guardar ahora</span></button>
-                    <button onclick="crearNuevoGrupo();cerrarMenuMas()" type="button"><i class="fa-solid fa-folder-plus"></i><span>Nuevo grupo</span></button>
-                    <button onclick="editarGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-pen-to-square"></i><span>Editar grupo</span></button>
-                    <button onclick="resetearGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-broom"></i><span>Vaciar grupo</span></button>
-                    <button class="danger" onclick="eliminarGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-trash-can"></i><span>Eliminar grupo</span></button>
                 </div>
             </div>
         </div>
@@ -1926,6 +1919,24 @@ td,th{border-color:var(--ui-border)!important}
             <!-- HERRAMIENTAS Y RESPALDO -->
             <section id="herramientas" class="section">
                 <div class="page-head"><h2><i class="fa-solid fa-shield-halved"></i> Seguridad y Herramientas</h2></div>
+                <div class="card tools-actions-card">
+                    <div class="section-toolbar">
+                        <div>
+                            <h2 style="margin:0"><i class="fa-solid fa-toolbox"></i> Acciones del sistema</h2>
+                            <p class="section-intro" style="margin:.45rem 0 0">Aquí están reunidas las acciones que antes ocupaban espacio en otros menús.</p>
+                        </div>
+                    </div>
+                    <div class="tools-actions-grid">
+                        <button class="tool-action" onclick="abrirPerfil()" type="button"><i class="fa-solid fa-user-gear"></i><span><b>Mi perfil</b><small>Datos y configuración personal</small></span></button>
+                        <button class="tool-action" onclick="sincronizarConNube(true)" type="button"><i class="fa-solid fa-cloud-arrow-up"></i><span><b>Guardar ahora</b><small>Guardar cambios inmediatamente</small></span></button>
+                        <button class="tool-action" onclick="exportarRespaldoJSON()" type="button"><i class="fa-solid fa-download"></i><span><b>Crear backup</b><small>Descargar una copia completa</small></span></button>
+                        <button class="tool-action" onclick="document.getElementById('input-restaurar-respaldo').click()" type="button"><i class="fa-solid fa-upload"></i><span><b>Restaurar backup</b><small>Recuperar una copia anterior</small></span></button>
+                        <button class="tool-action" onclick="crearNuevoGrupo()" type="button"><i class="fa-solid fa-folder-plus"></i><span><b>Nuevo grupo</b><small>Crear un grupo de catequesis</small></span></button>
+                        <button class="tool-action" onclick="editarGrupoActual()" type="button"><i class="fa-solid fa-pen-to-square"></i><span><b>Editar grupo</b><small>Modificar el grupo actual</small></span></button>
+                        <button class="tool-action" onclick="resetearGrupoActual()" type="button"><i class="fa-solid fa-broom"></i><span><b>Vaciar grupo</b><small>Eliminar sus registros con confirmación</small></span></button>
+                        <button class="tool-action danger" onclick="eliminarGrupoActual()" type="button"><i class="fa-solid fa-trash-can"></i><span><b>Eliminar grupo</b><small>Eliminar el grupo actual</small></span></button>
+                    </div>
+                </div>
                 <div class="card">
                     <h2><i class="fa-solid fa-database"></i> Respaldo de datos</h2>
                     <p style="color:var(--medium-gray);margin-bottom:12px;">Descarga una copia completa antes de hacer cambios importantes. También puedes restaurar una copia creada por esta aplicación.</p>
@@ -7040,8 +7051,13 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
 @media(max-width:520px){.agenda-modal-top{grid-template-columns:42px 1fr 34px;padding:16px}.agenda-modal-icon{width:42px;height:42px}.agenda-form-body{padding:16px}.agenda-two-fields{grid-template-columns:1fr}.agenda-modal-footer{padding:13px 16px}.agenda-save-btn{min-width:0;flex:1}.agenda-modal-footer .btn-slate{flex:0 0 auto}.agenda-quick-dates{flex-wrap:wrap}}
 </style>
 
-
-
-
-
-
+<style id="tools-unified-layout">
+.tools-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.tool-action{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:11px 12px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(148,163,184,.045);color:var(--text-color);cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease}
+.tool-action:hover{transform:translateY(-1px);background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.3)}
+.tool-action:active{transform:scale(.99)}
+.tool-action>i{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:rgba(52,211,153,.1);color:#34d399;font-size:.8rem;flex:0 0 30px}
+.tool-action span{min-width:0}.tool-action b{display:block;font-size:.76rem}.tool-action small{display:block;margin-top:2px;color:var(--medium-gray);font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-action.danger>i{background:rgba(239,68,68,.1);color:#f87171}.tool-action.danger:hover{border-color:rgba(239,68,68,.3)}
+@media(max-width:600px){.tools-actions-grid{grid-template-columns:1fr}.tool-action{padding:12px}.tool-action>i{width:34px;height:34px;flex-basis:34px}}
+</style>
