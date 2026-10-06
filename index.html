@@ -4686,80 +4686,94 @@ tr:hover td{background:#fafdfc}
         document.getElementById('pdf-titulo').value = titulos[tipo];
     }
 
-    function ejecutarGeneracionPDF() {
-        if (typeof html2pdf === 'undefined') { alert("La librería de PDF no cargó. Revisa tu conexión a internet."); return; }
+    async function ejecutarGeneracionPDF() {
         const titulo = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
         const tipo = document.getElementById('pdf-tipo').value;
         const alumnoSel = document.getElementById('pdf-alumno-select').value;
         cerrarModalPDF();
-        showLoading(true, 'Generando PDF...');
 
-        const grupo = sistemaDatos.grupos[grupoActual];
+        const grupo = sistemaDatos.grupos[grupoActual] || {};
         const registros = grupo.registros || [];
         let filtrados = registros;
-        if (tipo === 'faltas') filtrados = registros.filter(r => r.asistencia.includes('Falta'));
+        if (tipo === 'faltas') filtrados = registros.filter(r => String(r.asistencia||'').includes('Falta'));
         else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
         else if (tipo === 'alumno') filtrados = registros.filter(r => r.alumno === alumnoSel);
 
         let asis = 0, faltas = 0, tar = 0;
         filtrados.forEach(r => {
-            if (r.asistencia.includes('Presente') || r.asistencia.includes('Retraso')) asis++;
-            if (r.asistencia.includes('Falta')) faltas++;
+            if (String(r.asistencia||'').includes('Presente') || String(r.asistencia||'').includes('Retraso')) asis++;
+            if (String(r.asistencia||'').includes('Falta')) faltas++;
             if (registroNoPresentoTarea(r)) tar++;
         });
-        const pct = filtrados.length > 0 ? Math.round((asis / filtrados.length) * 100) : 100;
+        const pct = filtrados.length ? Math.round((asis / filtrados.length) * 100) : 100;
 
         let rows = filtrados.slice().reverse().map(r => {
-            let tc = registroNoPresentoTarea(r) ? 'No Presentó' : (String(r.tareaEstado||'').trim().toLowerCase() === 'entregado' ? 'Entregado' : (r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-')));
+            const noPresento = registroNoPresentoTarea(r);
+            const tc = noPresento ? 'No Presentó' :
+                String(r.tareaEstado||'').trim().toLowerCase() === 'entregado' ? 'Entregado' :
+                r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-');
             return `<tr>
-                <td style="border:1px solid #cbd5e1; padding:8px;">${r.fecha}</td>
-                <td style="border:1px solid #cbd5e1; padding:8px;"><strong>${escHtml(r.alumno)}</strong></td>
-                <td style="border:1px solid #cbd5e1; padding:8px;">${escHtml(r.asistencia)}</td>
-                <td style="border:1px solid #cbd5e1; padding:8px;">${escHtml(nombreTareaRegistro(r))}</td>
-                <td style="border:1px solid #cbd5e1; padding:8px; color:${tc === 'No Presentó' ? 'red' : 'green'}; font-weight:bold;">${tc}</td>
+                <td>${escHtml(r.fecha||'-')}</td>
+                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                <td>${escHtml(r.asistencia||'-')}</td>
+                <td>${escHtml(nombreTareaRegistro(r)||'-')}</td>
+                <td class="${noPresento?'pdf-danger':'pdf-ok'}">${escHtml(tc)}</td>
             </tr>`;
         }).join('');
-        if (!rows) rows = `<tr><td colspan="5" style="border:1px solid #cbd5e1; padding:15px; text-align:center;">No hay registros que coincidan con este reporte.</td></tr>`;
+        if (!rows) rows = `<tr><td colspan="5" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
 
         const cat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || '';
         const container = document.createElement('div');
-        container.style.cssText = 'padding:30px; background:#fff; color:#0f172a; font-family:Arial, sans-serif;';
+        container.id = 'reporte-pdf-local';
         container.innerHTML = `
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;border-bottom:3px solid #059669;padding-bottom:15px;">
-                <img src="logo.jpg" crossorigin="anonymous" style="width:68px;height:68px;object-fit:cover;border-radius:12px;" alt="Logo de la parroquia">
-                <div style="flex:1;text-align:left;">
-                <div style="color:#065f46;font-weight:800;font-size:13px;text-transform:uppercase;">${escHtml((sistemaDatos.info&&sistemaDatos.info.parroquia)||'PARROQUIA')}</div>
-                <h1 style="color:#065f46;margin:2px 0;font-size:25px;">CONTROL DE CATEQUESIS</h1>
-                <h2 style="color:#334155;margin:3px 0;font-size:18px;">${escHtml(titulo)}</h2>
-                <p style="color:#64748b;font-size:12px;margin:4px 0;"><strong>Grupo:</strong> ${escHtml(grupoActual)} | <strong>Fecha:</strong> ${new Date().toLocaleDateString('es-BO')}</p>
-                <p style="color:#94a3b8;font-size:10px;margin:4px 0 0;text-transform:uppercase;">Catequista: ${escHtml(cat)} ${perfilCatequista.cargo ? '(' + escHtml(perfilCatequista.cargo) + ')' : ''}</p>
-                </div>
+          <div class="pdf-doc">
+            <header class="pdf-head">
+              <div>
+                <div class="pdf-org">${escHtml((sistemaDatos.info&&sistemaDatos.info.parroquia)||'PARROQUIA')}</div>
+                <h1>CONTROL DE CATEQUESIS</h1>
+                <h2>${escHtml(titulo)}</h2>
+                <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
+                <p class="pdf-small"><b>Catequista:</b> ${escHtml(cat)} ${perfilCatequista.cargo ? '('+escHtml(perfilCatequista.cargo)+')' : ''}</p>
+              </div>
+            </header>
+            <div class="pdf-kpis">
+              <div><strong>${pct}%</strong><span>Asistencia</span></div>
+              <div><strong>${faltas}</strong><span>Faltas</span></div>
+              <div><strong>${tar}</strong><span>Tareas pendientes</span></div>
+              <div><strong>${filtrados.length}</strong><span>Registros</span></div>
             </div>
-            <div style="display:flex; justify-content:space-around; margin-bottom:25px; font-weight:bold; background:#f8fafc; padding:15px; border:1px solid #cbd5e1; border-radius:8px;">
-                <span style="color:#059669;">Asistencia Promedio: ${pct}%</span>
-                <span style="color:#475569;">Total Faltas: ${faltas}</span>
-                <span style="color:#dc2626;">Tareas Pendientes: ${tar}</span>
-            </div>
-            <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
-                <thead style="background:#f1f5f9;">
-                    <tr>
-                        <th style="border:1px solid #cbd5e1; padding:10px;">Fecha</th>
-                        <th style="border:1px solid #cbd5e1; padding:10px;">Catequizando</th>
-                        <th style="border:1px solid #cbd5e1; padding:10px;">Estado / Motivo</th>
-                        <th style="border:1px solid #cbd5e1; padding:10px;">Tarea / Actividad asignada</th>
-                        <th style="border:1px solid #cbd5e1; padding:10px;">Cumplimiento de tarea</th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>`;
+            <table class="pdf-table">
+              <thead><tr><th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Tarea / Actividad asignada</th><th>Cumplimiento</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
+          </div>`;
 
-        html2pdf().set({
-            margin: 15,
-            filename: `${titulo.replace(/ /g, '_')}_${grupoActual.replace(/ /g, '_')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        }).from(container).save().then(() => showLoading(false)).catch(() => showLoading(false));
+        document.body.appendChild(container);
+
+        // Prefer the native browser print engine. It does not require a CDN,
+        // internet access, or an external JavaScript library.
+        const oldTitle = document.title;
+        document.title = titulo + ' - ' + grupoActual;
+
+        const limpiar = () => {
+            if (container.parentNode) container.parentNode.removeChild(container);
+            document.title = oldTitle;
+            window.removeEventListener('afterprint', limpiar);
+            if (typeof showLoading === 'function') showLoading(false);
+        };
+        window.addEventListener('afterprint', limpiar);
+
+        if (typeof showLoading === 'function') showLoading(false);
+
+        // Small delay lets mobile browsers finish layout before opening print.
+        setTimeout(() => {
+            window.print();
+            // Some mobile browsers do not fire afterprint; keep a safety cleanup.
+            setTimeout(() => {
+                if (container.parentNode && !window.matchMedia('print').matches) limpiar();
+            }, 3000);
+        }, 80);
     }
 
     // =========================================================================
@@ -7688,3 +7702,31 @@ cargarPDF=function(){
   return pdfLoadingPromise;
 };
 </script>
+
+<style id="pdf-local-print-v4">
+#reporte-pdf-local{display:none}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body>*:not(#reporte-pdf-local){display:none!important}
+  #reporte-pdf-local{display:block!important;background:#fff!important}
+  #reporte-pdf-local .pdf-doc{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff}
+  #reporte-pdf-local .pdf-head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:15px}
+  #reporte-pdf-local .pdf-org{color:#065f46;font-size:10pt;font-weight:800;text-transform:uppercase}
+  #reporte-pdf-local h1{color:#065f46;font-size:20pt;margin:3px 0}
+  #reporte-pdf-local h2{color:#334155;font-size:13pt;margin:3px 0}
+  #reporte-pdf-local p{font-size:8pt;color:#64748b;margin:4px 0}
+  #reporte-pdf-local .pdf-small{color:#94a3b8}
+  #reporte-pdf-local .pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+  #reporte-pdf-local .pdf-kpis div{border:1px solid #cbd5e1;border-radius:7px;padding:9px;text-align:center;background:#f8fafc}
+  #reporte-pdf-local .pdf-kpis strong{display:block;color:#065f46;font-size:14pt}
+  #reporte-pdf-local .pdf-kpis span{font-size:7pt;color:#64748b}
+  #reporte-pdf-local .pdf-table{width:100%;border-collapse:collapse;font-size:8pt}
+  #reporte-pdf-local .pdf-table th{background:#065f46;color:#fff;padding:7px;border:1px solid #064e3b;text-align:left}
+  #reporte-pdf-local .pdf-table td{padding:6px;border:1px solid #cbd5e1;color:#172033}
+  #reporte-pdf-local .pdf-table tr{break-inside:avoid;page-break-inside:avoid}
+  #reporte-pdf-local .pdf-ok{color:#15803d!important;font-weight:800}
+  #reporte-pdf-local .pdf-danger{color:#dc2626!important;font-weight:800}
+  #reporte-pdf-local .pdf-empty{text-align:center;padding:20px}
+  #reporte-pdf-local footer{margin-top:14px;font-size:7pt;color:#94a3b8;text-align:center}
+}
+</style>
