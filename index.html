@@ -7,7 +7,7 @@
     <title>Control De Catequesis - Sistema de Catequesis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
 
 <!-- Configuración para App de Celular (PWA) -->
 <link rel="manifest" href="manifest.json">
@@ -18,8 +18,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <!-- Editor de Texto Enriquecido (Quill.js) -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
 
 <style>
     :root {
@@ -2459,26 +2458,58 @@ td,th{border-color:var(--ui-border)!important}
     let sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
     let grupoActual = "Grupo 1";
     let quillEditor = null;
-    function initQuill() {
-        const el = document.getElementById('editor-quill');
-        if (!el) return null;
-        if (quillEditor) return quillEditor;
-        if (typeof Quill === 'undefined') {
-            console.error('Quill.js no está disponible.');
-            return null;
-        }
-        quillEditor = new Quill(el, {
-            theme: 'snow',
-            placeholder: 'Escribe aquí tu nota...',
-            modules: {
-                toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ list: 'ordered' }, { list: 'bullet' }],
-                    [{ align: [] }],
-                    ['link', 'blockquote', 'clean']
-                ]
+    let quillLoadingPromise = null;
+    let pdfLoadingPromise = null;
+
+    function cargarQuill(){
+        if(window.Quill) return Promise.resolve(true);
+        if(quillLoadingPromise) return quillLoadingPromise;
+        quillLoadingPromise=new Promise(resolve=>{
+            if(!document.getElementById('quill-lazy-css')){
+                const css=document.createElement('link');
+                css.id='quill-lazy-css';
+                css.rel='stylesheet';
+                css.href='https://cdn.quilljs.com/1.3.6/quill.snow.css';
+                document.head.appendChild(css);
             }
+            const s=document.createElement('script');
+            s.src='https://cdn.quilljs.com/1.3.6/quill.min.js';
+            s.onload=()=>resolve(true);
+            s.onerror=()=>resolve(false);
+            document.head.appendChild(s);
+        });
+        return quillLoadingPromise;
+    }
+
+    function cargarPDF(){
+        if(window.html2pdf) return Promise.resolve(true);
+        if(pdfLoadingPromise) return pdfLoadingPromise;
+        pdfLoadingPromise=new Promise(resolve=>{
+            const s=document.createElement('script');
+            s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            s.onload=()=>resolve(true);
+            s.onerror=()=>resolve(false);
+            document.head.appendChild(s);
+        });
+        return pdfLoadingPromise;
+    }
+    async function initQuill() {
+        const el=document.getElementById('editor-quill');
+        if(!el) return null;
+        if(quillEditor) return quillEditor;
+        const ok=await cargarQuill();
+        if(!ok || !window.Quill) return null;
+        if(quillEditor) return quillEditor;
+        quillEditor=new Quill(el,{
+            theme:'snow',
+            placeholder:'Escribe aquí tu nota...',
+            modules:{toolbar:[
+                [{header:[1,2,3,false]}],
+                ['bold','italic','underline','strike'],
+                [{list:'ordered'},{list:'bullet'}],
+                [{align:[]}],
+                ['link','blockquote','clean']
+            ]}
         });
         return quillEditor;
     }
@@ -2666,10 +2697,13 @@ td,th{border-color:var(--ui-border)!important}
         clearInterval(sincronizacionTimer);
         clearTimeout(reintentoSyncTimer);
         if(!nubeActiva())return;
-        // Apps Script no ofrece WebSocket aquí; este sondeo corto mantiene los
-        // dispositivos prácticamente en tiempo real sin perder compatibilidad.
-        sincronizacionTimer=setInterval(sincronizarTiempoReal,2000);
-        setTimeout(sincronizarTiempoReal,500);
+        // En teléfonos de gama media/baja, consultar cada 2 s hacía que la
+        // interfaz compitiera con la red y el render. 8 s mantiene sincronización
+        // suficientemente rápida sin castigar CPU/batería.
+        sincronizacionTimer=setInterval(()=>{
+            if(document.visibilityState==='visible') sincronizarTiempoReal();
+        },8000);
+        setTimeout(()=>{if(document.visibilityState==='visible')sincronizarTiempoReal();},900);
     }
 
     function getEliminados() { try { return JSON.parse(localStorage.getItem('catequesis_eliminados') || '[]'); } catch (e) { return []; } }
@@ -6206,10 +6240,11 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
     if(e.target&&(e.target.id==='temario-filtro-ano'||e.target.id==='temario-filtro-desde'||e.target.id==='temario-filtro-hasta'))setTimeout(renderTemarioForzado,0);
     if(e.target&&(e.target.id==='actividades-filtro-ano'||e.target.id==='actividades-filtro-desde'||e.target.id==='actividades-filtro-hasta'))setTimeout(renderActividadesForzado,0);
   });
-  setTimeout(function(){ejecutar(true);},300);
-  setTimeout(function(){ejecutar(false);},1200);
-  setTimeout(function(){ejecutar(false);},3000);
-  setInterval(function(){if(typeof sistemaDatos!=='undefined'&&grupo())ejecutar(false);},5000);
+  setTimeout(function(){ejecutar(true);},350);
+  setTimeout(function(){ejecutar(false);},1600);
+  setInterval(function(){
+    if(document.visibilityState==='visible'&&typeof sistemaDatos!=='undefined'&&grupo())ejecutar(false);
+  },15000);
 })();
 </script>
 
@@ -6914,7 +6949,7 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
   }
 
   async function descargarPDFFinanzas(d){
-    if(typeof html2pdf==='undefined'){alert('La librería PDF no cargó. Revisa tu conexión a internet.');return;}
+    if(!(await cargarPDF())){alert('No se pudo cargar el generador PDF. Revisa tu conexión a internet.');return;}
     const staging=document.createElement('div');
     staging.className='finance-pdf-staging';
     // El PDF necesita recibir el mismo CSS de impresión que usa la vista previa.
@@ -7538,3 +7573,51 @@ function mostrarVistaFinanciera(tipo){
  .finance-mini-cells{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 </style>
+
+<style id="rendimiento-movil-v2">
+/* Optimización para teléfonos: evita animaciones y sombras costosas durante el
+   uso normal, sin cambiar el aspecto general del sistema. */
+@media (max-width:700px){
+  *{
+    animation-duration:.12s!important;
+    transition-duration:.12s!important;
+  }
+  .modal-content,.card,.stat-card,.grupo-card,.dashboard-card{
+    box-shadow:0 4px 14px rgba(0,0,0,.14)!important;
+  }
+  .finance-detail-card,.finance-report-section-collapsible{
+    box-shadow:none!important;
+  }
+  .finance-table-scroll{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
+</style>
+<script id="rendimiento-movil-v2-js">
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'){
+    if(typeof sincronizarTiempoReal==='function') setTimeout(()=>sincronizarTiempoReal(),300);
+    if(typeof iniciarSincronizacionTiempoReal==='function') iniciarSincronizacionTiempoReal();
+  }else{
+    if(typeof sincronizacionTimer!=='undefined') clearInterval(sincronizacionTimer);
+  }
+});
+</script>
+
+<script id="touch-action-guard">
+document.addEventListener('click',function(e){
+  const b=e.target.closest('button[data-expensive-action]');
+  if(!b||b.disabled)return;
+  b.disabled=true;
+  setTimeout(()=>b.disabled=false,900);
+});
+</script>
