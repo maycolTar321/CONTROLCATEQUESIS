@@ -6811,7 +6811,10 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
     if(typeof html2pdf==='undefined'){alert('La librería PDF no cargó. Revisa tu conexión a internet.');return;}
     const staging=document.createElement('div');
     staging.className='finance-pdf-staging';
-    staging.innerHTML=reportHTML(d);
+    // El PDF necesita recibir el mismo CSS de impresión que usa la vista previa.
+    // Antes el contenedor heredaba los colores del tema oscuro de la aplicación,
+    // dejando el texto prácticamente blanco sobre fondo blanco.
+    staging.innerHTML='<style>'+financeReportPrintCSS+'</style>'+reportHTML(d);
     document.body.appendChild(staging);
     try{
       // Espera un ciclo de pintura para que el navegador calcule correctamente
