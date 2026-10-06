@@ -2446,7 +2446,7 @@ td,th{border-color:var(--ui-border)!important}
     const PASSWORD_ACCESO = "5230";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin5230";
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDm-U-7pEuVoBChSapqT8RfTKxYbS1WoQloXHiPPgBVjDeRsiX4XYLrvMpfMX3RZ0pDA/exec";
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt_E3Wf9nNxuuOIBqkcMzBbU7SazvEbOdiXO0GS5M9C2D49Qi1YgFJLDe3pWEE_eviuA/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('db')) {
@@ -2454,6 +2454,22 @@ td,th{border-color:var(--ui-border)!important}
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     let GOOGLE_SCRIPT_URL = DEFAULT_SCRIPT_URL;
+
+// Recuperar la URL personalizada guardada. Si quedó guardada la URL
+// antigua del backend, se reemplaza automáticamente por la implementación actual.
+(function inicializarURLNube(){
+    try {
+        const guardada = (localStorage.getItem('google_script_url') || '').trim();
+        if (!guardada || guardada === "https://script.google.com/macros/s/AKfycbyDm-U-7pEuVoBChSapqT8RfTKxYbS1WoQloXHiPPgBVjDeRsiX4XYLrvMpfMX3RZ0pDA/exec") {
+            localStorage.setItem('google_script_url', DEFAULT_SCRIPT_URL);
+            GOOGLE_SCRIPT_URL = DEFAULT_SCRIPT_URL;
+        } else if (guardada.startsWith('https://')) {
+            GOOGLE_SCRIPT_URL = guardada;
+        }
+    } catch(e) {
+        GOOGLE_SCRIPT_URL = DEFAULT_SCRIPT_URL;
+    }
+})();
 
     let sistemaDatos = { grupos: { "Grupo 1": { alumnos: [], registros: [], listaTareas: [] } }, notas: [] };
     let grupoActual = "Grupo 1";
@@ -2569,6 +2585,28 @@ td,th{border-color:var(--ui-border)!important}
         el.innerHTML = `<i class="fa-solid fa-${estado === 'ok' ? 'cloud-arrow-up' : 'cloud'}"></i> ${escHtml(texto)}`;
     }
     function nubeActiva(){return !!GOOGLE_SCRIPT_URL&&GOOGLE_SCRIPT_URL.startsWith('https://');}
+
+    // Diagnóstico rápido: permite comprobar desde la consola qué backend está usando este HTML.
+    window.verificarConexionNube = async function(){
+        try{
+            const r = await fetch(GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?')?'&':'?') + '_diagnostico=' + Date.now(), {
+                method:'GET',
+                cache:'no-store'
+            });
+            const data = await r.json();
+            console.info('☁️ BACKEND CATEQUESIS', {
+                url: GOOGLE_SCRIPT_URL,
+                ok: data && data.ok,
+                version: data && data.version,
+                revision: data && data.revision,
+                equipos: data && data.equipos
+            });
+            return data;
+        }catch(e){
+            console.error('❌ No se pudo comprobar el backend:', e);
+            return null;
+        }
+    };
 
     function urlNube(extra){
         return GOOGLE_SCRIPT_URL + (GOOGLE_SCRIPT_URL.includes('?') ? '&' : '?') + (extra || '_rt') + '=' + Date.now();
