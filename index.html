@@ -1360,33 +1360,6 @@ td,th{border-color:var(--ui-border)!important}
 }
 </style>
 
-<style id="admin-completo-final">
-.admin-resumen-general{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 18px}
-.admin-resumen-general>div{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);border-radius:14px;padding:13px;text-align:center}
-.admin-resumen-general strong{display:block;font-size:1.35rem;color:var(--accent)}
-.admin-resumen-general span{display:block;font-size:.72rem;color:var(--medium-gray);margin-top:3px}
-@media(max-width:650px){.admin-resumen-general{grid-template-columns:repeat(2,1fr)}}
-</style>
-<style id="pdf-clean-final">
-#reporte-pdf-local{display:none}
-@media print{
- @page{size:A4 landscape;margin:12mm}
- body>*:not(#reporte-pdf-local){display:none!important}
- #reporte-pdf-local{display:block!important;background:#fff!important}
- #reporte-pdf-local .pdf-doc{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff}
- #reporte-pdf-local .pdf-head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:15px}
- #reporte-pdf-local .pdf-org{color:#065f46;font-size:10pt;font-weight:800;text-transform:uppercase}
- #reporte-pdf-local h1{color:#065f46;font-size:20pt;margin:3px 0}
- #reporte-pdf-local h2{color:#334155;font-size:13pt;margin:3px 0}
- #reporte-pdf-local p{font-size:8pt;color:#64748b;margin:4px 0}
- #reporte-pdf-local table{width:100%;border-collapse:collapse;margin-top:14px;font-size:8pt}
- #reporte-pdf-local th,#reporte-pdf-local td{border:1px solid #cbd5e1;padding:6px;text-align:left;vertical-align:top}
- #reporte-pdf-local th{background:#065f46;color:#fff}
- #reporte-pdf-local .pdf-danger{color:#dc2626!important;font-weight:800}
- #reporte-pdf-local .pdf-ok{color:#15803d!important;font-weight:800}
- #reporte-pdf-local footer{margin-top:14px;font-size:7pt;color:#94a3b8;text-align:center}
-}
-</style>
 </head>
 <body>
 
@@ -1503,13 +1476,6 @@ td,th{border-color:var(--ui-border)!important}
                 <input type="text" id="admin-nuevo-pass" placeholder="Contraseña Inicial" style="flex: 1; min-width: 150px;">
                 <button class="btn" onclick="adminCrearEquipo()" type="button"><i class="fa-solid fa-check"></i> Crear</button>
             </div>
-        </div>
-
-        <div id="admin-resumen-general" class="admin-resumen-general">
-            <div><strong id="admin-total-equipos">0</strong><span>Equipos</span></div>
-            <div><strong id="admin-total-grupos">0</strong><span>Grupos</span></div>
-            <div><strong id="admin-total-jovenes">0</strong><span>Catequizandos</span></div>
-            <div><strong id="admin-total-registros">0</strong><span>Registros</span></div>
         </div>
 
         <h3 style="color: var(--text-color); margin-bottom: 0.4rem;"><i class="fa-solid fa-users-gear"></i> Equipos Registrados</h3>
@@ -1638,8 +1604,8 @@ td,th{border-color:var(--ui-border)!important}
                 <div class="page-head">
                     <h2><i class="fa-solid fa-chart-pie"></i> Estadísticas - <span id="lbl-grupo-dash" style="color: var(--accent);"></span></h2>
                     <div class="report-tools" aria-label="Herramientas del inicio">
-                        <button class="btn btn-danger report-tool" onclick="abrirModalPDF()" title="Generar reporte PDF" aria-label="Generar reporte PDF" type="button"><i class="fa-solid fa-file-pdf"></i><span>PDF</span></button>
-                        <button class="btn btn-slate report-tool" onclick="imprimirReporteActual()" title="Imprimir reporte" aria-label="Imprimir reporte" type="button"><i class="fa-solid fa-print"></i><span>Imprimir</span></button>
+                        
+                        <button class="btn btn-slate report-tool" onclick="imprimirReporteActual()" title="Imprimir o guardar como PDF" aria-label="Imprimir o guardar como PDF" type="button"><i class="fa-solid fa-print"></i><span>Imprimir / PDF</span></button>
                         <button class="btn btn-info report-tool" onclick="abrirModalDirectorio()" title="Abrir directorio" aria-label="Abrir directorio" type="button"><i class="fa-solid fa-address-book"></i><span>Directorio</span></button>
                         <button class="btn btn-slate report-tool" onclick="exportarRespaldoJSON()" title="Crear backup" aria-label="Crear backup" type="button"><i class="fa-solid fa-database"></i><span>Backup</span></button>
                     </div>
@@ -3228,24 +3194,6 @@ td,th{border-color:var(--ui-border)!important}
                 } else if ((nube.equipos[k]._actualizado || 0) > (adminDatos.equipos[kLocal]._actualizado || 0)) {
                     adminDatos.equipos[kLocal] = nube.equipos[k];
                     guardarEquipoLocal(kLocal, nube.equipos[k]);
-                } else if (nube.equipos[k].password && !adminDatos.equipos[kLocal].password) {
-                    // El caché local histórico no guardaba la clave; el administrador
-                    // debe poder verla y administrarla sin perderla.
-                    adminDatos.equipos[kLocal].password = nube.equipos[k].password;
-                }
-            }
-        }
-
-        // Clave administrativa fija solicitada para el equipo principal de Grupo 4.
-        // Se guarda en nube/local para que no vuelva a aparecer como "Sin clave".
-        const kGrupo4 = buscarEquipoEnObjeto(adminDatos.equipos, 'Grupo 4');
-        if (kGrupo4) {
-            if (adminDatos.equipos[kGrupo4].password !== 'panicat123') {
-                adminDatos.equipos[kGrupo4].password = 'panicat123';
-                adminDatos.equipos[kGrupo4]._actualizado = Date.now();
-                guardarEquipoLocal(kGrupo4, adminDatos.equipos[kGrupo4]);
-                if (adminNubeOk) {
-                    await postNube({ action: "merge_equipo", equipo: kGrupo4, data: adminDatos.equipos[kGrupo4] });
                 }
             }
         }
@@ -3259,21 +3207,6 @@ td,th{border-color:var(--ui-border)!important}
     function renderizarEquiposAdmin() {
         const container = document.getElementById('admin-lista-equipos');
         const nombres = Object.keys(adminDatos.equipos).sort((a, b) => a.localeCompare(b));
-        let totalGrupos = 0, totalJovenes = 0, totalRegistros = 0;
-        nombres.forEach(eq => {
-            const d = adminDatos.equipos[eq] || {};
-            const gs = d.grupos || {};
-            totalGrupos += Object.keys(gs).length;
-            Object.values(gs).forEach(g => {
-                totalJovenes += Array.isArray(g.alumnos) ? g.alumnos.length : 0;
-                totalRegistros += Array.isArray(g.registros) ? g.registros.length : 0;
-            });
-        });
-        const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v)};
-        setText('admin-total-equipos',nombres.length);
-        setText('admin-total-grupos',totalGrupos);
-        setText('admin-total-jovenes',totalJovenes);
-        setText('admin-total-registros',totalRegistros);
         if (nombres.length === 0) { container.innerHTML = "<p style='color:var(--medium-gray)'>No hay equipos creados aún.</p>"; return; }
         let html = "";
         nombres.forEach(eq => {
@@ -3291,7 +3224,7 @@ td,th{border-color:var(--ui-border)!important}
                         <div>
                             <h4><i class="fa-solid fa-people-group" style="color:var(--accent)"></i> ${escHtml(eq)}</h4>
                             <p>Catequista: <b style="color:var(--text-color)">${escHtml(info.catequista || '-')}</b> · Tel: ${escHtml(info.telefono || '-')} · Gestión: ${escHtml(info.gestion || '-')}</p>
-                            <p>Contraseña: <b style="color:#fca5a5">${escHtml(String(eq).toLowerCase() === 'grupo 4' ? 'panicat123' : (d.password || 'Sin clave'))}</b></p>
+                            <p>Contraseña: <b style="color:#fca5a5">${escHtml((String(eq).trim().toLowerCase()==='grupo 4' ? 'panicat123' : (d.password || 'Sin clave')))}</b></p>
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap;">
                             <button class="btn" style="padding:8px 12px; font-size:0.8rem;" onclick="adminEntrarEquipo('${jsStr(eq)}')" type="button"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
@@ -3354,14 +3287,13 @@ td,th{border-color:var(--ui-border)!important}
     }
 
     async function adminEliminarEq(eq) {
-        if (!confirm("¿Deseas eliminar el equipo " + eq + " y todos sus datos?")) return;
+        if (!confirm("¿Estás 100% seguro de ELIMINAR el equipo " + eq + " y TODOS sus datos?")) return;
+        
         showLoading(true, 'Eliminando...');
         delete adminDatos.equipos[eq];
         const k = buscarClaveLocal(eq);
         if (k) localStorage.removeItem(k);
-        const el = getEliminados();
-        if (!el.some(x => String(x).toLowerCase() === String(eq).toLowerCase())) el.push(eq);
-        setEliminados(el);
+        const el = getEliminados(); el.push(eq); setEliminados(el);
         if (localStorage.getItem('catequesis_equipo') && localStorage.getItem('catequesis_equipo').toLowerCase() === eq.toLowerCase()) {
             localStorage.removeItem('catequesis_auth');
             localStorage.removeItem('catequesis_equipo');
@@ -3373,9 +3305,8 @@ td,th{border-color:var(--ui-border)!important}
     }
 
     async function adminEliminarGrupo(eq, grupo) {
-        if (!confirm(`¿Deseas eliminar el grupo "${grupo}" del equipo ${eq}?`)) return;
+        if (!confirm(`¿Eliminar el grupo "${grupo}" del equipo ${eq} con todos sus jóvenes y registros?`)) return;
         const d = adminDatos.equipos[eq];
-        if (!d || !d.grupos) return;
         delete d.grupos[grupo];
         if (Object.keys(d.grupos).length === 0) d.grupos["Grupo 1"] = { alumnos: [], registros: [], listaTareas: [], reuniones: [] };
         showLoading(true, 'Eliminando grupo...');
@@ -4464,45 +4395,390 @@ td,th{border-color:var(--ui-border)!important}
     document.head.appendChild(reportKpiStyles);
 
     function imprimirHTML(contenido,titulo){
-        const info = sistemaDatos.info || {};
-        const g = (sistemaDatos.grupos && sistemaDatos.grupos[grupoActual]) || {};
-        const parroquia = info.parroquia || g.metadata?.parroquia || 'PARROQUIA SAN MARTÍN DE PORRES';
-        const catequista = g.metadata?.catequista || (typeof perfilCatequista !== 'undefined' ? perfilCatequista.nombre : '') || info.catequista || '';
-        const gestion = info.gestion || g.metadata?.gestion || '';
+        /*
+         * Impresión definitiva:
+         * No abre ventanas emergentes.
+         * No depende de html2pdf.
+         * No toca el DOM de los módulos ni la sincronización.
+         * Usa una capa de impresión dentro de la misma página.
+         */
+        const ID='reporte-print-stage';
+        const anterior=document.getElementById(ID);
+        if(anterior) anterior.remove();
 
+        const info=sistemaDatos.info||{};
+        const g=(sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual])||{};
+        const parroquia=info.parroquia||(g.metadata&&g.metadata.parroquia)||'PARROQUIA SAN MARTÍN DE PORRES';
+        const catequista=(g.metadata&&g.metadata.catequista)||
+            (typeof perfilCatequista!=='undefined'?perfilCatequista.nombre:'')||
+            info.catequista||'';
+        const gestion=info.gestion||(g.metadata&&g.metadata.gestion)||'';
+
+        // Limpiar solamente etiquetas peligrosas de presentación. El contenido
+        // del reporte sigue siendo HTML generado por el propio sistema.
+        const wrap=document.createElement('div');
+        wrap.innerHTML=String(contenido||'<p>No hay información para mostrar.</p>');
+        wrap.querySelectorAll('script,style,link,iframe,object,embed').forEach(el=>el.remove());
+
+        // Evita que CSS inyectado como texto accidentalmente aparezca en el PDF.
+        const cssOnly=/^(?:\s*(?:#|\.|@media|@page|body|html|\*|[a-z][\w-]*\s*[,{])[\s\S]*[{}]\s*)$/i;
+        const walker=document.createTreeWalker(wrap,NodeFilter.SHOW_TEXT);
+        const remove=[];
+        while(walker.nextNode()){
+            const t=walker.currentNode;
+            const v=t.nodeValue.trim();
+            if(v && (v.includes('#finance-native-print{') || v.includes('#reporte-pdf-local{') || cssOnly.test(v))){
+                remove.push(t);
+            }
+        }
+        remove.forEach(n=>n.remove());
+
+        const stage=document.createElement('div');
+        stage.id=ID;
+        stage.innerHTML=`
+          <div class="print-document">
+            <header class="print-head">
+              <div class="print-org">${escHtml(parroquia)}</div>
+              <h1>CONTROL DE CATEQUESIS</h1>
+              <h2>${escHtml(titulo||'Reporte de Catequesis')}</h2>
+              <div class="print-meta">
+                <b>Grupo:</b> ${escHtml(grupoActual||'-')} ·
+                <b>Gestión:</b> ${escHtml(gestion||'-')} ·
+                <b>Catequista:</b> ${escHtml(catequista||'-')} ·
+                <b>Fecha:</b> ${escHtml(new Date().toLocaleDateString('es-BO'))}
+              </div>
+            </header>
+            <main class="print-content"></main>
+            <footer>Sistema de Control de Catequesis · Reporte administrativo</footer>
+          </div>`;
+        stage.querySelector('.print-content').append(...Array.from(wrap.childNodes));
+        document.body.appendChild(stage);
+
+        const oldTitle=document.title;
+        document.title=String(titulo||'Reporte de Catequesis');
+
+        let cleaned=false;
+        const cleanup=()=>{
+            if(cleaned)return;
+            cleaned=true;
+            const el=document.getElementById(ID);
+            if(el)el.remove();
+            document.title=oldTitle;
+            window.removeEventListener('afterprint',cleanup);
+        };
+        window.addEventListener('afterprint',cleanup,{once:true});
+
+        // La impresión se ejecuta en el documento actual: Chrome no puede
+        // bloquearla por popup y no se abre about:blank.
+        requestAnimationFrame(()=>{
+            requestAnimationFrame(()=>{
+                try{ window.print(); }
+                catch(e){ cleanup(); alert('No se pudo abrir la impresión: '+e.message); }
+                setTimeout(()=>{ if(document.visibilityState==='visible') cleanup(); },4500);
+            });
+        });
+    }
+
+    function imprimirTemario(){
+        const ano=document.getElementById('temario-filtro-ano').value,tituloAno=ano==='primerAno'?'Primer Año':'Segundo Año';
+        const filas=(obtenerTemarioActual()[ano]||[]).slice().sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>`<tr><td>${escHtml(x.fecha?formatearFecha(x.fecha):'-')}</td><td>${escHtml(x.titulo)}</td><td>${escHtml(x.descripcion||'')}</td><td>${x.completado?'✓ Completado':'Pendiente'}</td></tr>`).join('');
+        imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Temario - ${escHtml(tituloAno)}</h2><p>Grupo: ${escHtml(grupoActual)}</p><table><thead><tr><th>Fecha</th><th>Tema</th><th>Descripción</th><th>Estado</th></tr></thead><tbody>${filas||'<tr><td colspan="4">Sin temas.</td></tr>'}</tbody></table>`,`Temario_${tituloAno}`);
+    }
+    function registroNoPresentoTarea(r){
+        return String(r?.tareaEstado||'').trim().toLowerCase().replace(/ó/g,'o') === 'no presento';
+    }
+    function nombreTareaRegistro(r){
+        const n=String(r?.tareaNombre||'').trim();
+        if(n && n!=='Ninguna') return n;
+        if(Array.isArray(r?.tareaNombres) && r.tareaNombres.length) return r.tareaNombres.join(' + ');
+        return 'Tarea registrada';
+    }
+    function imprimirReporteActual(){
+        const g=sistemaDatos.grupos[grupoActual]||{};
+        const rs=Array.isArray(g.registros)?g.registros:[];
+        const elNombre=document.getElementById('filtro-nombre');
+        const elEstado=document.getElementById('filtro-estado');
+        const elTarea=document.getElementById('filtro-tarea-estado');
+        const fn=(elNombre?.value||'').toLowerCase().trim();
+        const fe=elEstado?.value||'todos';
+        const ft=elTarea?.value||'todos';
+
+        const filtrados=rs.filter(r=>{
+            const nombreOk=String(r.alumno||'').toLowerCase().includes(fn);
+            const estadoOk=fe==='todos'||String(r.asistencia||'').includes(fe);
+            const tareaOk=ft==='todos' || (ft==='No Presentó'
+                ? registroNoPresentoTarea(r)
+                : String(r.tareaEstado||'')===ft);
+            return nombreOk&&estadoOk&&tareaOk;
+        });
+
+        const noPresentaron=filtrados.filter(registroNoPresentoTarea).length;
+        const entregaron=filtrados.filter(r=>String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length;
+        const presentes=filtrados.filter(r=>/Presente|Retraso/i.test(String(r.asistencia||''))).length;
+        const porcentaje=filtrados.length?Math.round((presentes/filtrados.length)*100):0;
+
+        const rows=filtrados.slice().reverse().map(r=>`<tr>
+            <td>${escHtml(r.fecha||'-')}</td>
+            <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+            <td>${escHtml(r.asistencia||'-')}</td>
+            <td>${escHtml(nombreTareaRegistro(r))}<br><small>${escHtml(r.tareaDescripcion||r.descripcionTarea||'')}</small></td>
+            <td class="${registroNoPresentoTarea(r)?'report-kpi-bad':''}">${escHtml(r.tareaEstado||'-')}</td>
+        </tr>`).join('');
+
+        const contenido=`
+            <h1>Reporte de Catequesis</h1>
+            <h2>Control de asistencia y tareas</h2>
+            <p><strong>Grupo:</strong> ${escHtml(grupoActual)}
+            &nbsp; <strong>Generado:</strong> ${new Date().toLocaleString('es-BO')}</p>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0">
+                <div class="report-kpi"><b>${filtrados.length}</b><small>Registros</small></div>
+                <div class="report-kpi report-kpi-ok"><b>${porcentaje}%</b><small>Asistencia</small></div>
+                <div class="report-kpi report-kpi-ok"><b>${entregaron}</b><small>Tareas presentadas</small></div>
+                <div class="report-kpi report-kpi-bad"><b>${noPresentaron}</b><small>No presentaron</small></div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Catequizando</th>
+                        <th>Asistencia / Motivo</th>
+                        <th>Tarea</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:22px">No hay registros con los filtros actuales.</td></tr>'}</tbody>
+            </table>`;
+
+        // Este es ahora el único reporte general del botón superior.
+        // Chrome ofrece "Guardar como PDF" desde su diálogo normal de impresión.
+        imprimirHTML(contenido,`Reporte_${grupoActual}`);
+    }
+
+    // =========================================================================
+    // WHATSAPP
+    // =========================================================================
+    function avisarTutorWhatsApp(alumnoNombre, tipoAviso, detalle) {
+        const grupo = sistemaDatos.grupos[grupoActual];
+        const al = grupo.alumnos.find(a => a.nombre === alumnoNombre);
+        if (!al || !al.telefono || al.telefono === '-') { alert("No hay teléfono de tutor registrado para " + alumnoNombre); return; }
+
+        const celular = al.telefono.replace(/\D/g, '');
+        const h = new Date().getHours();
+        const saludo = h >= 19 ? "Buenas noches" : (h >= 12 ? "Buenas tardes" : "Buenos días");
+
+        let motivo = "";
+        if (tipoAviso === 'falta') motivo = `quería informarle que el catequizando *${al.nombre}* no asistió a la sesión (${detalle}). Le pido conversar con el joven y justificar la falta si hubo algún inconveniente.`;
+        else if (tipoAviso === 'tarea') motivo = `quería informarle que *${al.nombre}* NO PRESENTÓ la tarea asignada (${detalle}). Le ruego su apoyo en casa para que se ponga al día.`;
+        else if (tipoAviso === 'riesgo') motivo = `me comunico URGENTEMENTE porque *${al.nombre}* ha acumulado *${detalle} faltas* y se encuentra en riesgo de perder el año de catequesis. Le ruego se comunique conmigo a la brevedad.`;
+
+        const nombreCat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || "su catequista";
+        const mensaje = `${saludo} estimado/a tutor ${al.tutor}. Que Dios le bendiga.\n\nLe habla su catequista, *${nombreCat}*. El motivo de este mensaje es que ${motivo}\n\n¡Paz y Bien!`;
+        window.open(`https://wa.me/${celular}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+
+    // =========================================================================
+    // DIRECTORIO
+    // =========================================================================
+    function abrirModalDirectorio() {
+        const tbody = document.getElementById('tabla-modal-directorio');
+        const grupo = sistemaDatos.grupos[grupoActual];
+        if (grupo.alumnos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay catequizandos inscritos.</td></tr>`;
+        } else {
+            tbody.innerHTML = grupo.alumnos.map(al => {
+                const salud = al.salud && al.salud.trim() !== '' ? `<span class="badge-alerta"><i class="fa-solid fa-triangle-exclamation"></i> ${escHtml(al.salud)}</span>` : '<span style="color:var(--medium-gray)">Ninguna</span>';
+                const tTutor = al.telefono && al.telefono !== '-' ? `<a href="https://wa.me/${al.telefono.replace(/\D/g, '')}" target="_blank" style="color:#25D366; text-decoration:none; font-weight:bold;"><i class="fa-brands fa-whatsapp"></i> ${escHtml(al.telefono)}</a>` : '-';
+                const tJoven = al.celular && al.celular !== '-' ? `<a href="https://wa.me/${al.celular.replace(/\D/g, '')}" target="_blank" style="color:var(--accent); text-decoration:none;"><i class="fa-solid fa-mobile-screen"></i> ${escHtml(al.celular)}</a>` : '-';
+                return `<tr><td><strong>${escHtml(al.nombre)}</strong><br><small>${tJoven}</small></td><td>${escHtml(al.direccion)}</td><td>${escHtml(al.tutor)}</td><td>${tTutor}</td><td>${salud}</td></tr>`;
+            }).join('');
+        }
+        document.getElementById('modal-directorio').style.display = 'flex';
+    }
+    function cerrarModalDirectorio() { document.getElementById('modal-directorio').style.display = 'none'; }
+
+    // =========================================================================
+    // NOTAS — CENTRO ORGANIZADO
+    // =========================================================================
+    let filtroNotasFijadas = false;
+    function limpiarTextoPlano(html){ const d=document.createElement('div'); d.innerHTML=html||''; return (d.textContent||d.innerText||'').replace(/\s+/g,' ').trim(); }
+    function tipoNotaTexto(t){ return ({general:'General',reunion:'Reunión',catequizando:'Catequizando',tarea:'Tarea',importante:'Importante'})[t]||'General'; }
+    function alternarFiltroNotasFijadas(){ filtroNotasFijadas=!filtroNotasFijadas; renderizarNotas(); }
+    function limpiarFiltrosNotas(){ const a=document.getElementById('buscar-notas'),b=document.getElementById('filtro-notas-tipo');if(a)a.value='';if(b)b.value='todos';filtroNotasFijadas=false;renderizarNotas(); }
+    function abrirNotaRapida(){
+        initQuill(); document.getElementById('nota-id-actual').value=''; document.getElementById('nota-titulo').value='Nota rápida'; document.getElementById('nota-fecha').valueAsDate=new Date(); document.getElementById('nota-tipo').value='general'; document.getElementById('nota-recordatorio').value=''; document.getElementById('nota-fijada').checked=true; if(quillEditor)quillEditor.root.innerHTML=''; document.getElementById('modal-nota').style.display='flex'; setTimeout(()=>quillEditor&&quillEditor.focus(),100);
+    }
+    function renderizarNotas() {
+        const cont = document.getElementById('contenedor-notas'); if(!cont)return;
+        const eliminadas=new Set((Array.isArray(sistemaDatos._notasEliminadas)?sistemaDatos._notasEliminadas:[]).map(String));
+        const todas=(Array.isArray(sistemaDatos.notas)?sistemaDatos.notas:[]).filter(n=>!eliminadas.has(String(n.id)));
+        const q=(document.getElementById('buscar-notas')?.value||'').toLowerCase().trim(); const tipo=document.getElementById('filtro-notas-tipo')?.value||'todos';
+        let notas=todas.filter(n=>{const texto=(String(n.titulo||'')+' '+limpiarTextoPlano(n.contenido)).toLowerCase();return (!q||texto.includes(q))&&(tipo==='todos'||(n.tipo||'general')===tipo)&&(!filtroNotasFijadas||!!n.fijada);});
+        notas.sort((a,b)=>(Number(!!b.fijada)-Number(!!a.fijada)) || String(b.recordatorio||b.fecha||'').localeCompare(String(a.recordatorio||a.fecha||'')) || Number(b.id||0)-Number(a.id||0));
+        const resumen=document.getElementById('resumen-notas'); if(resumen)resumen.innerHTML=`Mostrando <b>${notas.length}</b> de ${todas.length} notas${filtroNotasFijadas?' · solo fijadas':''}.`;
+        if(!notas.length){cont.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2.5rem;color:var(--medium-gray)"><i class="fa-solid fa-note-sticky" style="font-size:2rem;margin-bottom:10px"></i><br>No hay notas con estos filtros.</div>`;return;}
+        cont.innerHTML=notas.map(nota=>{
+            const rec=nota.recordatorio?`<span class="nota-recordatorio"><i class="fa-regular fa-bell"></i> ${escHtml(formatearFecha(nota.recordatorio))}</span>`:'';
+            return `<div class="nota-card ${nota.fijada?'nota-fijada':''}" onclick="editarNota(${nota.id})"><div class="acciones"><button class="btn-icon" onclick="event.stopPropagation(); alternarFijadoNota(${nota.id})" title="${nota.fijada?'Desfijar':'Fijar'}" type="button"><i class="fa-solid fa-thumbtack"></i></button><button class="btn-icon" onclick="event.stopPropagation(); eliminarNota(${nota.id})" title="Eliminar Nota" type="button"><i class="fa-solid fa-trash"></i></button></div><h3>${nota.fijada?'📌 ':''}${escHtml(nota.titulo)}</h3><div class="nota-meta"><span class="nota-tag">${escHtml(tipoNotaTexto(nota.tipo||'general'))}</span><span class="fecha" style="margin:0"><i class="fa-regular fa-calendar"></i> ${escHtml(nota.fecha||'-')}</span>${rec}</div><div class="contenido ql-editor" style="padding:0; min-height:auto; color:#3f3f1a;">${nota.contenido||''}</div></div>`;
+        }).join('');
+    }
+    function alternarFijadoNota(id){const n=sistemaDatos.notas.find(x=>Number(x.id)===Number(id));if(!n)return;n.fijada=!n.fijada;sincronizarConNube(false);renderizarNotas();}
+    function abrirEditorNota() {
+        initQuill(); document.getElementById('nota-id-actual').value = ""; document.getElementById('nota-titulo').value = ""; document.getElementById('nota-fecha').valueAsDate = new Date(); document.getElementById('nota-tipo').value='general'; document.getElementById('nota-recordatorio').value=''; document.getElementById('nota-fijada').checked=false; if (quillEditor) quillEditor.root.innerHTML = ""; document.getElementById('modal-nota').style.display = 'flex';
+    }
+    function editarNota(id) {
+        initQuill(); const nota = sistemaDatos.notas.find(n => Number(n.id) === Number(id)); if (!nota) return;
+        document.getElementById('nota-id-actual').value = nota.id; document.getElementById('nota-titulo').value = nota.titulo||'';
+        const parts = (nota.fecha || '').split('/'); document.getElementById('nota-fecha').value = parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` : (nota.fecha||'');
+        document.getElementById('nota-tipo').value=nota.tipo||'general'; document.getElementById('nota-recordatorio').value=nota.recordatorio||''; document.getElementById('nota-fijada').checked=!!nota.fijada; if (quillEditor) quillEditor.root.innerHTML = nota.contenido||''; document.getElementById('modal-nota').style.display = 'flex';
+    }
+    function guardarNota() {
+        if (!quillEditor) { alert("El editor no cargó. Revisa tu conexión a internet."); return; }
+        const idStr = document.getElementById('nota-id-actual').value; const titulo = document.getElementById('nota-titulo').value.trim() || "Nota sin título"; const fechaInput = document.getElementById('nota-fecha').value; const contenido = quillEditor.root.innerHTML;
+        if (quillEditor.getText().trim() === "") { alert("La nota está vacía."); return; }
+        const fecha = fechaInput ? formatearFecha(fechaInput) : new Date().toLocaleDateString(); const tipo=document.getElementById('nota-tipo').value||'general'; const recordatorio=document.getElementById('nota-recordatorio').value||''; const fijada=document.getElementById('nota-fijada').checked;
+        if (!Array.isArray(sistemaDatos._notasEliminadas)) sistemaDatos._notasEliminadas=[];
+        if (idStr) { const n = sistemaDatos.notas.find(x => Number(x.id) === Number(idStr)); if (n) { n.titulo=titulo;n.contenido=contenido;n.fecha=fecha;n.tipo=tipo;n.recordatorio=recordatorio;n.fijada=fijada;n.actualizado=Date.now(); sistemaDatos._notasEliminadas=sistemaDatos._notasEliminadas.filter(x=>String(x)!==String(idStr)); } }
+        else { const nuevoId=Date.now(); sistemaDatos.notas.push({id:nuevoId,titulo,contenido,fecha,tipo,recordatorio,fijada,actualizado:Date.now()}); sistemaDatos._notasEliminadas=sistemaDatos._notasEliminadas.filter(x=>String(x)!==String(nuevoId)); }
+        sincronizarConNube(false); cerrarEditorNota(); renderizarNotas(); toast('✔ Nota guardada');
+    }
+    function eliminarNota(id) {
+        if (!confirm('¿Eliminar permanentemente esta nota?')) return;
+        if (!Array.isArray(sistemaDatos._notasEliminadas)) sistemaDatos._notasEliminadas=[];
+        const sid=String(id);
+        if (!sistemaDatos._notasEliminadas.some(x=>String(x)===sid)) sistemaDatos._notasEliminadas.push(id);
+        sistemaDatos.notas=sistemaDatos.notas.filter(n=>String(n.id)!==sid);
+        sistemaDatos._actualizado=Date.now();
+        guardarEquipoLocal(equipoActualLogin,sistemaDatos);
+        renderizarNotas();
+        toast('✔ Nota eliminada');
+        sincronizarConNube(false);
+    }
+    function cerrarEditorNota() { document.getElementById('modal-nota').style.display = 'none'; }
+    function imprimirNotas(){
+        const notas=Array.isArray(sistemaDatos.notas)?sistemaDatos.notas:[]; const body=notas.slice().sort((a,b)=>Number(!!b.fijada)-Number(!!a.fijada)).map(n=>`<div style="border-bottom:1px solid #ccc;padding:12px 0"><h3>${n.fijada?'📌 ':''}${escHtml(n.titulo||'Nota')}</h3><p><b>${escHtml(tipoNotaTexto(n.tipo||'general'))}</b> · ${escHtml(n.fecha||'-')}${n.recordatorio?' · Recordatorio: '+escHtml(formatearFecha(n.recordatorio)):''}</p><div>${n.contenido||''}</div></div>`).join(''); imprimirHTML(`<h1>CONTROL DE CATEQUESIS</h1><h2>Notas — ${escHtml(grupoActual)}</h2>${body||'<p>No hay notas.</p>'}`,'Notas_Catequesis'); }
+
+    // =========================================================================
+    // REPORTE PDF
+    // =========================================================================
+    function abrirModalPDF() {
+        document.getElementById('pdf-titulo').value = "Reporte Oficial de Catequesis";
+        document.getElementById('pdf-tipo').value = "todo";
+        document.getElementById('div-pdf-alumno').style.display = "none";
+        const sel = document.getElementById('pdf-alumno-select');
+        const alumnos = sistemaDatos.grupos[grupoActual].alumnos;
+        sel.innerHTML = alumnos.length === 0 ? "<option value=''>No hay alumnos</option>" : alumnos.map(a => `<option value="${escHtml(a.nombre)}">${escHtml(a.nombre)}</option>`).join('');
+        document.getElementById('modal-pdf').style.display = 'flex';
+    }
+    function cerrarModalPDF() { document.getElementById('modal-pdf').style.display = 'none'; }
+
+    // Botón PDF principal: genera el reporte directamente, sin abrir un modal
+    // intermedio ni depender de ventanas emergentes.
+    function generarPDFDirecto() {
+        const tipo = document.getElementById('pdf-tipo');
+        const titulo = document.getElementById('pdf-titulo');
+        if (tipo) tipo.value = 'todo';
+        if (titulo) titulo.value = 'Reporte Oficial de Catequesis';
+        ejecutarGeneracionPDF();
+    }
+    window.generarPDFDirecto = generarPDFDirecto;
+
+    function cambiarFiltroPdf() {
+        const tipo = document.getElementById('pdf-tipo').value;
+        document.getElementById('div-pdf-alumno').style.display = tipo === 'alumno' ? 'block' : 'none';
+        const titulos = { faltas: "Reporte de Inasistencias (Faltas)", tareas: "Reporte de Tareas Pendientes", todo: "Reporte General de Catequesis", alumno: "Reporte Individual del Catequizando" };
+        document.getElementById('pdf-titulo').value = titulos[tipo];
+    }
+
+    async function ejecutarGeneracionPDF() {
+        const titulo = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
+        const tipo = document.getElementById('pdf-tipo').value;
+        const alumnoSel = document.getElementById('pdf-alumno-select').value;
+        cerrarModalPDF();
+
+        const grupo = (sistemaDatos.grupos && sistemaDatos.grupos[grupoActual]) || {};
+        const registros = grupo.registros || [];
+        let filtrados = registros;
+        if (tipo === 'faltas') filtrados = registros.filter(r => String(r.asistencia||'').includes('Falta'));
+        else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
+        else if (tipo === 'alumno') filtrados = registros.filter(r => r.alumno === alumnoSel);
+
+        let asis = 0, faltas = 0, tar = 0;
+        filtrados.forEach(r => {
+            if (String(r.asistencia||'').includes('Presente') || String(r.asistencia||'').includes('Retraso')) asis++;
+            if (String(r.asistencia||'').includes('Falta')) faltas++;
+            if (registroNoPresentoTarea(r)) tar++;
+        });
+        const pct = filtrados.length ? Math.round((asis / filtrados.length) * 100) : 100;
+
+        let rows = filtrados.slice().reverse().map(r => {
+            const noPresento = registroNoPresentoTarea(r);
+            const tc = noPresento ? 'No Presentó' :
+                String(r.tareaEstado||'').trim().toLowerCase() === 'entregado' ? 'Entregado' :
+                r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-');
+            return `<tr>
+                <td>${escHtml(r.fecha||'-')}</td>
+                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                <td>${escHtml(r.asistencia||'-')}</td>
+                <td>${escHtml(nombreTareaRegistro(r)||'-')}</td>
+                <td class="${noPresento?'pdf-danger':'pdf-ok'}">${escHtml(tc)}</td>
+            </tr>`;
+        }).join('');
+        if (!rows) rows = `<tr><td colspan="5" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
+
+        const cat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || '';
         const container = document.createElement('div');
         container.id = 'reporte-pdf-local';
         container.innerHTML = `
-            <div class="pdf-doc">
-                <header class="pdf-head">
-                    <div class="pdf-org">${escHtml(parroquia)}</div>
-                    <h1>CONTROL DE CATEQUESIS</h1>
-                    <h2>${escHtml(titulo || 'Reporte de Catequesis')}</h2>
-                    <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Gestión:</b> ${escHtml(gestion)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
-                    <p class="pdf-small"><b>Catequista:</b> ${escHtml(catequista)}</p>
-                </header>
-                <main>${contenido || '<p>No hay información para mostrar.</p>'}</main>
-                <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
-            </div>`;
+          <div class="pdf-doc">
+            <header class="pdf-head">
+              <div>
+                <div class="pdf-org">${escHtml((sistemaDatos.info&&sistemaDatos.info.parroquia)||'PARROQUIA')}</div>
+                <h1>CONTROL DE CATEQUESIS</h1>
+                <h2>${escHtml(titulo)}</h2>
+                <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
+                <p class="pdf-small"><b>Catequista:</b> ${escHtml(cat)} ${perfilCatequista.cargo ? '('+escHtml(perfilCatequista.cargo)+')' : ''}</p>
+              </div>
+            </header>
+            <div class="pdf-kpis">
+              <div><strong>${pct}%</strong><span>Asistencia</span></div>
+              <div><strong>${faltas}</strong><span>Faltas</span></div>
+              <div><strong>${tar}</strong><span>Tareas pendientes</span></div>
+              <div><strong>${filtrados.length}</strong><span>Registros</span></div>
+            </div>
+            <table class="pdf-table">
+              <thead><tr><th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Tarea / Actividad asignada</th><th>Cumplimiento</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
+          </div>`;
 
         document.body.appendChild(container);
 
+        // Prefer the native browser print engine. It does not require a CDN,
+        // internet access, or an external JavaScript library.
         const oldTitle = document.title;
-        document.title = String(titulo || 'Reporte de Catequesis') + ' - ' + String(grupoActual || '');
+        document.title = titulo + ' - ' + grupoActual;
 
         const limpiar = () => {
             if (container.parentNode) container.parentNode.removeChild(container);
             document.title = oldTitle;
             window.removeEventListener('afterprint', limpiar);
+            if (typeof showLoading === 'function') showLoading(false);
         };
         window.addEventListener('afterprint', limpiar);
 
+        if (typeof showLoading === 'function') showLoading(false);
+
+        // Small delay lets mobile browsers finish layout before opening print.
         setTimeout(() => {
             window.print();
+            // Some mobile browsers do not fire afterprint; keep a safety cleanup.
             setTimeout(() => {
                 if (container.parentNode && !window.matchMedia('print').matches) limpiar();
-            }, 4000);
-        }, 120);
+            }, 3000);
+        }, 80);
     }
 
     // =========================================================================
@@ -6708,18 +6984,12 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
 
   async function descargarPDFFinanzas(d){
     if(!(await cargarPDF())){
-      const printNode=document.createElement('div');
-      printNode.id='finance-native-print';
-      printNode.innerHTML=reportHTML(d);
-      document.body.appendChild(printNode);
-      const oldTitle=document.title;
-      document.title='Control Financiero - '+String(grupoActual||'Grupo');
-      const cleanup=()=>{
-        printNode.remove();
-        document.title=oldTitle;
-      };
-      window.addEventListener('afterprint',cleanup,{once:true});
-      window.print();
+      const htmlDoc=reportHTML(d);
+      if(typeof imprimirHTML==='function'){
+        imprimirHTML(htmlDoc,'Control Financiero - '+String(grupoActual||'Grupo'));
+      }else{
+        alert('No se pudo preparar la impresión financiera.');
+      }
       return;
     }
     const staging=document.createElement('div');
@@ -6772,10 +7042,9 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
     }
     if(destino==='imprimir'){
       const htmlDoc=reportHTML(d);
-      const w=window.open('','_blank','width=1200,height=850');
-      if(!w){alert('El navegador bloqueó la ventana. Permite ventanas emergentes para generar el reporte.');return;}
-      w.document.write('<!doctype html><html><head><title>Informe financiero</title><meta charset="utf-8"><style>'+financeReportPrintCSS+'</style></head><body>'+htmlDoc+'</body></html>');
-      w.document.close(); cerrarReportesFinanzas(); return;
+      cerrarReportesFinanzas();
+      if(typeof imprimirHTML==='function') imprimirHTML(htmlDoc,'Informe financiero');
+      return;
     }
     if(destino==='pdf'){
       cerrarReportesFinanzas();
@@ -7397,7 +7666,7 @@ document.addEventListener('click',function(e){
 <style id="finance-native-print">
 #finance-native-print{display:none}
 @media print{
-  body>*:not(#finance-native-print){display:none!important}
+  #finance-native-print{display:none!important}
   #finance-native-print{display:block!important;background:#fff!important;color:#172033!important}
   #finance-native-print .fin-report-document{display:block!important;width:auto!important;max-width:none!important;padding:8mm!important;background:#fff!important;color:#172033!important}
   #finance-native-print .finance-detail-card{break-inside:avoid;page-break-inside:avoid}
@@ -7433,29 +7702,24 @@ cargarPDF=function(){
 </script>
 
 <style id="pdf-local-print-v4">
-#reporte-pdf-local{display:none}
+/* Impresión general aislada. No afecta a ningún módulo en pantalla. */
+#reporte-print-stage{display:none}
 @media print{
-  @page{size:A4 landscape;margin:12mm}
-  body>*:not(#reporte-pdf-local){display:none!important}
-  #reporte-pdf-local{display:block!important;background:#fff!important}
-  #reporte-pdf-local .pdf-doc{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff}
-  #reporte-pdf-local .pdf-head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:15px}
-  #reporte-pdf-local .pdf-org{color:#065f46;font-size:10pt;font-weight:800;text-transform:uppercase}
-  #reporte-pdf-local h1{color:#065f46;font-size:20pt;margin:3px 0}
-  #reporte-pdf-local h2{color:#334155;font-size:13pt;margin:3px 0}
-  #reporte-pdf-local p{font-size:8pt;color:#64748b;margin:4px 0}
-  #reporte-pdf-local .pdf-small{color:#94a3b8}
-  #reporte-pdf-local .pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-  #reporte-pdf-local .pdf-kpis div{border:1px solid #cbd5e1;border-radius:7px;padding:9px;text-align:center;background:#f8fafc}
-  #reporte-pdf-local .pdf-kpis strong{display:block;color:#065f46;font-size:14pt}
-  #reporte-pdf-local .pdf-kpis span{font-size:7pt;color:#64748b}
-  #reporte-pdf-local .pdf-table{width:100%;border-collapse:collapse;font-size:8pt}
-  #reporte-pdf-local .pdf-table th{background:#065f46;color:#fff;padding:7px;border:1px solid #064e3b;text-align:left}
-  #reporte-pdf-local .pdf-table td{padding:6px;border:1px solid #cbd5e1;color:#172033}
-  #reporte-pdf-local .pdf-table tr{break-inside:avoid;page-break-inside:avoid}
-  #reporte-pdf-local .pdf-ok{color:#15803d!important;font-weight:800}
-  #reporte-pdf-local .pdf-danger{color:#dc2626!important;font-weight:800}
-  #reporte-pdf-local .pdf-empty{text-align:center;padding:20px}
-  #reporte-pdf-local footer{margin-top:14px;font-size:7pt;color:#94a3b8;text-align:center}
+  html,body{background:#fff!important}
+  body>*:not(#reporte-print-stage){display:none!important}
+  #reporte-print-stage{display:block!important;position:static!important;background:#fff!important;color:#172033!important}
+  #reporte-print-stage .print-document{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;background:#fff!important;color:#172033!important;font-family:Arial,Helvetica,sans-serif}
+  #reporte-print-stage .print-head{border-bottom:3px solid #059669;padding-bottom:10px;margin-bottom:13px}
+  #reporte-print-stage .print-org{font-size:10pt;font-weight:800;color:#065f46;text-transform:uppercase}
+  #reporte-print-stage h1{font-size:19pt;color:#065f46;margin:3px 0}
+  #reporte-print-stage h2{font-size:12pt;color:#334155;margin:3px 0}
+  #reporte-print-stage .print-meta{font-size:7.5pt;color:#64748b;margin-top:5px}
+  #reporte-print-stage .print-content{color:#172033!important}
+  #reporte-print-stage .print-content table{width:100%;border-collapse:collapse;font-size:8pt}
+  #reporte-print-stage .print-content th{background:#172033!important;color:#fff!important;padding:6px;border:1px solid #cbd5e1;text-align:left}
+  #reporte-print-stage .print-content td{padding:6px;border:1px solid #cbd5e1;color:#172033!important;background:#fff!important}
+  #reporte-print-stage .print-content tr{break-inside:avoid;page-break-inside:avoid}
+  #reporte-print-stage footer{margin-top:12px;padding-top:6px;border-top:1px solid #cbd5e1;color:#94a3b8;font-size:7pt;text-align:center}
+  @page{size:A4 landscape;margin:10mm}
 }
 </style>
