@@ -1363,27 +1363,7 @@ td,th{border-color:var(--ui-border)!important}
 
 </head>
 <body>
-<div id="unified-tools-menu" class="unified-tools">
-  <button id="unified-tools-trigger" class="unified-tools-trigger" type="button" aria-label="Herramientas" title="Herramientas">
-    <i class="fa-solid fa-screwdriver-wrench"></i>
-  </button>
-  <div id="unified-tools-panel" class="unified-tools-panel" role="menu">
-    <div class="unified-tools-head">
-      <div><strong>Herramientas</strong><small>Acciones rápidas del sistema</small></div>
-      <button type="button" onclick="cerrarHerramientasUnificadas()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="unified-tools-grid">
-      <button type="button" onclick="accionHerramienta('perfil')"><i class="fa-solid fa-user"></i><span>Mi perfil</span></button>
-      <button type="button" onclick="accionHerramienta('guardar')"><i class="fa-solid fa-floppy-disk"></i><span>Guardar ahora</span></button>
-      <button type="button" onclick="accionHerramienta('backup')"><i class="fa-solid fa-database"></i><span>Copia de seguridad</span></button>
-      <button type="button" onclick="accionHerramienta('bloqueo')"><i class="fa-solid fa-lock"></i><span>Bloquear</span></button>
-      <button type="button" onclick="accionHerramienta('notificaciones')"><i class="fa-regular fa-bell"></i><span>Notificaciones</span></button>
-      <button type="button" onclick="accionHerramienta('tema')"><i class="fa-solid fa-circle-half-stroke"></i><span>Apariencia</span></button>
-      <button type="button" onclick="accionHerramienta('ayuda')"><i class="fa-solid fa-circle-question"></i><span>Ayuda</span></button>
-      <button type="button" onclick="accionHerramienta('salir')"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button>
-    </div>
-  </div>
-</div>
+
 
 
 <div id="loading-overlay">
@@ -1553,7 +1533,7 @@ td,th{border-color:var(--ui-border)!important}
                     <button onclick="mobileSwitchTab(event,'alumnos')" type="button"><i class="fa-solid fa-user-graduate"></i><span>Catequizandos</span></button>
                     <button onclick="mobileSwitchTab(event,'notas')" type="button"><i class="fa-solid fa-note-sticky"></i><span>Notas</span></button><button onclick="mobileSwitchTab(event,'agenda')" type="button"><i class="fa-solid fa-calendar-days"></i><span>Agenda</span></button>
                     <button onclick="mobileSwitchTab(event,'centro-v4')" type="button"><i class="fa-solid fa-gauge-high"></i><span>Centro</span></button>
-                    <button onclick="mobileSwitchTab(event,'herramientas')" type="button"><i class="fa-solid fa-shield-halved"></i><span>Backup y herramientas</span></button>
+                    <button onclick="mobileSwitchTab(event,'herramientas')" type="button"><i class="fa-solid fa-shield-halved"></i><span>Herramientas</span></button>
                     <button onclick="abrirPerfil();cerrarMenuMas()" type="button"><i class="fa-solid fa-user-gear"></i><span>Mi perfil</span></button>
                     <button onclick="exportarRespaldoJSON();cerrarMenuMas()" type="button"><i class="fa-solid fa-download"></i><span>Crear backup</span></button>
                     <button onclick="sincronizarConNube(true);cerrarMenuMas()" type="button"><i class="fa-solid fa-cloud-arrow-up"></i><span>Guardar ahora</span></button>
@@ -2164,10 +2144,9 @@ td,th{border-color:var(--ui-border)!important}
                     <div class="section-toolbar">
                         <div>
                             <h2 style="margin:0"><i class="fa-solid fa-calendar-days"></i> Agenda</h2>
-                            <p class="section-intro" style="margin:.45rem 0 0">Calendario central de reuniones, catequesis, actividades, pagos, tareas y compromisos.</p>
+                            <p class="section-intro" style="margin:.45rem 0 0">Tu agenda personal para reuniones, compromisos, pendientes y actividades que tú decidas registrar.</p>
                         </div>
                         <div class="toolbar-actions agenda-actions">
-                            <button class="btn btn-slate" type="button" onclick="abrirReporteTareas()" title="Reporte detallado de tareas"><i class="fa-solid fa-list-check"></i> Reporte de tareas</button>
                             <button class="btn btn-primary" type="button" onclick="abrirNuevaAgenda()"><i class="fa-solid fa-plus"></i> Nuevo evento</button>
                             <button class="btn btn-slate" type="button" onclick="agendaIrHoy()"><i class="fa-solid fa-calendar-day"></i> Hoy</button>
                         </div>
@@ -6794,12 +6773,11 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
   function readOwn(){try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
   function saveOwn(a){localStorage.setItem(KEY,JSON.stringify(a))}
   function collect(){
-    const g=sistemaDatos.grupos?.[grupoActual]||{}, out=[];
-    readOwn().forEach(x=>out.push({...x,source:'agenda'}));
-    (g.temario?.primerAno||[]).concat(g.temario?.segundoAno||[]).forEach(x=>{if(x.fecha)out.push({id:'tema-'+x.fecha+'-'+(x.titulo||''),fecha:x.fecha,titulo:x.titulo||'Tema de catequesis',descripcion:x.descripcion||'',tipo:'tema',source:'temario'})});
-    (g.finanzas?.actividades||[]).forEach(x=>{if(x.fecha)out.push({id:'act-'+x.id,fecha:x.fecha,titulo:x.nombre||'Actividad',descripcion:x.descripcion||'Actividad pastoral / financiera',tipo:'actividad',hora:x.inicio||'',source:'finanzas'})});
-    (g.tareas||g.reuniones||[]).forEach(x=>{if(x.fecha)out.push({id:'task-'+(x.id||x.fecha+x.titulo),fecha:x.fecha,titulo:x.titulo||x.nombre||'Tarea / reunión',descripcion:x.descripcion||'',tipo:x.tipo||'tarea',hora:x.hora||'',source:'tareas'})});
-    const map=new Map(); out.forEach(x=>{if(x.fecha)map.set(x.id||[x.fecha,x.titulo,x.tipo].join('|'),x)}); return [...map.values()].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||'')||String(a.hora||'').localeCompare(String(b.hora||'')));
+    // La Agenda es personal: solo muestra compromisos creados desde Agenda.
+    return readOwn().sort((a,b)=>
+      (a.fecha||'').localeCompare(b.fecha||'') ||
+      String(a.hora||'').localeCompare(String(b.hora||''))
+    );
   }
   function monthName(d){return d.toLocaleDateString('es-BO',{month:'long',year:'numeric'}).replace(/^./,m=>m.toUpperCase())}
   window.renderizarAgenda=function(){
@@ -7062,70 +7040,8 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
 @media(max-width:520px){.agenda-modal-top{grid-template-columns:42px 1fr 34px;padding:16px}.agenda-modal-icon{width:42px;height:42px}.agenda-form-body{padding:16px}.agenda-two-fields{grid-template-columns:1fr}.agenda-modal-footer{padding:13px 16px}.agenda-save-btn{min-width:0;flex:1}.agenda-modal-footer .btn-slate{flex:0 0 auto}.agenda-quick-dates{flex-wrap:wrap}}
 </style>
 
-<script id="unified-tools-engine">
-(function(){
-  const panel=()=>document.getElementById('unified-tools-panel');
-  window.cerrarHerramientasUnificadas=function(){const p=panel();if(p)p.classList.remove('open')};
-  window.accionHerramienta=function(action){
-    cerrarHerramientasUnificadas();
-    const call=(names,args=[])=>{for(const n of names){if(typeof window[n]==='function'){try{window[n](...args)}catch(e){console.warn(e)}return true}}return false};
-    if(action==='perfil') return call(['abrirPerfil','mostrarPerfil','openProfile']);
-    if(action==='guardar') {
-      if(call(['guardarAhora','guardarDatos','guardarSistema','saveData'])) return;
-      try{ if(typeof sistemaDatos!=='undefined'){localStorage.setItem('catequesis_backup_manual',JSON.stringify(sistemaDatos)); if(typeof toast==='function')toast('✓ Datos guardados ahora.'); else alert('Datos guardados.');}}catch(e){alert('No se pudo guardar en este momento.')}
-      return;
-    }
-    if(action==='backup') return call(['exportarBackup','crearBackup','descargarBackup','backupSistema']);
-    if(action==='bloqueo') return call(['bloquearSistema','bloquearSesion','lockScreen','bloquear']);
-    if(action==='notificaciones') return call(['abrirNotificaciones','mostrarNotificaciones','openNotifications']);
-    if(action==='tema') return call(['abrirAjustes','abrirConfiguracion','mostrarAjustes']);
-    if(action==='ayuda') return call(['abrirAyuda','mostrarAyuda','openHelp']);
-    if(action==='salir') return call(['cerrarSesion','logout','salir']);
-  };
-  document.addEventListener('DOMContentLoaded',function(){
-    const trigger=document.getElementById('unified-tools-trigger'),p=panel();
-    if(!trigger||!p)return;
-    trigger.addEventListener('click',e=>{e.stopPropagation();p.classList.toggle('open')});
-    p.addEventListener('click',e=>e.stopPropagation());
-    document.addEventListener('click',()=>p.classList.remove('open'));
-  });
-})();
-</script>
 
-<style id="fluid-performance-ui">
-html{scroll-behavior:smooth}
-body{-webkit-tap-highlight-color:transparent}
-button,a,input,select,textarea{touch-action:manipulation}
-button{user-select:none;-webkit-user-select:none}
-.card,.modal-content,.agenda-personal-modal,.unified-tools-panel{contain:layout paint}
-.unified-tools{position:fixed;top:14px;right:14px;z-index:15000}
-.unified-tools-trigger{width:42px;height:42px;border:1px solid var(--line-soft,#334155);border-radius:12px;background:var(--card-bg,#111827);color:var(--text-color,#f8fafc);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 24px #0002;transition:transform .14s ease,box-shadow .14s ease}
-.unified-tools-trigger:hover{transform:translateY(-1px);box-shadow:0 12px 28px #0003}
-.unified-tools-trigger:active{transform:scale(.95)}
-.unified-tools-panel{position:absolute;right:0;top:50px;width:300px;background:var(--card-bg,#111827);border:1px solid var(--line-soft,#334155);border-radius:16px;box-shadow:0 24px 70px #0005;padding:10px;opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .14s ease,transform .14s ease}
-.unified-tools-panel.open{opacity:1;transform:none;pointer-events:auto}
-.unified-tools-head{display:flex;justify-content:space-between;align-items:center;padding:7px 7px 10px;border-bottom:1px solid var(--line-soft,#334155);margin-bottom:8px}
-.unified-tools-head strong{display:block;font-size:.85rem}.unified-tools-head small{display:block;color:var(--medium-gray);font-size:.65rem;margin-top:2px}
-.unified-tools-head button{border:0;background:transparent;color:var(--medium-gray);font-size:1rem;cursor:pointer;width:30px;height:30px;border-radius:8px}
-.unified-tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-.unified-tools-grid button{display:flex;align-items:center;gap:9px;text-align:left;border:0;background:transparent;color:var(--text-color,#f8fafc);border-radius:10px;padding:10px 9px;cursor:pointer;font-size:.72rem}
-.unified-tools-grid button:hover{background:rgba(148,163,184,.09)}
-.unified-tools-grid i{width:18px;text-align:center;color:#34d399;font-size:.78rem}
-@media(max-width:900px){
- .unified-tools{top:10px;right:10px}
- .unified-tools-trigger{width:40px;height:40px}
- .unified-tools-panel{right:-2px;width:min(300px,calc(100vw - 20px))}
-}
-</style>
 
-<script id="fluid-performance-engine">
-(function(){
-  let timer=0;
-  window.agendaRenderSoon=function(){
-    clearTimeout(timer);
-    timer=setTimeout(()=>{if(typeof renderizarAgenda==='function')renderizarAgenda()},50);
-  };
-  window.addEventListener('resize',()=>{if(typeof agendaRenderSoon==='function')agendaRenderSoon()},{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&typeof agendaRenderSoon==='function')agendaRenderSoon()});
-})();
-</script>
+
+
+
