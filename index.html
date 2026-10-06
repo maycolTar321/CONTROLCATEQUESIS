@@ -4397,42 +4397,10 @@ td,th{border-color:var(--ui-border)!important}
     function imprimirHTML(contenido,titulo){
         const w=window.open('','_blank','width=1100,height=800');
         if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
-        const info=sistemaDatos.info||{};
-        const g=(sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual])||{};
-        const parroquia=info.parroquia||g.metadata?.parroquia||'';
-        /* Resumen ejecutivo estándar para todos los reportes */
-        const repRegistros=Array.isArray(g.registros)?g.registros:[];
-        const repAlumnos=Array.isArray(g.alumnos)?g.alumnos:[];
-        const repSesiones=[...new Set(repRegistros.map(r=>String(r.fecha||'')).filter(Boolean))];
-        const repPresentes=repRegistros.filter(r=>/Presente|Retraso/i.test(String(r.asistencia||''))).length;
-        const repFaltas=repRegistros.filter(r=>/Falta/i.test(String(r.asistencia||''))).length;
-        const repPermisos=repRegistros.filter(r=>/Permiso/i.test(String(r.asistencia||''))).length;
-        const repTareas=repRegistros.filter(r=>String(r.tareaNombre||'').trim() && String(r.tareaNombre||'').trim()!=='Ninguna').length;
-        const repNoPresentadas=repRegistros.filter(r=>typeof registroNoPresentoTarea==='function' && registroNoPresentoTarea(r)).length;
-        const repEntregadas=repRegistros.filter(r=>String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length;
-        const repPct=repRegistros.length?Math.round((repPresentes/repRegistros.length)*100):0;
-        const repUltima=repSesiones.length?repSesiones.slice().sort().pop():'-';
-        const repCat=(g.metadata&&g.metadata.catequista)||perfilCatequista.nombre||'-';
-        const repResumen=`<div class="report-executive">
-          <div class="report-executive-title"><i class="fa-solid fa-chart-line"></i><span>Resumen ejecutivo de gestión</span><small>Indicadores consolidados del grupo</small></div>
-          <div class="report-kpi-grid">
-            <div class="report-kpi"><b>${repAlumnos.length}</b><small>Catequizandos registrados</small></div>
-            <div class="report-kpi"><b>${repSesiones.length}</b><small>Sesiones con registros</small></div>
-            <div class="report-kpi report-kpi-ok"><b>${repPct}%</b><small>Asistencia registrada</small></div>
-            <div class="report-kpi report-kpi-bad"><b>${repFaltas}</b><small>Inasistencias</small></div>
-            <div class="report-kpi"><b>${repTareas}</b><small>Asignaciones registradas</small></div>
-            <div class="report-kpi report-kpi-bad"><b>${repNoPresentadas}</b><small>Tareas no presentadas</small></div>
-          </div>
-          <div class="report-management-grid">
-            <div><strong>Responsable</strong><span>${escHtml(repCat)}</span></div>
-            <div><strong>Última sesión registrada</strong><span>${escHtml(repUltima)}</span></div>
-            <div><strong>Presentes / retrasos</strong><span>${repPresentes}</span></div>
-            <div><strong>Permisos</strong><span>${repPermisos}</span></div>
-            <div><strong>Tareas entregadas</strong><span>${repEntregadas}</span></div>
-            <div><strong>Registros analizados</strong><span>${repRegistros.length}</span></div>
-          </div>
-        </div>`;
-        contenido = repResumen + contenido;
+
+        // Cada reporte muestra únicamente su propio contenido.
+        // No se agrega automáticamente un resumen general del grupo,
+        // evitando mezclar información de notas, actividades, faltas y tareas.
         const catequista=g.metadata?.catequista||perfilCatequista.nombre||info.catequista||'';
         const gestion=info.gestion||g.metadata?.gestion||'';
         w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>
@@ -4554,12 +4522,49 @@ tr:hover td{background:#fafdfc}
         return 'Tarea registrada';
     }
     function imprimirReporteActual(){
-        const g=sistemaDatos.grupos[grupoActual],rs=g.registros||[],fn=(document.getElementById('filtro-nombre').value||'').toLowerCase(),fe=document.getElementById('filtro-estado').value,ft=document.getElementById('filtro-tarea-estado').value;
-        const filtrados=rs.filter(r=>String(r.alumno||'').toLowerCase().includes(fn)&&(fe==='todos'||String(r.asistencia||'').includes(fe))&&(ft==='todos'||(ft==='No Presentó'?registroNoPresentoTarea(r):String(r.tareaEstado||'')===ft)));
+        const g=sistemaDatos.grupos[grupoActual],rs=g.registros||[],
+              fn=(document.getElementById('filtro-nombre').value||'').toLowerCase(),
+              fe=document.getElementById('filtro-estado').value,
+              ft=document.getElementById('filtro-tarea-estado').value;
+
+        const filtrados=rs.filter(r=>
+            String(r.alumno||'').toLowerCase().includes(fn) &&
+            (fe==='todos'||String(r.asistencia||'').includes(fe)) &&
+            (ft==='todos'||(ft==='No Presentó'?registroNoPresentoTarea(r):String(r.tareaEstado||'')===ft))
+        );
+
         const noPresentaron=filtrados.filter(registroNoPresentoTarea).length;
         const entregaron=filtrados.filter(r=>String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length;
-        const rows=filtrados.slice().reverse().map(r=>`<tr><td>${escHtml(r.fecha)}</td><td><strong>${escHtml(r.alumno)}</strong></td><td>${escHtml(r.asistencia)}</td><td>${escHtml(nombreTareaRegistro(r))}<br><small>${escHtml(r.tareaDescripcion||r.descripcionTarea||'')}</small></td><td>${escHtml(r.tareaEstado||'-')}</td></tr>`).join('');
-        imprimirHTML(`<h1>Reporte de Catequesis</h1><h2>Control de asistencia y tareas</h2><p><strong>Grupo:</strong> ${escHtml(grupoActual)} &nbsp; <strong>Generado:</strong> ${new Date().toLocaleString('es-BO')}</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><div class="report-kpi"><b>${filtrados.length}</b><small>Registros</small></div><div class="report-kpi report-kpi-ok"><b>${entregaron}</b><small>Tareas presentadas</small></div><div class="report-kpi report-kpi-bad"><b>${noPresentaron}</b><small>No presentaron</small></div></div><table><thead><tr><th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tarea</th><th>Estado</th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:22px">No hay registros con los filtros actuales.</td></tr>'}</tbody></table>`,`Reporte_${grupoActual}`);
+
+        const rows=filtrados.slice().reverse().map(r=>{
+            const noPresento=registroNoPresentoTarea(r);
+            const estado=noPresento ? 'No presentó' :
+                String(r.tareaEstado||'').trim().toLowerCase()==='entregado' ? 'Entregado' :
+                (r.tareaNombre==='Ninguna' ? '-' : (r.tareaEstado||'-'));
+
+            return `<tr>
+                <td>${escHtml(r.fecha||'-')}</td>
+                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                <td>${escHtml(r.asistencia||'-')}</td>
+                <td>${escHtml(estado)}</td>
+            </tr>`;
+        }).join('');
+
+        imprimirHTML(
+            `<h1>Reporte de Catequesis</h1>
+             <h2>Control de asistencia y cumplimiento</h2>
+             <p><strong>Grupo:</strong> ${escHtml(grupoActual)} &nbsp; <strong>Generado:</strong> ${new Date().toLocaleString('es-BO')}</p>
+             <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+                <div class="report-kpi"><b>${filtrados.length}</b><small>Registros</small></div>
+                <div class="report-kpi report-kpi-ok"><b>${entregaron}</b><small>Tareas presentadas</small></div>
+                <div class="report-kpi report-kpi-bad"><b>${noPresentaron}</b><small>No presentaron</small></div>
+             </div>
+             <table>
+                <thead><tr><th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Cumplimiento</th></tr></thead>
+                <tbody>${rows||'<tr><td colspan="4" style="text-align:center;padding:22px">No hay registros con los filtros actuales.</td></tr>'}</tbody>
+             </table>`,
+            `Reporte_${grupoActual}`
+        );
     }
 
     // =========================================================================
@@ -4687,63 +4692,108 @@ tr:hover td{background:#fafdfc}
     }
 
     async function ejecutarGeneracionPDF() {
-        const titulo = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
+        const tituloSolicitado = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
         const tipo = document.getElementById('pdf-tipo').value;
         const alumnoSel = document.getElementById('pdf-alumno-select').value;
         cerrarModalPDF();
 
         const grupo = sistemaDatos.grupos[grupoActual] || {};
-        const registros = grupo.registros || [];
+        const registros = Array.isArray(grupo.registros) ? grupo.registros : [];
+
         let filtrados = registros;
         if (tipo === 'faltas') filtrados = registros.filter(r => String(r.asistencia||'').includes('Falta'));
         else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
-        else if (tipo === 'alumno') filtrados = registros.filter(r => r.alumno === alumnoSel);
+        else if (tipo === 'alumno') filtrados = registros.filter(r => String(r.alumno||'') === String(alumnoSel||''));
 
-        let asis = 0, faltas = 0, tar = 0;
-        filtrados.forEach(r => {
-            if (String(r.asistencia||'').includes('Presente') || String(r.asistencia||'').includes('Retraso')) asis++;
-            if (String(r.asistencia||'').includes('Falta')) faltas++;
-            if (registroNoPresentoTarea(r)) tar++;
-        });
-        const pct = filtrados.length ? Math.round((asis / filtrados.length) * 100) : 100;
+        const contar = {
+            presentes: filtrados.filter(r => /Presente|Retraso/i.test(String(r.asistencia||''))).length,
+            faltas: filtrados.filter(r => /Falta/i.test(String(r.asistencia||''))).length,
+            pendientes: filtrados.filter(r => registroNoPresentoTarea(r)).length,
+            entregadas: filtrados.filter(r => String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length
+        };
+        const pct = filtrados.length ? Math.round((contar.presentes / filtrados.length) * 100) : 100;
 
-        let rows = filtrados.slice().reverse().map(r => {
-            const noPresento = registroNoPresentoTarea(r);
-            const tc = noPresento ? 'No Presentó' :
-                String(r.tareaEstado||'').trim().toLowerCase() === 'entregado' ? 'Entregado' :
-                r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-');
-            return `<tr>
-                <td>${escHtml(r.fecha||'-')}</td>
-                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
-                <td>${escHtml(r.asistencia||'-')}</td>
-                <td>${escHtml(nombreTareaRegistro(r)||'-')}</td>
-                <td class="${noPresento?'pdf-danger':'pdf-ok'}">${escHtml(tc)}</td>
-            </tr>`;
-        }).join('');
-        if (!rows) rows = `<tr><td colspan="5" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
+        let encabezados = '';
+        let rows = '';
+
+        if (tipo === 'faltas') {
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th>';
+            rows = filtrados.slice().reverse().map(r => `
+                <tr>
+                    <td>${escHtml(r.fecha||'-')}</td>
+                    <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                    <td class="pdf-danger">${escHtml(r.asistencia||'Falta')}</td>
+                </tr>`).join('');
+        } else if (tipo === 'tareas') {
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Cumplimiento</th>';
+            rows = filtrados.slice().reverse().map(r => `
+                <tr>
+                    <td>${escHtml(r.fecha||'-')}</td>
+                    <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                    <td class="pdf-danger">No presentó</td>
+                </tr>`).join('');
+        } else {
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Cumplimiento</th>';
+            rows = filtrados.slice().reverse().map(r => {
+                const noPresento = registroNoPresentoTarea(r);
+                const estadoTarea = noPresento ? 'No presentó' :
+                    String(r.tareaEstado||'').trim().toLowerCase()==='entregado' ? 'Entregado' :
+                    (r.tareaNombre==='Ninguna' ? '-' : (r.tareaEstado||'-'));
+                return `
+                    <tr>
+                        <td>${escHtml(r.fecha||'-')}</td>
+                        <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                        <td>${escHtml(r.asistencia||'-')}</td>
+                        <td class="${noPresento?'pdf-danger':'pdf-ok'}">${escHtml(estadoTarea)}</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        const colspan = tipo === 'faltas' || tipo === 'tareas' ? 3 : 4;
+        if (!rows) rows = `<tr><td colspan="${colspan}" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
 
         const cat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || '';
+        const parroquia = (sistemaDatos.info && sistemaDatos.info.parroquia) || 'PARROQUIA';
+
+        const titulo = tipo === 'faltas'
+            ? 'Reporte de Inasistencias'
+            : tipo === 'tareas'
+                ? 'Reporte de Tareas Pendientes'
+                : tipo === 'alumno'
+                    ? 'Reporte Individual del Catequizando'
+                    : tituloSolicitado;
+
+        const kpis = tipo === 'faltas'
+            ? `
+              <div><strong>${contar.faltas}</strong><span>Faltas</span></div>
+              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`
+            : tipo === 'tareas'
+                ? `
+              <div><strong>${contar.pendientes}</strong><span>Tareas pendientes</span></div>
+              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`
+                : `
+              <div><strong>${pct}%</strong><span>Asistencia</span></div>
+              <div><strong>${contar.faltas}</strong><span>Faltas</span></div>
+              <div><strong>${contar.pendientes}</strong><span>Tareas pendientes</span></div>
+              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`;
+
         const container = document.createElement('div');
         container.id = 'reporte-pdf-local';
         container.innerHTML = `
           <div class="pdf-doc">
             <header class="pdf-head">
+              <img class="pdf-logo" src="logo.jpg" alt="Logo">
               <div>
-                <div class="pdf-org">${escHtml((sistemaDatos.info&&sistemaDatos.info.parroquia)||'PARROQUIA')}</div>
+                <div class="pdf-org">${escHtml(parroquia)}</div>
                 <h1>CONTROL DE CATEQUESIS</h1>
                 <h2>${escHtml(titulo)}</h2>
                 <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
                 <p class="pdf-small"><b>Catequista:</b> ${escHtml(cat)} ${perfilCatequista.cargo ? '('+escHtml(perfilCatequista.cargo)+')' : ''}</p>
               </div>
             </header>
-            <div class="pdf-kpis">
-              <div><strong>${pct}%</strong><span>Asistencia</span></div>
-              <div><strong>${faltas}</strong><span>Faltas</span></div>
-              <div><strong>${tar}</strong><span>Tareas pendientes</span></div>
-              <div><strong>${filtrados.length}</strong><span>Registros</span></div>
-            </div>
+            <div class="pdf-kpis">${kpis}</div>
             <table class="pdf-table">
-              <thead><tr><th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Tarea / Actividad asignada</th><th>Cumplimiento</th></tr></thead>
+              <thead><tr>${encabezados}</tr></thead>
               <tbody>${rows}</tbody>
             </table>
             <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
@@ -4751,8 +4801,6 @@ tr:hover td{background:#fafdfc}
 
         document.body.appendChild(container);
 
-        // Prefer the native browser print engine. It does not require a CDN,
-        // internet access, or an external JavaScript library.
         const oldTitle = document.title;
         document.title = titulo + ' - ' + grupoActual;
 
@@ -4762,20 +4810,19 @@ tr:hover td{background:#fafdfc}
             window.removeEventListener('afterprint', limpiar);
             if (typeof showLoading === 'function') showLoading(false);
         };
-        window.addEventListener('afterprint', limpiar);
 
+        window.addEventListener('afterprint', limpiar);
         if (typeof showLoading === 'function') showLoading(false);
 
-        // Small delay lets mobile browsers finish layout before opening print.
         setTimeout(() => {
             window.print();
-            // Some mobile browsers do not fire afterprint; keep a safety cleanup.
             setTimeout(() => {
                 if (container.parentNode && !window.matchMedia('print').matches) limpiar();
             }, 3000);
         }, 80);
     }
 
+    // =========================================================================
     // =========================================================================
     // DASHBOARD
     // =========================================================================
@@ -7193,152 +7240,280 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
 }
 </style>
 
-<!-- REPORTE EMPRESARIAL DE TAREAS -->
-<div id="modal-reporte-tareas" class="modal-overlay" style="display:none;z-index:10060" onclick="if(event.target===this)cerrarReporteTareas()">
- <div class="modal-content task-report-modal" style="max-width:900px;width:min(95vw,900px)">
-  <div class="modal-header">
-   <div><h2><i class="fa-solid fa-list-check"></i> Reporte de tareas</h2><p>Control académico y operativo con resultados, pendientes y trazabilidad.</p></div>
-   <button class="btn btn-slate" onclick="cerrarReporteTareas()" type="button"><i class="fa-solid fa-xmark"></i></button>
+<!-- REPORTE DE TAREAS NO PRESENTADAS — LIVIANO -->
+<div id="modal-reporte-tareas" class="modal-overlay" style="display:none;z-index:10060"
+     onclick="if(event.target===this)cerrarReporteTareas()">
+  <div class="modal-content task-report-modal" style="max-width:1050px;width:min(96vw,1050px)">
+    <div class="modal-header">
+      <div>
+        <h2><i class="fa-solid fa-list-check"></i> Lista de tareas no presentadas</h2>
+        <p>Vista rápida de quién no presentó y exactamente qué tarea quedó pendiente.</p>
+      </div>
+      <button class="btn btn-slate" onclick="cerrarReporteTareas()" type="button">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="task-report-grid">
+      <label>
+        <span>Buscar joven</span>
+        <input id="tr-owner" type="search" placeholder="Nombre del catequizando..." autocomplete="off">
+      </label>
+      <label>
+        <span>Desde</span>
+        <input id="tr-from" type="date">
+      </label>
+      <label>
+        <span>Hasta</span>
+        <input id="tr-to" type="date">
+      </label>
+      <div class="task-report-actions" style="margin:0;align-self:end">
+        <button class="btn btn-primary" onclick="generarReporteTareas('excel')" type="button">
+          <i class="fa-solid fa-file-excel"></i> Descargar Excel
+        </button>
+      </div>
+    </div>
+
+    <div class="task-report-actions">
+      <button class="btn btn-slate" onclick="limpiarFiltrosReporteTareas()" type="button">
+        <i class="fa-solid fa-rotate-left"></i> Limpiar filtros
+      </button>
+    </div>
+
+    <div id="task-report-preview" class="task-report-preview"></div>
   </div>
-  <div class="task-report-grid">
-   <label><span>Estado</span><select id="tr-status"><option value="">Todos</option><option value="entregada">Entregadas</option><option value="pendiente">Pendientes</option><option value="no_presentada">No presentadas</option></select></label>
-   <label><span>Responsable</span><select id="tr-owner"><option value="">Todos</option></select></label>
-   <label><span>Desde</span><input id="tr-from" type="date"></label>
-   <label><span>Hasta</span><input id="tr-to" type="date"></label>
-  </div>
-  <div class="task-report-checks">
-   <label><input type="checkbox" id="tr-kpi" checked> Resultados y KPIs</label>
-   <label><input type="checkbox" id="tr-detail" checked> Detalle por tarea</label>
-   <label><input type="checkbox" id="tr-person" checked> Resultado por joven</label>
-   <label><input type="checkbox" id="tr-log" checked> Log de actividad</label>
-  </div>
-  <div class="task-report-actions">
-   <button class="btn btn-primary" onclick="generarReporteTareas('excel')" type="button"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
-   <button class="btn btn-info" onclick="generarReporteTareas('pdf')" type="button"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-   <button class="btn btn-slate" onclick="generarReporteTareas('print')" type="button"><i class="fa-solid fa-print"></i> Imprimir</button>
-  </div>
-  <div id="task-report-preview" class="task-report-preview"></div>
- </div>
 </div>
 
 <script id="task-report-engine">
 (function(){
- const LOGKEY='catequesis_audit_log_v1';
- function esc(v){return typeof escHtml==='function'?escHtml(String(v??'')):String(v??'')}
- function money(v){return (Number(v||0)).toFixed(2)}
- function getGroup(){return (typeof sistemaDatos!=='undefined'&&sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual])||{}}
- function ownTasks(){
-   const g=getGroup();
-   let raw=[];
-   ['tareas','tasks','actividadesTareas','trabajos'].forEach(k=>{if(Array.isArray(g[k]))raw.push(...g[k])});
-   if(Array.isArray(g.temario?.tareas))raw.push(...g.temario.tareas);
-   if(Array.isArray(g.temario?.primerAno))raw.push(...g.temario.primerAno.filter(x=>x.tarea||x.tareas));
-   if(Array.isArray(g.temario?.segundoAno))raw.push(...g.temario.segundoAno.filter(x=>x.tarea||x.tareas));
-   return raw;
- }
- function students(){const g=getGroup();return g.alumnos||g.jovenes||g.confirmandos||[]}
- function taskRows(){
-   const raw=ownTasks(), g=getGroup(), alumnos=students(), rows=[];
-   raw.forEach((t,ti)=>{
-     const id=t.id||'task-'+ti, title=t.titulo||t.nombre||t.tarea||'Tarea sin título', date=t.fecha||t.fechaEntrega||t.fechaLimite||'';
-     const owner=t.responsable||t.catequista||t.asignadoA||'Sin responsable';
-     const entregas=t.entregas||t.respuestas||t.resultados||[];
-     if(Array.isArray(entregas)&&entregas.length){
-       entregas.forEach(e=>{
-         const name=e.persona||e.alumno||e.joven||e.nombre||'Sin identificar';
-         const st=String(e.estado||e.status||'').toLowerCase();
-         rows.push({id,title,date,owner,student:name,status:norm(st,e),score:e.nota??e.calificacion??'',obs:e.observacion||e.comentario||''});
-       });
-     } else {
-       const list=Array.isArray(t.alumnos)?t.alumnos:alumnos;
-       if(list.length) list.forEach(a=>{
-         const name=a.nombre||a.name||String(a), found=(t.estadoPorAlumno||t.estados||{})[name];
-         rows.push({id,title,date,owner,student:name,status:norm(found?.estado||found||t.estado||'',found),score:found?.nota??'',obs:found?.observacion||''});
-       });
-       else rows.push({id,title,date,owner,student:'General',status:norm(t.estado||'',t),score:t.nota??'',obs:t.observacion||''});
-     }
-   });
-   return rows;
- }
- function norm(st,obj){
-   st=String(st||'').toLowerCase().replace(/\s+/g,'_');
-   if(st.includes('entreg'))return'entregada';
-   if(st.includes('no_present')||st.includes('falt')||st.includes('no entreg'))return'no_presentada';
-   if(st.includes('pend'))return'pendiente';
-   if(obj&&obj.entregada===true)return'entregada';
-   if(obj&&obj.presentada===false)return'no_presentada';
-   return st||'pendiente';
- }
- function filtered(){
-   const status=document.getElementById('tr-status')?.value||'', owner=document.getElementById('tr-owner')?.value||'', from=document.getElementById('tr-from')?.value||'', to=document.getElementById('tr-to')?.value||'';
-   return taskRows().filter(r=>(!status||r.status===status)&&(!owner||r.owner===owner)&&(!from||r.date>=from)&&(!to||r.date<=to));
- }
- function stats(rows){
-   const total=rows.length, ent=rows.filter(r=>r.status==='entregada').length, pen=rows.filter(r=>r.status==='pendiente').length, no=rows.filter(r=>r.status==='no_presentada').length;
-   return {total,ent,pen,no,rate:total?ent/total*100:0};
- }
- function log(action,detail){
-   try{let a=JSON.parse(localStorage.getItem(LOGKEY)||'[]');if(!Array.isArray(a))a=[];a.unshift({fecha:new Date().toISOString(),usuario:(typeof usuarioActual!=='undefined'?usuarioActual?.nombre||usuarioActual?.email:'Usuario'),accion:action,detalle:detail});localStorage.setItem(LOGKEY,JSON.stringify(a.slice(0,1000)))}catch(e){}
- }
- function fillOwners(){
-   const s=document.getElementById('tr-owner');if(!s)return;
-   const owners=[...new Set(taskRows().map(r=>r.owner).filter(Boolean))];
-   s.innerHTML='<option value="">Todos</option>'+owners.map(x=>`<option>${esc(x)}</option>`).join('');
- }
- window.abrirReporteTareas=function(){fillOwners();document.getElementById('modal-reporte-tareas').style.display='flex';preview();log('ABRIR_REPORTE_TAREAS','Se abrió el centro de reportes de tareas')};
- window.cerrarReporteTareas=function(){document.getElementById('modal-reporte-tareas').style.display='none'};
- function preview(){
-   const rows=filtered(),s=stats(rows),el=document.getElementById('task-report-preview');if(!el)return;
-   el.innerHTML=`<div class="task-kpis"><div><b>${s.total}</b><span>Registros</span></div><div><b>${s.ent}</b><span>Entregadas</span></div><div><b>${s.pen}</b><span>Pendientes</span></div><div><b>${s.no}</b><span>No presentadas</span></div><div><b>${s.rate.toFixed(1)}%</b><span>Entrega</span></div></div>
-   <div class="task-preview-table"><table><thead><tr><th>Tarea</th><th>Fecha</th><th>Responsable</th><th>Joven</th><th>Estado</th><th>Resultado</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.date||'-')}</td><td>${esc(r.owner)}</td><td>${esc(r.student)}</td><td><span class="task-status ${r.status}">${r.status==='entregada'?'ENTREGADA':r.status==='no_presentada'?'NO PRESENTADA':'PENDIENTE'}</span></td><td>${esc(r.score||r.obs||'-')}</td></tr>`).join('')||'<tr><td colspan="6">No hay registros con el filtro seleccionado.</td></tr>'}</tbody></table></div>`;
- }
- ['tr-status','tr-owner','tr-from','tr-to'].forEach(id=>document.addEventListener('change',e=>{if(e.target.id===id)preview()}));
- function rowsForExcel(rows){
-   const s=stats(rows), today=new Date().toLocaleString('es-BO');
-   const resumen=[
-    ['CONTROL DE CATEQUESIS — REPORTE DE TAREAS'],
-    ['Grupo',typeof grupoActual!=='undefined'?grupoActual:''],
-    ['Generado',today],[''],
-    ['INDICADORES','RESULTADO'],['Total de registros',s.total],['Entregadas',s.ent],['Pendientes',s.pen],['No presentadas',s.no],['% de entrega',s.rate.toFixed(1)+'%']
-   ];
-   const detalle=[['TAREA','FECHA','RESPONSABLE','JOVEN','ESTADO','RESULTADO/NOTA','OBSERVACIÓN']];
-   rows.forEach(r=>detalle.push([r.title,r.date,r.owner,r.student,r.status==='entregada'?'ENTREGADA':r.status==='no_presentada'?'NO PRESENTADA':'PENDIENTE',r.score,r.obs]));
-   const porPersona={};rows.forEach(r=>{const k=r.student||'Sin identificar';porPersona[k]??={total:0,e:0,p:0,n:0};porPersona[k].total++;if(r.status==='entregada')porPersona[k].e++;else if(r.status==='pendiente')porPersona[k].p++;else if(r.status==='no_presentada')porPersona[k].n++});
-   const resultados=[['JOVEN','TOTAL TAREAS','ENTREGADAS','PENDIENTES','NO PRESENTADAS','% ENTREGA']];
-   Object.entries(porPersona).forEach(([n,x])=>resultados.push([n,x.total,x.e,x.p,x.n,(x.total?x.e/x.total*100:0).toFixed(1)+'%']));
-   const logs=[['FECHA','USUARIO','ACCIÓN','DETALLE']];try{JSON.parse(localStorage.getItem(LOGKEY)||'[]').forEach(x=>logs.push([x.fecha,x.usuario,x.accion,x.detalle]))}catch(e){}
-   return {resumen,detalle,resultados,logs};
- }
- function sheetXML(rows){
-   return `<table border="1"><tbody>`+rows.map((r,i)=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
- }
- window.generarReporteTareas=function(dest){
-   const rows=filtered(); if(!rows.length){alert('No hay registros para generar el reporte.');return}
-   const data=rowsForExcel(rows); log('GENERAR_REPORTE_TAREAS',`Registros: ${rows.length}; destino: ${dest}`);
-   if(dest==='excel'){
-     const htmlExcel=`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"><style>
-      body{font-family:Arial}.title{font-size:20px;font-weight:700}.head{background:#173f3b;color:white;font-weight:700}td{padding:7px;border:1px solid #d9e2e5}table{border-collapse:collapse;margin-bottom:24px} 
-      .ok{background:#dcfce7}.warn{background:#fef3c7}.bad{background:#fee2e2}
-     </style></head><body>
-      <div class="title">CONTROL DE CATEQUESIS — REPORTE DE TAREAS</div><p>Generado: ${esc(new Date().toLocaleString('es-BO'))}</p>
-      <h2>Resumen ejecutivo</h2>${sheetXML(data.resumen)}
-      <h2>Detalle de tareas</h2>${sheetXML(data.detalle)}
-      <h2>Resultados por joven</h2>${sheetXML(data.resultados)}
-      <h2>Log de actividad</h2>${sheetXML(data.logs)}
-     </body></html>`;
-     const blob=new Blob(['\ufeff'+htmlExcel],{type:'application/vnd.ms-excel;charset=utf-8'});
-     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Reporte_Tareas_'+(typeof grupoActual!=='undefined'?String(grupoActual).replace(/\s+/g,'_'):'Grupo')+'_'+new Date().toISOString().slice(0,10)+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);return;
-   }
-   const body=`<div class="task-print"><h1>Reporte de tareas</h1><p><b>Grupo:</b> ${esc(grupoActual||'')} · <b>Generado:</b> ${esc(new Date().toLocaleString('es-BO'))}</p><div class="task-kpis"><div><b>${stats(rows).total}</b> Registros</div><div><b>${stats(rows).ent}</b> Entregadas</div><div><b>${stats(rows).pen}</b> Pendientes</div><div><b>${stats(rows).no}</b> No presentadas</div><div><b>${stats(rows).rate.toFixed(1)}%</b> Entrega</div></div><table><thead><tr><th>Tarea</th><th>Fecha</th><th>Responsable</th><th>Joven</th><th>Estado</th><th>Resultado</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.date)}</td><td>${esc(r.owner)}</td><td>${esc(r.student)}</td><td>${esc(r.status)}</td><td>${esc(r.score||r.obs||'-')}</td></tr>`).join('')}</tbody></table></div>`;
-   const w=window.open('','_blank','width=1200,height=850');if(!w)return;
-   w.document.write('<html><head><title>Reporte de tareas</title><style>body{font:12px Arial;padding:25px;color:#172033}h1{color:#164e4a}.task-kpis{display:flex;gap:10px;margin:18px 0}.task-kpis div{border:1px solid #ddd;padding:12px;border-radius:8px}.task-kpis b{font-size:18px;display:block}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px}th{background:#e7f0ee}</style></head><body>'+body+'</body></html>');w.document.close();w.print();
- };
- document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{const m=document.getElementById('modal-reporte-tareas');if(m)m.addEventListener('change',preview)},400));
+  function esc(v){
+    return typeof escHtml==='function' ? escHtml(String(v ?? '')) : String(v ?? '');
+  }
+
+  function getGroup(){
+    return (typeof sistemaDatos!=='undefined' &&
+            sistemaDatos.grupos &&
+            sistemaDatos.grupos[grupoActual]) || {};
+  }
+
+  function pendingRows(){
+    const g=getGroup();
+    const registros=Array.isArray(g.registros) ? g.registros : [];
+    const search=(document.getElementById('tr-owner')?.value||'').trim().toLowerCase();
+    const from=document.getElementById('tr-from')?.value||'';
+    const to=document.getElementById('tr-to')?.value||'';
+
+    return registros
+      .filter(r=>{
+        const noPresento = typeof registroNoPresentoTarea==='function'
+          ? registroNoPresentoTarea(r)
+          : String(r.tareaEstado||'').trim().toLowerCase().replace(/ó/g,'o')==='no presento';
+        const alumno=String(r.alumno||'').toLowerCase();
+        const fecha=String(r.fecha||'');
+        return noPresento &&
+          (!search || alumno.includes(search)) &&
+          (!from || fecha>=from) &&
+          (!to || fecha<=to) &&
+          String(r.tareaNombre||'').trim()!=='Ninguna';
+      })
+      .map(r=>({
+        fecha:String(r.fecha||'-'),
+        alumno:String(r.alumno||'-'),
+        tarea:typeof nombreTareaRegistro==='function'
+          ? nombreTareaRegistro(r)
+          : (String(r.tareaNombre||'').trim()||'Tarea registrada')
+      }))
+      .sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)) ||
+                   a.alumno.localeCompare(b.alumno,'es'));
+  }
+
+  function stats(rows){
+    return {
+      pendientes:rows.length,
+      jovenes:new Set(rows.map(r=>r.alumno)).size,
+      tareas:new Set(rows.map(r=>r.tarea)).size,
+      sesiones:new Set(rows.map(r=>r.fecha)).size
+    };
+  }
+
+  function preview(){
+    const rows=pendingRows();
+    const s=stats(rows);
+    const el=document.getElementById('task-report-preview');
+    if(!el)return;
+
+    const porJoven={};
+    rows.forEach(r=>porJoven[r.alumno]=(porJoven[r.alumno]||0)+1);
+
+    const lista=rows.map((r,i)=>`
+      <tr>
+        <td class="task-num">${i+1}</td>
+        <td>${esc(r.fecha)}</td>
+        <td><strong>${esc(r.alumno)}</strong></td>
+        <td class="task-name-cell">${esc(r.tarea)}</td>
+        <td><span class="task-status no_presentada">NO PRESENTÓ</span></td>
+      </tr>`).join('');
+
+    const resumen=Object.entries(porJoven)
+      .sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0],'es'))
+      .map(([nombre,cantidad])=>`
+        <div class="task-person-card">
+          <strong>${esc(nombre)}</strong>
+          <span>${cantidad} ${cantidad===1?'tarea pendiente':'tareas pendientes'}</span>
+        </div>`).join('');
+
+    el.innerHTML=`
+      <div class="task-kpis">
+        <div><b>${s.pendientes}</b><span>Tareas no presentadas</span></div>
+        <div><b>${s.jovenes}</b><span>Jóvenes con pendientes</span></div>
+        <div><b>${s.tareas}</b><span>Tareas diferentes</span></div>
+        <div><b>${s.sesiones}</b><span>Sesiones</span></div>
+      </div>
+
+      <div class="task-report-section-title">
+        <div><strong>Lista de pendientes</strong><small>Aquí se ve exactamente qué tarea no presentó cada joven.</small></div>
+        <span>${rows.length} registros</span>
+      </div>
+
+      <div class="task-preview-table">
+        <table>
+          <thead><tr><th>#</th><th>Fecha</th><th>Catequizando</th><th>Tarea que NO presentó</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${lista || '<tr><td colspan="5" style="text-align:center;padding:28px">No hay tareas no presentadas con los filtros actuales.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="task-report-section-title" style="margin-top:18px">
+        <div><strong>Resumen por joven</strong><small>Ordenado de mayor a menor cantidad de pendientes.</small></div>
+      </div>
+      <div class="task-person-grid">
+        ${resumen || '<div class="task-person-empty">No hay pendientes.</div>'}
+      </div>`;
+  }
+
+  function excelHTML(rows){
+    const s=stats(rows);
+    const escX=v=>String(v??'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    const porJoven={};
+    rows.forEach(r=>porJoven[r.alumno]=(porJoven[r.alumno]||0)+1);
+
+    const detalle=rows.map((r,i)=>`
+      <tr><td>${i+1}</td><td>${escX(r.fecha)}</td><td>${escX(r.alumno)}</td>
+      <td>${escX(r.tarea)}</td><td>NO PRESENTÓ</td></tr>`).join('');
+
+    const resumen=Object.entries(porJoven)
+      .sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0],'es'))
+      .map(([n,c])=>`<tr><td>${escX(n)}</td><td>${c}</td></tr>`).join('');
+
+    return `<html xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="UTF-8"><style>
+body{font-family:Arial,sans-serif;color:#172033}
+h1{color:#065f46}h2{color:#334155;margin-top:24px}
+table{border-collapse:collapse;margin-bottom:20px;width:100%}
+th{background:#065f46;color:#fff;font-weight:bold;padding:9px;border:1px solid #064e3b}
+td{padding:8px;border:1px solid #cbd5e1}.bad{color:#dc2626;font-weight:bold}
+</style></head><body>
+<h1>CONTROL DE CATEQUESIS — TAREAS NO PRESENTADAS</h1>
+<p><b>Grupo:</b> ${escX(typeof grupoActual!=='undefined'?grupoActual:'')}</p>
+<p><b>Generado:</b> ${escX(new Date().toLocaleString('es-BO'))}</p>
+
+<h2>Dashboard</h2>
+<table><tr><th>Indicador</th><th>Resultado</th></tr>
+<tr><td>Tareas no presentadas</td><td class="bad">${s.pendientes}</td></tr>
+<tr><td>Jóvenes con pendientes</td><td>${s.jovenes}</td></tr>
+<tr><td>Tareas diferentes</td><td>${s.tareas}</td></tr>
+<tr><td>Sesiones involucradas</td><td>${s.sesiones}</td></tr></table>
+
+<h2>Lista detallada de pendientes</h2>
+<table><tr><th>#</th><th>Fecha</th><th>Catequizando</th><th>Tarea que NO presentó</th><th>Estado</th></tr>
+${detalle || '<tr><td colspan="5">No hay tareas no presentadas.</td></tr>'}</table>
+
+<h2>Resumen por joven</h2>
+<table><tr><th>Catequizando</th><th>Tareas pendientes</th></tr>
+${resumen || '<tr><td colspan="2">No hay pendientes.</td></tr>'}</table>
+</body></html>`;
+  }
+
+  window.generarReporteTareas=function(dest){
+    const rows=pendingRows();
+    if(!rows.length){
+      alert('No hay tareas no presentadas con los filtros actuales.');
+      return;
+    }
+    if(dest==='excel'){
+      const blob=new Blob(['\ufeff'+excelHTML(rows)],{
+        type:'application/vnd.ms-excel;charset=utf-8'
+      });
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='Tareas_No_Presentadas_' +
+        (typeof grupoActual!=='undefined'
+          ? String(grupoActual).replace(/\s+/g,'_')
+          : 'Grupo') +
+        '_' + new Date().toISOString().slice(0,10) + '.xls';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+  };
+
+  window.abrirReporteTareas=function(){
+    const m=document.getElementById('modal-reporte-tareas');
+    if(m){m.style.display='flex';preview();}
+  };
+
+  window.cerrarReporteTareas=function(){
+    const m=document.getElementById('modal-reporte-tareas');
+    if(m)m.style.display='none';
+  };
+
+  window.limpiarFiltrosReporteTareas=function(){
+    ['tr-owner','tr-from','tr-to'].forEach(id=>{
+      const e=document.getElementById(id);if(e)e.value='';
+    });
+    preview();
+  };
+
+  ['tr-owner','tr-from','tr-to'].forEach(id=>{
+    document.addEventListener('input',e=>{if(e.target.id===id)preview();});
+    document.addEventListener('change',e=>{if(e.target.id===id)preview();});
+  });
 })();
 </script>
+
 <style id="task-report-ui">
-.task-report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.task-report-grid label span{display:block;font-size:.72rem;font-weight:800;margin-bottom:5px}.task-report-grid input,.task-report-grid select{width:100%}.task-report-checks{display:flex;flex-wrap:wrap;gap:12px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:12px 0}.task-report-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.task-report-actions .btn{min-width:170px}.task-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}.task-kpis>div{padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(148,163,184,.05)}.task-kpis b{display:block;font-size:1.15rem}.task-kpis span{font-size:.7rem;color:var(--medium-gray)}.task-preview-table{overflow:auto}.task-preview-table table{width:100%;border-collapse:collapse;font-size:.73rem}.task-preview-table th,.task-preview-table td{padding:7px;border:1px solid var(--line-soft);text-align:left}.task-status{font-size:.62rem;font-weight:900}.task-status.entregada{color:#10b981}.task-status.pendiente{color:#f59e0b}.task-status.no_presentada{color:#ef4444}
-@media(max-width:700px){.task-report-grid{grid-template-columns:1fr 1fr}.task-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:450px){.task-report-grid{grid-template-columns:1fr}}
+.task-report-grid{display:grid;grid-template-columns:minmax(220px,2fr) 1fr 1fr auto;gap:10px;margin:14px 0;align-items:end}
+.task-report-grid label span{display:block;font-size:.72rem;font-weight:800;margin-bottom:5px}
+.task-report-grid input,.task-report-grid select{width:100%}
+.task-report-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.task-report-actions .btn{min-width:145px}
+.task-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.task-kpis>div{padding:14px;border:1px solid var(--line-soft);border-radius:14px;background:rgba(16,185,129,.06);text-align:center}
+.task-kpis b{display:block;font-size:1.45rem;color:var(--accent)}
+.task-kpis span{display:block;margin-top:4px;font-size:.72rem;color:var(--medium-gray);font-weight:700}
+.task-report-section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:18px 0 9px}
+.task-report-section-title strong{display:block;font-size:1rem}
+.task-report-section-title small{display:block;color:var(--medium-gray);margin-top:3px}
+.task-report-section-title>span{font-size:.75rem;font-weight:800;color:var(--accent)}
+.task-preview-table{overflow:auto;border:1px solid var(--line-soft);border-radius:12px}
+.task-preview-table table{width:100%;border-collapse:collapse;font-size:.84rem;min-width:650px}
+.task-preview-table th{background:rgba(255,255,255,.04);color:var(--medium-gray);text-transform:uppercase;font-size:.68rem;letter-spacing:.4px}
+.task-preview-table th,.task-preview-table td{padding:10px;border-bottom:1px solid var(--line-soft);text-align:left}
+.task-preview-table tbody tr:hover{background:rgba(16,185,129,.04)}
+.task-num{width:40px;text-align:center!important;color:var(--medium-gray);font-weight:800}
+.task-name-cell{font-weight:700}
+.task-status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:.68rem;font-weight:900;white-space:nowrap}
+.task-status.no_presentada{background:rgba(239,68,68,.14);color:#fca5a5}
+.task-person-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px}
+.task-person-card{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line-soft);border-radius:12px;background:rgba(0,0,0,.12)}
+.task-person-card strong{font-size:.82rem}
+.task-person-card span{font-size:.72rem;color:#fca5a5;font-weight:800;text-align:right}
+.task-person-empty{padding:20px;color:var(--medium-gray);text-align:center}
+@media(max-width:800px){.task-report-grid{grid-template-columns:1fr 1fr}.task-report-grid label:first-child{grid-column:1/-1}.task-report-grid .task-report-actions{grid-column:1/-1}.task-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.task-report-grid{grid-template-columns:1fr}.task-report-grid label:first-child{grid-column:auto}.task-report-grid .task-report-actions{grid-column:auto}.task-report-actions .btn{width:100%}}
 </style>
 
 <style id="agenda-personal-polish">
@@ -7710,13 +7885,14 @@ cargarPDF=function(){
   body>*:not(#reporte-pdf-local){display:none!important}
   #reporte-pdf-local{display:block!important;background:#fff!important}
   #reporte-pdf-local .pdf-doc{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff}
-  #reporte-pdf-local .pdf-head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:15px}
+  #reporte-pdf-local .pdf-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:15px}
+  #reporte-pdf-local .pdf-logo{width:58px;height:58px;object-fit:cover;border-radius:10px;flex:0 0 58px}
   #reporte-pdf-local .pdf-org{color:#065f46;font-size:10pt;font-weight:800;text-transform:uppercase}
   #reporte-pdf-local h1{color:#065f46;font-size:20pt;margin:3px 0}
   #reporte-pdf-local h2{color:#334155;font-size:13pt;margin:3px 0}
   #reporte-pdf-local p{font-size:8pt;color:#64748b;margin:4px 0}
   #reporte-pdf-local .pdf-small{color:#94a3b8}
-  #reporte-pdf-local .pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+  #reporte-pdf-local .pdf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
   #reporte-pdf-local .pdf-kpis div{border:1px solid #cbd5e1;border-radius:7px;padding:9px;text-align:center;background:#f8fafc}
   #reporte-pdf-local .pdf-kpis strong{display:block;color:#065f46;font-size:14pt}
   #reporte-pdf-local .pdf-kpis span{font-size:7pt;color:#64748b}
