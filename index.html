@@ -1534,6 +1534,10 @@ td,th{border-color:var(--ui-border)!important}
                     <button onclick="abrirPerfil();cerrarMenuMas()" type="button"><i class="fa-solid fa-user-gear"></i><span>Mi perfil</span></button>
                     <button onclick="exportarRespaldoJSON();cerrarMenuMas()" type="button"><i class="fa-solid fa-download"></i><span>Crear backup</span></button>
                     <button onclick="sincronizarConNube(true);cerrarMenuMas()" type="button"><i class="fa-solid fa-cloud-arrow-up"></i><span>Guardar ahora</span></button>
+                    <button onclick="crearNuevoGrupo();cerrarMenuMas()" type="button"><i class="fa-solid fa-folder-plus"></i><span>Nuevo grupo</span></button>
+                    <button onclick="editarGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-pen-to-square"></i><span>Editar grupo</span></button>
+                    <button onclick="resetearGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-broom"></i><span>Vaciar grupo</span></button>
+                    <button class="danger" onclick="eliminarGrupoActual();cerrarMenuMas()" type="button"><i class="fa-solid fa-trash-can"></i><span>Eliminar grupo</span></button>
                 </div>
             </div>
         </div>
@@ -1593,7 +1597,7 @@ td,th{border-color:var(--ui-border)!important}
                 </div>
                 <button id="estado-tiempo-real" class="realtime-status off" type="button" title="Estado de sincronización" aria-label="Estado de sincronización"><i class="fa-solid fa-cloud-slash"></i></button>
                 <button class="chip chip-green topbar-save" onclick="sincronizarConNube(true)" title="Guardar en la nube" aria-label="Guardar en la nube" type="button"><i class="fa-solid fa-cloud-arrow-up"></i></button>
-                <button class="chip chip-dark mobile-group-more" onclick="abrirMenuGrupo(event)" title="Más acciones del grupo" type="button"><i class="fa-solid fa-ellipsis"></i> Más</button>
+                <button class="chip chip-dark mobile-group-more toolbar-plus" onclick="abrirMenuMas(event)" title="Más opciones y apartados" aria-label="Más opciones y apartados" type="button"><i class="fa-solid fa-plus"></i><span class="toolbar-plus-label">Más</span></button>
                 <button class="chip chip-slate chip-pc" onclick="abrirPerfil()" title="Mi Perfil" type="button"><i class="fa-solid fa-user-circle"></i> Perfil</button>
                 <button class="chip chip-dark chip-pc" onclick="cerrarSesion()" title="Cerrar Sesión" type="button"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
             </div>
@@ -5312,6 +5316,45 @@ tr:hover td{background:#fafdfc}
 }
 </style>
 
+<style id="toolbar-icons-and-floating-lock">
+/* Acciones superiores: iconos más claros y táctiles */
+.grupo-bar > .chip,
+.grupo-bar > .notification-bell{
+  min-width:38px;
+  min-height:38px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 6px 16px rgba(0,0,0,.16);
+}
+.grupo-bar > .chip i,
+.grupo-bar > .notification-bell i{
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.22));
+}
+.toolbar-plus{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,#10b981,#047857)!important;
+  border-color:rgba(110,231,183,.38)!important;
+}
+.toolbar-plus i{
+  font-size:1.05rem!important;
+  transition:transform .2s ease;
+}
+.toolbar-plus:hover i{transform:rotate(90deg) scale(1.08)}
+.toolbar-plus-label{display:none}
+@media(min-width:901px){
+  .toolbar-plus{display:inline-flex!important;width:40px!important;padding:0!important;justify-content:center!important}
+}
+@media(max-width:900px){
+  .grupo-bar .toolbar-plus{
+    display:inline-flex!important;
+    width:40px!important;min-width:40px!important;height:40px!important;
+    padding:0!important;align-items:center!important;justify-content:center!important;
+  }
+  .grupo-bar .toolbar-plus i{font-size:1rem!important}
+}
+</style>
+
 <script id="sync-delete-persistence-final">
 (function(){
   function norm(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ')}
@@ -6040,8 +6083,22 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 
 <!-- BLOQUEO DE SESIÓN: la autenticación nunca queda persistida en el navegador -->
 <style id="seguridad-sesion-profesional">
-#session-lock-indicator{position:fixed;right:18px;bottom:18px;z-index:9998;background:#111827;color:#fff;border:1px solid rgba(52,211,153,.35);border-radius:14px;padding:9px 13px;box-shadow:0 10px 30px rgba(0,0,0,.35);font:600 13px Inter,Arial,sans-serif;display:none;align-items:center;gap:8px;cursor:pointer}
-#session-lock-indicator:hover{transform:translateY(-1px)}
+#session-lock-indicator{
+position:fixed;right:22px;bottom:22px;z-index:99999;
+width:50px;height:50px;padding:0;
+display:none;align-items:center;justify-content:center;gap:0;
+background:linear-gradient(145deg,#111827,#1e293b);
+color:#fff;border:1px solid rgba(52,211,153,.45);
+border-radius:50%;box-shadow:0 12px 30px rgba(0,0,0,.42),0 0 0 4px rgba(16,185,129,.07);
+font:700 13px Inter,Arial,sans-serif;cursor:pointer;
+transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#session-lock-indicator i{font-size:1.12rem;color:#6ee7b7}
+#session-lock-indicator span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#session-lock-indicator:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 36px rgba(0,0,0,.48),0 0 0 5px rgba(16,185,129,.10)}
+@media(max-width:900px){
+  #session-lock-indicator{right:14px;bottom:calc(86px + env(safe-area-inset-bottom));width:48px;height:48px}
+}
 </style>
 <button id="session-lock-indicator" type="button" onclick="bloquearSistema('Bloqueado manualmente')"><i class="fa-solid fa-lock"></i><span>Bloquear</span></button>
 <script>
@@ -6153,4 +6210,31 @@ document.addEventListener('click',function(e){if(!e.target.closest('.attendance-
 .notification-item-clickable:focus-visible{outline:2px solid rgba(96,165,250,.7);outline-offset:-2px;}
 .notification-go{margin-left:auto;color:#64748b;font-size:.75rem;flex:0 0 auto;}
 .notification-item-clickable:hover .notification-go{color:#60a5fa;}
+</style>
+<style id="final-plus-toolbar-fix">
+@media(max-width:900px){
+  .grupo-bar .toolbar-plus{
+    display:inline-flex!important;
+    grid-column:4!important;
+    grid-row:1!important;
+    width:40px!important;
+    min-width:40px!important;
+    max-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0!important;
+    margin:0!important;
+    border-radius:12px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    font-size:0!important;
+  }
+  .grupo-bar .toolbar-plus i{font-size:1rem!important;margin:0!important}
+}
+@media(max-width:380px){
+  .grupo-bar .toolbar-plus{
+    width:38px!important;min-width:38px!important;max-width:38px!important;
+    height:38px!important;min-height:38px!important;
+  }
+}
 </style>
