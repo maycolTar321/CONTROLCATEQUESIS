@@ -1361,6 +1361,49 @@ td,th{border-color:var(--ui-border)!important}
 }
 </style>
 
+
+<style id="reportes-final-ui">
+.reporte-visual-modal{max-width:1180px!important;width:min(96vw,1180px)!important;padding:0!important;overflow:hidden}
+.reporte-visual-head{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line-soft);background:rgba(15,23,42,.5)}
+.reporte-visual-kicker{font-size:.7rem;font-weight:900;letter-spacing:.8px;color:#10b981;text-transform:uppercase}
+.reporte-visual-head h2{margin:4px 0 2px}
+.reporte-visual-head p{margin:0;color:var(--medium-gray);font-size:.8rem}
+.reporte-visual-content{background:#f8fafc;color:#172033;padding:22px;max-height:68vh;overflow:auto}
+.rv-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.rv-kpi{background:#fff;border:1px solid #dbe3ea;border-radius:12px;padding:14px;text-align:center;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+.rv-kpi b{display:block;font-size:1.5rem;color:#065f46}
+.rv-kpi small{display:block;margin-top:4px;color:#64748b;font-weight:700;font-size:.7rem}
+.rv-kpi.danger b{color:#dc2626}
+.rv-section{background:#fff;border:1px solid #dbe3ea;border-radius:12px;margin-top:12px;overflow:hidden}
+.rv-section-head{padding:13px 15px;background:#ecfdf5;border-bottom:1px solid #d1fae5;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.rv-section-head strong{color:#064e3b}
+.rv-section-head span{font-size:.72rem;color:#64748b}
+.rv-table-wrap{overflow:auto}
+.rv-table{width:100%;border-collapse:collapse;min-width:720px;font-size:.82rem}
+.rv-table th,.rv-table td{padding:9px 10px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top}
+.rv-table th{background:#172033;color:#fff;font-size:.68rem;text-transform:uppercase;letter-spacing:.35px}
+.rv-table tbody tr:nth-child(even){background:#f8fafc}
+.rv-bad{color:#dc2626!important;font-weight:800}
+.rv-good{color:#059669!important;font-weight:800}
+.rv-empty{padding:28px;text-align:center;color:#64748b}
+.reporte-visual-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px;border-top:1px solid var(--line-soft);background:var(--card-bg)}
+.reporte-visual-help{display:flex;gap:8px;align-items:center;color:var(--medium-gray);font-size:.75rem}
+.reporte-visual-help i{color:#10b981}
+.reporte-visual-buttons{display:flex;gap:8px}
+#reporte-pdf-local{display:none}
+@media(max-width:850px){
+ .rv-kpis{grid-template-columns:repeat(2,1fr)}
+ .reporte-visual-head,.reporte-visual-footer{align-items:flex-start;flex-direction:column}
+ .reporte-visual-buttons{width:100%}
+ .reporte-visual-buttons .btn{flex:1}
+}
+@media print{
+ body>*{display:none!important}
+ #reporte-pdf-local{display:block!important;position:static!important;width:auto!important;margin:0!important;padding:0!important;background:#fff!important;color:#172033!important}
+ #reporte-pdf-local *{visibility:visible!important}
+ @page{size:A4 landscape;margin:10mm}
+}
+</style>
 </head>
 <body>
 
@@ -2251,6 +2294,37 @@ td,th{border-color:var(--ui-border)!important}
             </div>
         </div>
         <button class="btn btn-danger" style="width: 100%; padding: 12px;" onclick="ejecutarGeneracionPDF()" type="button"><i class="fa-solid fa-download"></i> Crear y Descargar PDF</button>
+    </div>
+</div>
+
+<!-- ================= REPORTE VISUAL ================= -->
+<div id="modal-reporte-visual" class="modal">
+    <div class="modal-content reporte-visual-modal">
+        <div class="reporte-visual-head">
+            <div>
+                <div class="reporte-visual-kicker"><i class="fa-solid fa-chart-column"></i> CENTRO DE REPORTES</div>
+                <h2 id="reporte-visual-titulo">Reporte de Catequesis</h2>
+                <p id="reporte-visual-meta">Vista previa del reporte</p>
+            </div>
+            <button class="btn btn-slate" onclick="cerrarReporteVisual()" type="button"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+        </div>
+
+        <div id="reporte-visual-contenido" class="reporte-visual-content"></div>
+
+        <div class="reporte-visual-footer">
+            <div class="reporte-visual-help">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Primero revisa el reporte. Luego puedes guardarlo como PDF o descargarlo como Excel.</span>
+            </div>
+            <div class="reporte-visual-buttons">
+                <button class="btn btn-danger" onclick="exportarReporteVisualPDF()" type="button">
+                    <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button class="btn btn-primary" onclick="exportarReporteVisualExcel()" type="button">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Excel
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -4467,109 +4541,313 @@ tr:hover td{background:#fafdfc}
     }
 
     function ejecutarGeneracionPDF() {
-        const titulo = document.getElementById('pdf-titulo').value.trim() || 'Reporte de Catequesis';
+        const titulo = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
         const tipo = document.getElementById('pdf-tipo').value;
         const alumnoSel = document.getElementById('pdf-alumno-select').value;
         cerrarModalPDF();
 
         const grupo = sistemaDatos.grupos[grupoActual] || {};
         const registros = Array.isArray(grupo.registros) ? grupo.registros : [];
+
         let filtrados = registros;
-        if (tipo === 'faltas') filtrados = registros.filter(r => /Falta/i.test(String(r.asistencia || '')));
+        if (tipo === 'faltas') filtrados = registros.filter(r => String(r.asistencia || '').includes('Falta'));
         else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
         else if (tipo === 'alumno') filtrados = registros.filter(r => String(r.alumno || '') === String(alumnoSel || ''));
 
-        let asis = 0, faltas = 0, tar = 0;
-        filtrados.forEach(r => {
-            if (/Presente|Retraso/i.test(String(r.asistencia || ''))) asis++;
-            if (/Falta/i.test(String(r.asistencia || ''))) faltas++;
-            if (registroNoPresentoTarea(r)) tar++;
-        });
-        const pct = filtrados.length ? Math.round((asis / filtrados.length) * 100) : 100;
+        const presentes = filtrados.filter(r => /Presente|Retraso/i.test(String(r.asistencia || ''))).length;
+        const faltas = filtrados.filter(r => /Falta/i.test(String(r.asistencia || ''))).length;
+        const pendientes = filtrados.filter(r => registroNoPresentoTarea(r)).length;
+        const entregadas = filtrados.filter(r => String(r.tareaEstado || '').trim().toLowerCase() === 'entregado').length;
+        const pct = filtrados.length ? Math.round((presentes / filtrados.length) * 100) : 100;
 
-        const rows = filtrados.slice().reverse().map(r => {
-            const noPresento = registroNoPresentoTarea(r);
-            const tc = noPresento ? 'No Presentó' :
-                String(r.tareaEstado || '').trim().toLowerCase() === 'entregado' ? 'Entregado' :
-                (r.tareaNombre === 'Ninguna' ? '-' : (r.tareaEstado || '-'));
-            return `<tr>
-                <td>${escHtml(r.fecha || '-')}</td>
-                <td><strong>${escHtml(r.alumno || '-')}</strong></td>
-                <td>${escHtml(r.asistencia || '-')}</td>
-                <td>${escHtml(nombreTareaRegistro(r))}</td>
-                <td class="${noPresento ? 'pdf-danger' : 'pdf-ok'}">${escHtml(tc)}</td>
-            </tr>`;
-        }).join('') || `<tr><td colspan="5" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
+        let tituloFinal = titulo;
+        let encabezados = '';
+        let rows = '';
 
-        const cat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || '';
-        const container = document.createElement('div');
-        container.id = 'reporte-pdf-local';
-        container.innerHTML = `
-          <div class="pdf-doc">
-            <header class="pdf-head">
-              <div class="pdf-org">${escHtml((sistemaDatos.info && sistemaDatos.info.parroquia) || 'PARROQUIA')}</div>
-              <h1>CONTROL DE CATEQUESIS</h1>
-              <h2>${escHtml(titulo)}</h2>
-              <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
-              <p class="pdf-small"><b>Catequista:</b> ${escHtml(cat)} ${perfilCatequista.cargo ? '(' + escHtml(perfilCatequista.cargo) + ')' : ''}</p>
-            </header>
-            <div class="pdf-kpis">
-              <div><strong>${pct}%</strong><span>Asistencia</span></div>
-              <div><strong>${faltas}</strong><span>Faltas</span></div>
-              <div><strong>${tar}</strong><span>Tareas pendientes</span></div>
-              <div><strong>${filtrados.length}</strong><span>Registros</span></div>
+        if (tipo === 'faltas') {
+            tituloFinal = titulo || 'Reporte de Inasistencias';
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th>';
+            rows = filtrados.slice().reverse().map(r => `
+                <tr>
+                    <td>${escHtml(r.fecha || '-')}</td>
+                    <td><strong>${escHtml(r.alumno || '-')}</strong></td>
+                    <td class="rv-bad">${escHtml(r.asistencia || 'Falta')}</td>
+                </tr>`).join('');
+        } else if (tipo === 'tareas') {
+            tituloFinal = titulo || 'Reporte de Tareas No Presentadas';
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Tarea que NO presentó</th><th>Estado</th>';
+            rows = filtrados.slice().reverse().map(r => `
+                <tr>
+                    <td>${escHtml(r.fecha || '-')}</td>
+                    <td><strong>${escHtml(r.alumno || '-')}</strong></td>
+                    <td><strong>${escHtml(nombreTareaRegistro(r))}</strong></td>
+                    <td class="rv-bad">No presentó</td>
+                </tr>`).join('');
+        } else {
+            tituloFinal = tipo === 'alumno'
+                ? (titulo || ('Reporte Individual · ' + (alumnoSel || 'Catequizando')))
+                : (titulo || 'Reporte General de Catequesis');
+
+            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tarea</th><th>Estado</th>';
+            rows = filtrados.slice().reverse().map(r => {
+                const noPresento = registroNoPresentoTarea(r);
+                const estado = noPresento
+                    ? 'No presentó'
+                    : String(r.tareaEstado || '').trim().toLowerCase() === 'entregado'
+                        ? 'Entregado'
+                        : (r.tareaNombre === 'Ninguna' ? '—' : (r.tareaEstado || '—'));
+                return `<tr>
+                    <td>${escHtml(r.fecha || '-')}</td>
+                    <td><strong>${escHtml(r.alumno || '-')}</strong></td>
+                    <td>${escHtml(r.asistencia || '-')}</td>
+                    <td>${escHtml(nombreTareaRegistro(r))}</td>
+                    <td class="${noPresento ? 'rv-bad' : (estado === 'Entregado' ? 'rv-good' : '')}">${escHtml(estado)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        const colspan = tipo === 'faltas' ? 3 : (tipo === 'tareas' ? 4 : 5);
+        if (!rows) rows = `<tr><td colspan="${colspan}" class="rv-empty">No hay registros que coincidan con este reporte.</td></tr>`;
+
+        const grupoMeta = grupo.metadata || {};
+        const cat = grupoMeta.catequista || (typeof perfilCatequista !== 'undefined' ? perfilCatequista.nombre : '') || '';
+        const parroquia = (sistemaDatos.info && sistemaDatos.info.parroquia) || 'PARROQUIA SAN MARTÍN DE PORRES';
+
+        const contenido = `
+            <div class="rv-kpis">
+                <div class="rv-kpi"><b>${filtrados.length}</b><small>Registros</small></div>
+                <div class="rv-kpi"><b>${pct}%</b><small>Asistencia</small></div>
+                <div class="rv-kpi ${faltas ? 'danger' : ''}"><b>${faltas}</b><small>Faltas</small></div>
+                <div class="rv-kpi ${pendientes ? 'danger' : ''}"><b>${pendientes}</b><small>Tareas no presentadas</small></div>
+                <div class="rv-kpi"><b>${entregadas}</b><small>Tareas entregadas</small></div>
             </div>
-            <table class="pdf-table">
-              <thead><tr><th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Tarea / Actividad asignada</th><th>Cumplimiento</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-            <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
-          </div>`;
 
-        // Imprimir sobre un iframe temporal. Así no se abre about:blank y el
-        // reporte sí llega al diálogo "Guardar como PDF" de Chrome.
-        const iframe = document.createElement('iframe');
-        iframe.setAttribute('aria-hidden', 'true');
-        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;';
-        document.body.appendChild(iframe);
+            <div class="rv-section">
+                <div class="rv-section-head">
+                    <strong>${escHtml(parroquia)} · ${escHtml(grupoActual)}</strong>
+                    <span>Catequista: ${escHtml(cat)} · ${new Date().toLocaleDateString('es-BO')}</span>
+                </div>
+                <div class="rv-table-wrap">
+                    <table class="rv-table">
+                        <thead><tr>${encabezados}</tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            </div>`;
 
-        const style = `
-          <style>
-            @page{size:A4 landscape;margin:10mm}
-            *{box-sizing:border-box}
-            html,body{margin:0;padding:0;background:#fff;color:#172033}
-            body{font-family:Arial,Helvetica,sans-serif;font-size:11px}
-            .pdf-doc{width:100%;background:#fff;padding:4px}
-            .pdf-head{border-bottom:3px solid #059669;padding-bottom:10px;margin-bottom:12px}
-            .pdf-org{font-size:9px;font-weight:800;color:#047857;text-transform:uppercase}
-            .pdf-head h1{margin:2px 0;color:#065f46;font-size:19px}
-            .pdf-head h2{margin:3px 0;color:#334155;font-size:15px}
-            .pdf-head p{margin:3px 0;color:#64748b;font-size:9px}
-            .pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 14px}
-            .pdf-kpis>div{border:1px solid #cbd5e1;border-radius:7px;padding:8px;text-align:center;background:#f8fafc}
-            .pdf-kpis strong{display:block;color:#065f46;font-size:16px}
-            .pdf-kpis span{display:block;color:#64748b;font-size:8px;font-weight:700;margin-top:2px}
-            .pdf-table{width:100%;border-collapse:collapse;font-size:9px}
-            .pdf-table th,.pdf-table td{border:1px solid #cbd5e1;padding:6px;text-align:left;vertical-align:top}
-            .pdf-table th{background:#172033;color:#fff;font-weight:700}
-            .pdf-danger{color:#dc2626!important;font-weight:700}
-            .pdf-ok{color:#059669!important;font-weight:700}
-            .pdf-empty{text-align:center!important;color:#64748b;padding:18px!important}
-            footer{margin-top:12px;padding-top:6px;border-top:1px solid #dbe3ea;text-align:center;color:#64748b;font-size:7px}
-          </style>`;
+        document.getElementById('reporte-visual-titulo').textContent = tituloFinal;
+        document.getElementById('reporte-visual-meta').textContent =
+            `Grupo: ${grupoActual} · ${filtrados.length} registros · Generado ${new Date().toLocaleString('es-BO')}`;
+        document.getElementById('reporte-visual-contenido').innerHTML = contenido;
 
-        const doc = iframe.contentDocument;
-        doc.open();
-        doc.write('<!doctype html><html lang="es"><head><meta charset="utf-8">'+style+'<title>'+escHtml(titulo)+'</title></head><body>'+container.innerHTML+'</body></html>');
-        doc.close();
-
-        const limpiar = () => setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 1200);
-        iframe.onload = () => {
-            setTimeout(() => {
-                try { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
-                finally { limpiar(); }
-            }, 180);
+        window.__reporteVisual = {
+            titulo: tituloFinal,
+            tipo,
+            filtrados: filtrados.slice(),
+            grupo: grupoActual
         };
+
+        document.getElementById('modal-reporte-visual').style.display = 'flex';
+    }
+
+    function cerrarReporteVisual() {
+        const m = document.getElementById('modal-reporte-visual');
+        if (m) m.style.display = 'none';
+    }
+
+    function exportarReporteVisualPDF() {
+        const r = window.__reporteVisual;
+        if (!r) {
+            alert('Primero genera un reporte.');
+            return;
+        }
+
+        const grupo = sistemaDatos.grupos[grupoActual] || {};
+        const registros = r.filtrados || [];
+        const cat = (grupo.metadata && grupo.metadata.catequista) ||
+            (typeof perfilCatequista !== 'undefined' ? perfilCatequista.nombre : '') || '';
+        const parroquia = (sistemaDatos.info && sistemaDatos.info.parroquia) || 'PARROQUIA SAN MARTÍN DE PORRES';
+
+        let headers = '';
+        let rows = '';
+
+        if (r.tipo === 'faltas') {
+            headers = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th>';
+            rows = registros.slice().reverse().map(x =>
+                `<tr><td>${escHtml(x.fecha || '')}</td><td>${escHtml(x.alumno || '')}</td><td class="bad">${escHtml(x.asistencia || 'Falta')}</td></tr>`
+            ).join('');
+        } else if (r.tipo === 'tareas') {
+            headers = '<th>Fecha</th><th>Catequizando</th><th>Tarea que NO presentó</th><th>Estado</th>';
+            rows = registros.slice().reverse().map(x =>
+                `<tr><td>${escHtml(x.fecha || '')}</td><td>${escHtml(x.alumno || '')}</td><td><strong>${escHtml(nombreTareaRegistro(x))}</strong></td><td class="bad">No presentó</td></tr>`
+            ).join('');
+        } else {
+            headers = '<th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tarea</th><th>Estado</th>';
+            rows = registros.slice().reverse().map(x => {
+                const no = registroNoPresentoTarea(x);
+                const estado = no ? 'No presentó' :
+                    String(x.tareaEstado || '').toLowerCase() === 'entregado' ? 'Entregado' :
+                    (x.tareaNombre === 'Ninguna' ? '—' : (x.tareaEstado || '—'));
+                return `<tr><td>${escHtml(x.fecha || '')}</td><td>${escHtml(x.alumno || '')}</td><td>${escHtml(x.asistencia || '')}</td><td>${escHtml(nombreTareaRegistro(x))}</td><td class="${no ? 'bad' : (estado === 'Entregado' ? 'good' : '')}">${escHtml(estado)}</td></tr>`;
+            }).join('');
+        }
+
+        const cont = document.createElement('div');
+        cont.id = 'reporte-pdf-local';
+        cont.innerHTML = `
+            <div style="font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff;padding:0;">
+                <div style="border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:14px;">
+                    <div style="font-size:10px;font-weight:800;color:#047857;text-transform:uppercase;">${escHtml(parroquia)}</div>
+                    <h1 style="margin:2px 0;color:#065f46;font-size:20px;">CONTROL DE CATEQUESIS</h1>
+                    <h2 style="margin:2px 0;color:#334155;font-size:16px;">${escHtml(r.titulo)}</h2>
+                    <div style="font-size:9px;color:#64748b;">Grupo: ${escHtml(r.grupo)} · Catequista: ${escHtml(cat)} · Generado: ${new Date().toLocaleString('es-BO')}</div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:14px;">
+                    <div style="flex:1;border:1px solid #dbe3ea;padding:9px;text-align:center;"><b>${registros.length}</b><br><small>Registros</small></div>
+                    <div style="flex:1;border:1px solid #dbe3ea;padding:9px;text-align:center;"><b>${registros.filter(x => /Presente|Retraso/i.test(String(x.asistencia || ''))).length ? Math.round(registros.filter(x => /Presente|Retraso/i.test(String(x.asistencia || ''))).length / Math.max(registros.length,1) * 100) : 0}%</b><br><small>Asistencia</small></div>
+                    <div style="flex:1;border:1px solid #dbe3ea;padding:9px;text-align:center;"><b>${registros.filter(x => /Falta/i.test(String(x.asistencia || ''))).length}</b><br><small>Faltas</small></div>
+                    <div style="flex:1;border:1px solid #dbe3ea;padding:9px;text-align:center;"><b>${registros.filter(x => registroNoPresentoTarea(x)).length}</b><br><small>Tareas pendientes</small></div>
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:10px;">
+                    <thead><tr>${headers}</tr></thead>
+                    <tbody>${rows || '<tr><td colspan="5">Sin registros</td></tr>'}</tbody>
+                </table>
+                <div style="margin-top:12px;border-top:1px solid #dbe3ea;padding-top:6px;font-size:8px;color:#64748b;text-align:center;">Sistema de Control de Catequesis · Reporte administrativo</div>
+            </div>`;
+
+        document.body.appendChild(cont);
+        const oldTitle = document.title;
+        document.title = r.titulo + ' - ' + r.grupo;
+
+        const limpiar = () => {
+            if (cont.parentNode) cont.parentNode.removeChild(cont);
+            document.title = oldTitle;
+            window.removeEventListener('afterprint', limpiar);
+        };
+        window.addEventListener('afterprint', limpiar);
+
+        cerrarReporteVisual();
+
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => {
+                if (cont.parentNode && !window.matchMedia('print').matches) limpiar();
+            }, 4000);
+        }, 120);
+    }
+
+    async function exportarReporteVisualExcel() {
+        const r = window.__reporteVisual;
+        if (!r) {
+            alert('Primero genera un reporte.');
+            return;
+        }
+
+        if (!window.XLSX) {
+            await new Promise(resolve => {
+                const sc = document.createElement('script');
+                sc.src = 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
+                sc.onload = resolve;
+                sc.onerror = resolve;
+                document.head.appendChild(sc);
+            });
+        }
+
+        if (!window.XLSX) {
+            alert('No se pudo cargar el generador de Excel. Revisa tu conexión a internet.');
+            return;
+        }
+
+        const XLSX = window.XLSX;
+        const grupo = sistemaDatos.grupos[grupoActual] || {};
+        const todos = Array.isArray(grupo.registros) ? grupo.registros : [];
+        const pendientes = todos.filter(x => registroNoPresentoTarea(x));
+
+        const wb = XLSX.utils.book_new();
+        const verde = '065F46', verdeClaro = 'ECFDF5', azul = '172033', rojo = 'DC2626', gris = 'F1F5F9';
+
+        function estiloCabecera(ws, rango) {
+            const ref = XLSX.utils.decode_range(rango);
+            for (let R = ref.s.r; R <= ref.e.r; R++) {
+                for (let C = ref.s.c; C <= ref.e.c; C++) {
+                    const cell = ws[XLSX.utils.encode_cell({r:R,c:C})];
+                    if (cell) cell.s = {
+                        font:{bold:true,color:{rgb:'FFFFFF'}},
+                        fill:{fgColor:{rgb:azul}},
+                        alignment:{horizontal:'center',vertical:'center',wrap_text:true}
+                    };
+                }
+            }
+        }
+
+        // Dashboard
+        const present = todos.filter(x => /Presente|Retraso/i.test(String(x.asistencia || ''))).length;
+        const falt = todos.filter(x => /Falta/i.test(String(x.asistencia || ''))).length;
+        const entreg = todos.filter(x => String(x.tareaEstado || '').toLowerCase() === 'entregado').length;
+        const dash = XLSX.utils.aoa_to_sheet([
+            ['CONTROL DE CATEQUESIS','','',''],
+            ['DASHBOARD CONSOLIDADO','','',''],
+            ['Grupo',grupoActual,'Generado',new Date().toLocaleString('es-BO')],
+            [],
+            ['INDICADOR','VALOR','INDICADOR','VALOR'],
+            ['Registros',todos.length,'Jóvenes',Array.isArray(grupo.alumnos)?grupo.alumnos.length:0],
+            ['Presentes / retrasos',present,'Faltas',falt],
+            ['Asistencia %',todos.length ? present/todos.length : 0,'Tareas entregadas',entreg],
+            ['Tareas no presentadas',pendientes.length,'Jóvenes con pendientes',new Set(pendientes.map(x=>x.alumno)).size]
+        ]);
+        dash['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:1,c:0},e:{r:1,c:3}}];
+        dash['!cols']=[{wch:30},{wch:18},{wch:30},{wch:18}];
+        dash.A1.s={font:{bold:true,color:{rgb:'FFFFFF'},sz:18},fill:{fgColor:{rgb:verde}},alignment:{horizontal:'center'}};
+        dash.A2.s={font:{bold:true,color:{rgb:'FFFFFF'},sz:11},fill:{fgColor:{rgb:'047857'}},alignment:{horizontal:'center'}};
+        estiloCabecera(dash,'A5:D5');
+        XLSX.utils.book_append_sheet(wb,dash,'DASHBOARD');
+
+        // Lista de asistencia
+        const asRows=[['Fecha','Catequizando','Asistencia / Motivo','Tarea asignada','Estado tarea','Observación']];
+        todos.slice().reverse().forEach(x=>asRows.push([
+            x.fecha||'',x.alumno||'',x.asistencia||'',nombreTareaRegistro(x),x.tareaEstado||'',x.observacion||x.motivo||''
+        ]));
+        const wa=XLSX.utils.aoa_to_sheet(asRows);
+        wa['!cols']=[{wch:14},{wch:32},{wch:28},{wch:42},{wch:20},{wch:38}];
+        estiloCabecera(wa,`A1:F${Math.max(1,asRows.length)}`);
+        wa['!autofilter']={ref:`A1:F${Math.max(1,asRows.length)}`};
+        wa['!freeze']={xSplit:0,ySplit:1};
+        XLSX.utils.book_append_sheet(wb,wa,'ASISTENCIA');
+
+        // Tareas pendientes
+        const tp=[['Fecha','Catequizando','Tarea que NO presentó','Estado']];
+        pendientes.slice().reverse().forEach(x=>tp.push([x.fecha||'',x.alumno||'',nombreTareaRegistro(x),'No presentó']));
+        const wt=XLSX.utils.aoa_to_sheet(tp);
+        wt['!cols']=[{wch:14},{wch:32},{wch:48},{wch:20}];
+        estiloCabecera(wt,`A1:D${Math.max(1,tp.length)}`);
+        wt['!autofilter']={ref:`A1:D${Math.max(1,tp.length)}`};
+        wt['!freeze']={xSplit:0,ySplit:1};
+        for(let i=2;i<=tp.length;i++) if(wt[`D${i}`]) wt[`D${i}`].s={font:{bold:true,color:{rgb:rojo}},fill:{fgColor:{rgb:'FEE2E2'}}};
+        XLSX.utils.book_append_sheet(wb,wt,'TAREAS PENDIENTES');
+
+        // Resumen por joven
+        const nombres=[...new Set([
+            ...(Array.isArray(grupo.alumnos)?grupo.alumnos.map(a=>a.nombre):[]),
+            ...todos.map(x=>x.alumno)
+        ].filter(Boolean))];
+        const rr=[['Catequizando','Registros','Presentes','Faltas','% Asistencia','Entregadas','No presentadas']];
+        nombres.forEach(n=>{
+            const rs=todos.filter(x=>String(x.alumno||'')===String(n));
+            const p=rs.filter(x=>/Presente|Retraso/i.test(String(x.asistencia||''))).length;
+            const f=rs.filter(x=>/Falta/i.test(String(x.asistencia||''))).length;
+            const e=rs.filter(x=>String(x.tareaEstado||'').toLowerCase()==='entregado').length;
+            const np=rs.filter(x=>registroNoPresentoTarea(x)).length;
+            rr.push([n,rs.length,p,f,rs.length?p/rs.length:0,e,np]);
+        });
+        const wr=XLSX.utils.aoa_to_sheet(rr);
+        wr['!cols']=[{wch:32},{wch:14},{wch:14},{wch:12},{wch:16},{wch:18},{wch:20}];
+        estiloCabecera(wr,`A1:G${Math.max(1,rr.length)}`);
+        wr['!autofilter']={ref:`A1:G${Math.max(1,rr.length)}`};
+        wr['!freeze']={xSplit:0,ySplit:1};
+        for(let i=2;i<=rr.length;i++) if(wr[`E${i}`]) wr[`E${i}`].z='0.0%';
+        XLSX.utils.book_append_sheet(wb,wr,'RESUMEN POR JOVEN');
+
+        XLSX.writeFile(wb,`Control_Catequesis_${String(grupoActual).replace(/[^a-zA-Z0-9_-]+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
     // =========================================================================
