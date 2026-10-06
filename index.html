@@ -4444,19 +4444,30 @@ td,th{border-color:var(--ui-border)!important}
     document.head.appendChild(reportKpiStyles);
 
     function imprimirHTML(contenido,titulo){
-        const w=window.open('','_blank','width=1100,height=850');
-        if(!w){
-            alert('Chrome bloqueó la ventana del reporte. Permite ventanas emergentes para este archivo.');
-            return;
-        }
+        // No abrimos otra pestaña/ventana: eso era lo que estaba produciendo
+        // about:blank en algunos equipos. Creamos un iframe temporal y
+        // lanzamos el diálogo de impresión sobre su contenido.
+        const iframe=document.createElement('iframe');
+        iframe.setAttribute('aria-hidden','true');
+        iframe.style.position='fixed';
+        iframe.style.width='1px';
+        iframe.style.height='1px';
+        iframe.style.right='0';
+        iframe.style.bottom='0';
+        iframe.style.border='0';
+        iframe.style.opacity='0';
+        iframe.style.pointerEvents='none';
 
         const g=(typeof sistemaDatos!=='undefined' && sistemaDatos.grupos)
             ? (sistemaDatos.grupos[grupoActual]||{}) : {};
-        const catequista=(g.metadata&&g.metadata.catequista)||perfilCatequista.nombre||info.catequista||'';
-        const gestion=(info&&info.gestion)||(g.metadata&&g.metadata.gestion)||'';
+        const catequista=(g.metadata&&g.metadata.catequista)
+            || (typeof perfilCatequista!=='undefined' ? perfilCatequista.nombre : '')
+            || '';
+        const gestion=(typeof info!=='undefined' && info && info.gestion)
+            || (g.metadata&&g.metadata.gestion) || '';
 
         const safeTitle=String(titulo||'Reporte').replace(/[<>]/g,'');
-        const html=`<!doctype html>
+        const doc=`<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -4464,50 +4475,63 @@ td,th{border-color:var(--ui-border)!important}
 <style>
 @page{size:A4;margin:12mm}
 *{box-sizing:border-box}
-body{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff;margin:0;font-size:12px}
-.report{width:100%;max-width:190mm;margin:auto}
-.report-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px}
-.report-actions button{border:0;border-radius:8px;padding:9px 13px;background:#059669;color:#fff;font-weight:700;cursor:pointer}
-.report-actions button.secondary{background:#334155}
+html,body{margin:0;padding:0;background:#fff}
+body{font-family:Arial,Helvetica,sans-serif;color:#172033;font-size:12px}
+.report{width:100%;max-width:190mm;margin:0 auto}
 .head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:16px}
-.brand h1{margin:0;color:#065f46;font-size:19px}
-.brand h2{margin:4px 0 0;font-size:16px;color:#334155}
+.org{font-size:10px;font-weight:800;color:#047857}
+h1{margin:2px 0;color:#065f46;font-size:19px}
+h2{margin:4px 0;color:#334155;font-size:16px}
 .meta{margin-top:5px;color:#64748b;font-size:10px}
-.summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
-.summary span{padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#f8fafc}
-.content h1{color:#065f46}
-.content h2{color:#334155}
+.report-actions{display:none}
+.report-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 16px}
+.report-box{border:1px solid #dbe3ea;border-radius:8px;padding:9px;text-align:center}
+.report-box b{display:block;font-size:17px;color:#065f46}
+.report-box small{font-size:9px;color:#64748b}
 table{width:100%;border-collapse:collapse;margin-top:12px}
 th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top}
 th{background:#ecfdf5;color:#064e3b}
 .footer{margin-top:18px;padding-top:8px;border-top:1px solid #dbe3ea;color:#64748b;font-size:9px;text-align:center}
-@media print{.no-print{display:none!important}.report-actions{display:none!important}}
 </style>
 </head>
 <body>
 <div class="report">
-<div class="report-actions no-print">
-<button onclick="window.print()">Guardar / Imprimir PDF</button>
-<button class="secondary" onclick="window.close()">Cerrar</button>
-</div>
 <div class="head">
-<div class="brand">
-<div style="font-size:10px;font-weight:800;color:#047857">PARROQUIA SAN MARTÍN DE PORRES</div>
+<div class="org">PARROQUIA SAN MARTÍN DE PORRES</div>
 <h1>CONTROL DE CATEQUESIS</h1>
 <h2>${safeTitle}</h2>
 <div class="meta">Grupo: ${escHtml(grupoActual)} · Catequista: ${escHtml(catequista)} · Gestión: ${escHtml(gestion)} · Generado: ${new Date().toLocaleString('es-BO')}</div>
 </div>
-</div>
-<div class="content">${contenido}</div>
+${contenido}
 <div class="footer">Reporte generado por el Sistema de Control de Catequesis</div>
 </div>
 </body>
 </html>`;
 
-        w.document.open();
-        w.document.write(html);
-        w.document.close();
-        w.focus();
+        document.body.appendChild(iframe);
+
+        const limpiar=()=>{
+            setTimeout(()=>{
+                if(iframe.parentNode)iframe.parentNode.removeChild(iframe);
+            },1500);
+        };
+
+        iframe.onload=()=>{
+            try{
+                iframe.contentWindow.focus();
+                setTimeout(()=>{
+                    iframe.contentWindow.print();
+                    limpiar();
+                },250);
+            }catch(e){
+                limpiar();
+                alert('No se pudo abrir la impresión del reporte. Intenta nuevamente.');
+                console.error(e);
+            }
+        };
+
+        // srcdoc evita about:blank y document.write.
+        iframe.srcdoc=doc;
     }
 
     function imprimirTemario(){
@@ -4786,30 +4810,167 @@ th{background:#ecfdf5;color:#064e3b}
         imprimirHTML(r.contenido,r.titulo);
     }
 
-    function exportarReporteVisualExcel(){
+    async function exportarReporteVisualExcel(){
         const r=window.__reporteVisualActual;
         if(!r){alert('Primero genera un reporte.');return;}
-        const g=sistemaDatos.grupos[grupoActual]||{};
-        const registros=r.filtrados||[];
-        let headers=['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'];
-        let data=registros.map(x=>[
-            x.fecha||'',x.alumno||'',x.asistencia||'',
-            nombreTareaRegistro(x),x.tareaEstado||''
-        ]);
-        if(r.tipo==='faltas'){
-            headers=['Fecha','Catequizando','Estado / Motivo'];
-            data=registros.map(x=>[x.fecha||'',x.alumno||'',x.asistencia||'']);
-        }else if(r.tipo==='tareas'){
-            headers=['Fecha','Catequizando','Tarea que no presentó','Estado'];
-            data=registros.map(x=>[x.fecha||'',x.alumno||'',nombreTareaRegistro(x),'No presentó']);
+
+        // Excel REAL (.xlsx), con varias hojas, fórmulas, filtros, anchos,
+        // congelado de encabezados y un dashboard consolidado.
+        async function cargarXLSXEstilado(){
+            if(window.XLSX)return true;
+            return await new Promise(resolve=>{
+                const sc=document.createElement('script');
+                sc.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
+                sc.onload=()=>resolve(!!window.XLSX);
+                sc.onerror=()=>resolve(false);
+                document.head.appendChild(sc);
+            });
         }
-        const csv=[headers,...data].map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-        const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
-        const a=document.createElement('a');
-        a.href=URL.createObjectURL(blob);
-        a.download=(r.titulo||'Reporte_Catequesis').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+/g,'_')+'.csv';
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+
+        const ok=await cargarXLSXEstilado();
+        if(!ok || !window.XLSX){
+            alert('No se pudo cargar el generador de Excel. Revisa la conexión a internet y vuelve a intentarlo.');
+            return;
+        }
+
+        const XLSX=window.XLSX;
+        const g=sistemaDatos.grupos[grupoActual]||{};
+        const registros=Array.isArray(g.registros)?g.registros:[];
+        const alumnos=Array.isArray(g.alumnos)?g.alumnos:[];
+
+        const wb=XLSX.utils.book_new();
+
+        const styles={
+            title:{font:{bold:true,color:{rgb:'FFFFFF'},sz:18},fill:{fgColor:{rgb:'065F46'}},alignment:{horizontal:'center',vertical:'center'}},
+            subtitle:{font:{bold:true,color:{rgb:'FFFFFF'},sz:11},fill:{fgColor:{rgb:'047857'}},alignment:{horizontal:'center',vertical:'center'}},
+            header:{font:{bold:true,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'172033'}},alignment:{horizontal:'center',vertical:'center',wrap_text:true},border:{bottom:{style:'thin',color:{rgb:'CBD5E1'}}}},
+            kpiLabel:{font:{bold:true,color:{rgb:'475569'}},fill:{fgColor:{rgb:'F1F5F9'}},alignment:{horizontal:'center',vertical:'center',wrap_text:true},border:{style:'thin',color:{rgb:'CBD5E1'}}},
+            kpiValue:{font:{bold:true,color:{rgb:'065F46'},sz:18},fill:{fgColor:{rgb:'ECFDF5'}},alignment:{horizontal:'center',vertical:'center'},border:{style:'thin',color:{rgb:'A7F3D0'}}},
+            danger:{font:{bold:true,color:{rgb:'DC2626'}},fill:{fgColor:{rgb:'FEE2E2'}}},
+            ok:{font:{bold:true,color:{rgb:'059669'}},fill:{fgColor:{rgb:'DCFCE7'}}},
+            note:{font:{italic:true,color:{rgb:'64748B'},sz:9},alignment:{wrap_text:true}}
+        };
+
+        function put(ws,addr,value,style){
+            ws[addr]={v:value,t:typeof value==='number'?'n':'s'};
+            if(style)ws[addr].s=style;
+        }
+
+        function baseSheet(rows,widths){
+            const ws=XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols']=widths.map(w=>({wch:w}));
+            if(rows.length){
+                ws['!freeze']={xSplit:0,ySplit:1,topLeft:'A2',activeCell:'A2'};
+                ws['!autofilter']={ref:`A1:${XLSX.utils.encode_col(rows[0].length-1)}${rows.length}`};
+            }
+            return ws;
+        }
+
+        // ---------- DASHBOARD ----------
+        const dash=XLSX.utils.aoa_to_sheet([
+            ['CONTROL DE CATEQUESIS','','','',''],
+            ['DASHBOARD CONSOLIDADO','','','',''],
+            ['Grupo',grupoActual,'Generado',new Date().toLocaleString('es-BO'),''],
+            ['','','','',''],
+            ['INDICADOR','VALOR','INDICADOR','VALOR',''],
+            ['Total de registros',registros.length,'Jóvenes',alumnos.length,''],
+            ['Presentes',registros.filter(x=>/Presente|Retraso/i.test(String(x.asistencia||''))).length,'Faltas',registros.filter(x=>/Falta/i.test(String(x.asistencia||''))).length,''],
+            ['Asistencia %',registros.length?registros.filter(x=>/Presente|Retraso/i.test(String(x.asistencia||''))).length/registros.length:0,'Tareas entregadas',registros.filter(x=>String(x.tareaEstado||'').toLowerCase()==='entregado').length,''],
+            ['Tareas no presentadas',registros.filter(x=>registroNoPresentoTarea(x)).length,'Jóvenes con pendientes',new Set(registros.filter(x=>registroNoPresentoTarea(x)).map(x=>x.alumno)).size,'']
+        ]);
+        dash['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}}];
+        dash['!cols']=[{wch:28},{wch:18},{wch:28},{wch:18},{wch:4}];
+        dash['!rows']=[{hpt:28},{hpt:22},{hpt:20},{hpt:8},{hpt:24}];
+        ['A1','A2'].forEach((a,i)=>dash[a].s=i===0?styles.title:styles.subtitle);
+        ['A5','B5','C5','D5'].forEach(a=>dash[a].s=styles.header);
+        for(let r=6;r<=9;r++){
+            dash[`A${r}`].s=styles.kpiLabel; dash[`B${r}`].s=styles.kpiValue;
+            dash[`C${r}`].s=styles.kpiLabel; dash[`D${r}`].s=styles.kpiValue;
+        }
+        dash.B8.z='0.0%';
+        XLSX.utils.book_append_sheet(wb,dash,'DASHBOARD');
+
+        // ---------- ASISTENCIA ----------
+        const asistencia=[
+            ['Fecha','Catequizando','Asistencia / Motivo','Tarea asignada','Estado tarea','Observación']
+        ];
+        registros.slice().reverse().forEach(x=>{
+            asistencia.push([
+                x.fecha||'',
+                x.alumno||'',
+                x.asistencia||'',
+                nombreTareaRegistro(x),
+                x.tareaEstado||'',
+                x.observacion||x.motivo||''
+            ]);
+        });
+        const wa=baseSheet(asistencia,[14,32,28,40,20,38]);
+        for(let c=0;c<6;c++)wa[XLSX.utils.encode_col(c)+'1'].s=styles.header;
+        for(let r0=2;r0<=asistencia.length;r0++){
+            const st=String(wa[`C${r0}`]?.v||'');
+            const tt=String(wa[`E${r0}`]?.v||'');
+            if(/Falta/i.test(st))wa[`C${r0}`].s=styles.danger;
+            if(tt==='No Presentó')wa[`E${r0}`].s=styles.danger;
+            if(tt==='Entregado')wa[`E${r0}`].s=styles.ok;
+        }
+        XLSX.utils.book_append_sheet(wb,wa,'ASISTENCIA');
+
+        // ---------- TAREAS NO PRESENTADAS ----------
+        const pendientes=registros.filter(x=>registroNoPresentoTarea(x));
+        const wtrows=[['Fecha','Catequizando','Tarea que NO presentó','Estado']];
+        pendientes.slice().reverse().forEach(x=>wtrows.push([
+            x.fecha||'',x.alumno||'',nombreTareaRegistro(x),'No presentó'
+        ]));
+        const wt=baseSheet(wtrows,[14,32,48,20]);
+        for(let c=0;c<4;c++)wt[XLSX.utils.encode_col(c)+'1'].s=styles.header;
+        for(let r0=2;r0<=wtrows.length;r0++)wt[`D${r0}`].s=styles.danger;
+        XLSX.utils.book_append_sheet(wb,wt,'TAREAS PENDIENTES');
+
+        // ---------- RESUMEN POR JOVEN ----------
+        const wr=[['Catequizando','Registros','Presentes','Faltas','% Asistencia','Entregadas','No presentadas']];
+        const nombres=[...new Set([
+            ...alumnos.map(a=>a.nombre).filter(Boolean),
+            ...registros.map(x=>x.alumno).filter(Boolean)
+        ])];
+        nombres.forEach(n=>{
+            const rn=registros.filter(x=>String(x.alumno||'')===String(n));
+            const pres=rn.filter(x=>/Presente|Retraso/i.test(String(x.asistencia||''))).length;
+            const falt=rn.filter(x=>/Falta/i.test(String(x.asistencia||''))).length;
+            const ent=rn.filter(x=>String(x.tareaEstado||'').toLowerCase()==='entregado').length;
+            const pend=rn.filter(x=>registroNoPresentoTarea(x)).length;
+            wr.push([n,rn.length,pres,falt,rn.length?pres/rn.length:0,ent,pend]);
+        });
+        const wrs=baseSheet(wr,[32,14,14,12,16,18,20]);
+        for(let c=0;c<7;c++)wrs[XLSX.utils.encode_col(c)+'1'].s=styles.header;
+        for(let r0=2;r0<=wr.length;r0++){
+            wrs[`E${r0}`].z='0.0%';
+            if(Number(wrs[`G${r0}`].v||0)>0)wrs[`G${r0}`].s=styles.danger;
+        }
+        XLSX.utils.book_append_sheet(wb,wrs,'RESUMEN POR JOVEN');
+
+        // ---------- INSTRUCCIONES ----------
+        const wi=XLSX.utils.aoa_to_sheet([
+            ['CONTROL DE CATEQUESIS — ARCHIVO EDITABLE'],
+            ['Este archivo puede editarse fuera del sistema y volver a utilizarse como respaldo.'],
+            [],
+            ['HOJAS'],
+            ['DASHBOARD','Resumen visual consolidado.'],
+            ['ASISTENCIA','Registro completo de asistencia, tareas y observaciones.'],
+            ['TAREAS PENDIENTES','Lista exacta de qué tarea no presentó cada joven.'],
+            ['RESUMEN POR JOVEN','Seguimiento individual.'],
+            [],
+            ['IMPORTANTE'],
+            ['Para devolver cambios al sistema se debe utilizar una futura función “Importar Excel”.']
+        ]);
+        wi['!cols']=[{wch:30},{wch:90}];
+        wi['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];
+        wi.A1.s=styles.title;
+        wi.A2.s=styles.note;
+        wi.A4.s=styles.header;
+        XLSX.utils.book_append_sheet(wb,wi,'INSTRUCCIONES');
+
+        const file='Control_Catequesis_'+String(grupoActual||'Grupo').replace(/[^\wáéíóúñ-]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+        XLSX.writeFile(wb,file,{bookType:'xlsx',compression:true});
     }
 
     // =========================================================================
