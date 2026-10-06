@@ -1363,6 +1363,28 @@ td,th{border-color:var(--ui-border)!important}
 
 </head>
 <body>
+<div id="unified-tools-menu" class="unified-tools">
+  <button id="unified-tools-trigger" class="unified-tools-trigger" type="button" aria-label="Herramientas" title="Herramientas">
+    <i class="fa-solid fa-screwdriver-wrench"></i>
+  </button>
+  <div id="unified-tools-panel" class="unified-tools-panel" role="menu">
+    <div class="unified-tools-head">
+      <div><strong>Herramientas</strong><small>Acciones rápidas del sistema</small></div>
+      <button type="button" onclick="cerrarHerramientasUnificadas()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="unified-tools-grid">
+      <button type="button" onclick="accionHerramienta('perfil')"><i class="fa-solid fa-user"></i><span>Mi perfil</span></button>
+      <button type="button" onclick="accionHerramienta('guardar')"><i class="fa-solid fa-floppy-disk"></i><span>Guardar ahora</span></button>
+      <button type="button" onclick="accionHerramienta('backup')"><i class="fa-solid fa-database"></i><span>Copia de seguridad</span></button>
+      <button type="button" onclick="accionHerramienta('bloqueo')"><i class="fa-solid fa-lock"></i><span>Bloquear</span></button>
+      <button type="button" onclick="accionHerramienta('notificaciones')"><i class="fa-regular fa-bell"></i><span>Notificaciones</span></button>
+      <button type="button" onclick="accionHerramienta('tema')"><i class="fa-solid fa-circle-half-stroke"></i><span>Apariencia</span></button>
+      <button type="button" onclick="accionHerramienta('ayuda')"><i class="fa-solid fa-circle-question"></i><span>Ayuda</span></button>
+      <button type="button" onclick="accionHerramienta('salir')"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button>
+    </div>
+  </div>
+</div>
+
 
 <div id="loading-overlay">
     <div class="spinner"></div>
@@ -2145,6 +2167,7 @@ td,th{border-color:var(--ui-border)!important}
                             <p class="section-intro" style="margin:.45rem 0 0">Calendario central de reuniones, catequesis, actividades, pagos, tareas y compromisos.</p>
                         </div>
                         <div class="toolbar-actions agenda-actions">
+                            <button class="btn btn-slate" type="button" onclick="abrirReporteTareas()" title="Reporte detallado de tareas"><i class="fa-solid fa-list-check"></i> Reporte de tareas</button>
                             <button class="btn btn-primary" type="button" onclick="abrirNuevaAgenda()"><i class="fa-solid fa-plus"></i> Nuevo evento</button>
                             <button class="btn btn-slate" type="button" onclick="agendaIrHoy()"><i class="fa-solid fa-calendar-day"></i> Hoy</button>
                         </div>
@@ -2166,19 +2189,90 @@ td,th{border-color:var(--ui-border)!important}
                     </div>
                 </div>
 
-                <div id="agenda-event-modal" class="modal-overlay" style="display:none;z-index:10040" onclick="if(event.target===this)cerrarNuevaAgenda()">
-                    <div class="modal-content" style="max-width:650px;width:min(94vw,650px)">
-                        <div class="modal-header"><div><h2><i class="fa-solid fa-calendar-plus"></i> Nuevo evento de agenda</h2><p>Registra reuniones, compromisos, actividades o recordatorios.</p></div><button class="btn btn-slate" type="button" onclick="cerrarNuevaAgenda()"><i class="fa-solid fa-xmark"></i></button></div>
-                        <div class="agenda-form">
-                            <div><label>Título *</label><input id="agenda-event-title" placeholder="Ej.: Reunión de catequistas"></div>
-                            <div class="agenda-form-grid">
-                                <div><label>Fecha *</label><input id="agenda-event-date" type="date"></div>
-                                <div><label>Hora</label><input id="agenda-event-time" type="time"></div>
-                                <div><label>Tipo</label><select id="agenda-event-type"><option value="reunion">Reunión</option><option value="catequesis">Catequesis</option><option value="pastoral">Pastoral</option><option value="administrativo">Administrativo</option><option value="recordatorio">Recordatorio</option></select></div>
+                <div id="agenda-event-modal" class="modal-overlay agenda-modal-overlay" style="display:none;z-index:10040" onclick="if(event.target===this)cerrarNuevaAgenda()">
+                    <div class="agenda-personal-modal">
+                        <div class="agenda-modal-top">
+                            <div class="agenda-modal-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div>
+                                <div class="agenda-modal-kicker">MI AGENDA PERSONAL</div>
+                                <h2>Nuevo compromiso</h2>
+                                <p>Organiza tus reuniones, pendientes, catequesis y actividades.</p>
                             </div>
-                            <div><label>Responsable</label><input id="agenda-event-owner" placeholder="Persona o comisión responsable"></div>
-                            <div><label>Descripción / pendientes</label><textarea id="agenda-event-desc" rows="4" placeholder="Detalles, lugar, materiales, tareas previas o acuerdos..."></textarea></div>
-                            <div class="agenda-form-actions"><button class="btn btn-slate" type="button" onclick="cerrarNuevaAgenda()">Cancelar</button><button class="btn btn-primary" type="button" onclick="guardarNuevoAgenda()"><i class="fa-solid fa-check"></i> Guardar evento</button></div>
+                            <button class="agenda-close" type="button" onclick="cerrarNuevaAgenda()"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+
+                        <div class="agenda-form-body">
+                            <div class="agenda-field agenda-field-full">
+                                <label>¿Qué tienes que hacer?</label>
+                                <div class="agenda-title-input">
+                                    <i class="fa-solid fa-pen"></i>
+                                    <input id="agenda-event-title" placeholder="Ej. Reunión con catequistas" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="agenda-date-card">
+                                <div class="agenda-date-head">
+                                    <div>
+                                        <span class="agenda-label">FECHA</span>
+                                        <strong id="agenda-selected-date-label">Selecciona una fecha</strong>
+                                    </div>
+                                    <button type="button" class="agenda-today-mini" onclick="agendaFormHoy()">Hoy</button>
+                                </div>
+                                <div class="agenda-date-picker">
+                                    <button type="button" onclick="agendaFormMoveDay(-1)" aria-label="Día anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <div class="agenda-date-main">
+                                        <span id="agenda-form-day-name">—</span>
+                                        <b id="agenda-form-day-number">—</b>
+                                        <span id="agenda-form-month">—</span>
+                                    </div>
+                                    <button type="button" onclick="agendaFormMoveDay(1)" aria-label="Día siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                                <input id="agenda-event-date" type="date" class="agenda-date-native" aria-label="Fecha">
+                                <div class="agenda-quick-dates">
+                                    <button type="button" onclick="agendaFormSetOffset(0)">Hoy</button>
+                                    <button type="button" onclick="agendaFormSetOffset(1)">Mañana</button>
+                                    <button type="button" onclick="agendaFormSetOffset(7)">En 7 días</button>
+                                </div>
+                            </div>
+
+                            <div class="agenda-two-fields">
+                                <div class="agenda-field">
+                                    <label>Hora</label>
+                                    <div class="agenda-input-icon"><i class="fa-regular fa-clock"></i><input id="agenda-event-time" type="time"></div>
+                                </div>
+                                <div class="agenda-field">
+                                    <label>Tipo</label>
+                                    <div class="agenda-input-icon"><i class="fa-solid fa-tag"></i>
+                                        <select id="agenda-event-type">
+                                            <option value="reunion">Reunión</option>
+                                            <option value="catequesis">Catequesis</option>
+                                            <option value="pastoral">Pastoral</option>
+                                            <option value="administrativo">Administrativo</option>
+                                            <option value="personal">Personal</option>
+                                            <option value="recordatorio">Recordatorio</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="agenda-field">
+                                <label>Responsable / con quién</label>
+                                <div class="agenda-input-icon"><i class="fa-solid fa-user"></i><input id="agenda-event-owner" placeholder="Opcional"></div>
+                            </div>
+
+                            <div class="agenda-field">
+                                <label>Notas</label>
+                                <textarea id="agenda-event-desc" rows="3" placeholder="Lugar, materiales, pendientes, ideas o cualquier detalle que quieras recordar..."></textarea>
+                            </div>
+
+                            <div class="agenda-personal-options">
+                                <label><input id="agenda-reminder" type="checkbox" checked> <i class="fa-regular fa-bell"></i> Recordarme este compromiso</label>
+                            </div>
+                        </div>
+
+                        <div class="agenda-modal-footer">
+                            <button class="btn btn-slate" type="button" onclick="cerrarNuevaAgenda()">Cancelar</button>
+                            <button class="btn btn-primary agenda-save-btn" type="button" onclick="guardarNuevoAgenda()"><i class="fa-solid fa-check"></i> Guardar en mi agenda</button>
                         </div>
                     </div>
                 </div>
@@ -6735,16 +6829,43 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
     const msg=all.map(x=>`• ${x.titulo}${x.hora?' · '+x.hora:''}\n  ${x.descripcion||''}`).join('\n');
     alert(new Date(key+'T00:00:00').toLocaleDateString('es-BO',{weekday:'long',day:'numeric',month:'long'})+'\n\n'+msg);
   };
+  function agendaSetFormDate(value){
+    const inp=document.getElementById('agenda-event-date'); if(!inp)return;
+    inp.value=value;
+    const d=parse(value); if(!d)return;
+    const dayNames=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const monthNames=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    document.getElementById('agenda-form-day-name').textContent=dayNames[d.getDay()];
+    document.getElementById('agenda-form-day-number').textContent=d.getDate();
+    document.getElementById('agenda-form-month').textContent=monthNames[d.getMonth()]+' '+d.getFullYear();
+    document.getElementById('agenda-selected-date-label').textContent=d.toLocaleDateString('es-BO',{weekday:'long',day:'numeric',month:'long'});
+  }
+  window.agendaFormHoy=function(){agendaSetFormDate(iso(new Date()))};
+  window.agendaFormSetOffset=function(days){const d=new Date();d.setDate(d.getDate()+days);agendaSetFormDate(iso(d))};
+  window.agendaFormMoveDay=function(delta){const d=parse(document.getElementById('agenda-event-date').value)||new Date();d.setDate(d.getDate()+delta);agendaSetFormDate(iso(d))};
   window.abrirNuevaAgenda=function(date){
     document.getElementById('agenda-event-modal').style.display='flex';
-    document.getElementById('agenda-event-date').value=date||iso(new Date());
+    agendaSetFormDate(date||iso(new Date()));
+    document.getElementById('agenda-event-title').value='';
+    document.getElementById('agenda-event-time').value='';
+    document.getElementById('agenda-event-owner').value='';
+    document.getElementById('agenda-event-desc').value='';
+    document.getElementById('agenda-reminder').checked=true;
+    document.getElementById('agenda-event-title').focus();
   };
   window.cerrarNuevaAgenda=function(){document.getElementById('agenda-event-modal').style.display='none'};
   window.guardarNuevoAgenda=function(){
     const title=document.getElementById('agenda-event-title').value.trim(),date=document.getElementById('agenda-event-date').value;
-    if(!title||!date){alert('Completa el título y la fecha.');return}
-    const arr=readOwn();arr.push({id:'ag-'+Date.now(),fecha:date,hora:document.getElementById('agenda-event-time').value,titulo:title,tipo:document.getElementById('agenda-event-type').value,owner:document.getElementById('agenda-event-owner').value.trim(),descripcion:document.getElementById('agenda-event-desc').value.trim()});saveOwn(arr);
-    cerrarNuevaAgenda();renderizarAgenda();if(typeof toast==='function')toast('📅 Evento agregado a la agenda.');
+    if(!title||!date){alert('Primero coloca qué tienes que hacer y la fecha.');return}
+    const arr=readOwn();arr.push({
+      id:'ag-'+Date.now(),fecha:date,hora:document.getElementById('agenda-event-time').value,
+      titulo:title,tipo:document.getElementById('agenda-event-type').value,
+      owner:document.getElementById('agenda-event-owner').value.trim(),
+      descripcion:document.getElementById('agenda-event-desc').value.trim(),
+      reminder:document.getElementById('agenda-reminder').checked,createdAt:new Date().toISOString()
+    });
+    saveOwn(arr); cerrarNuevaAgenda(); renderizarAgenda();
+    if(typeof toast==='function')toast('📅 Guardado en tu agenda.');
   };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(renderizarAgenda,300));
   document.addEventListener('click',e=>{if(e.target.closest('[onclick*="switchTab"][onclick*="agenda"]'))setTimeout(renderizarAgenda,50)});
@@ -6768,3 +6889,243 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
   }
 }
 </style>
+
+<!-- REPORTE EMPRESARIAL DE TAREAS -->
+<div id="modal-reporte-tareas" class="modal-overlay" style="display:none;z-index:10060" onclick="if(event.target===this)cerrarReporteTareas()">
+ <div class="modal-content task-report-modal" style="max-width:900px;width:min(95vw,900px)">
+  <div class="modal-header">
+   <div><h2><i class="fa-solid fa-list-check"></i> Reporte de tareas</h2><p>Control académico y operativo con resultados, pendientes y trazabilidad.</p></div>
+   <button class="btn btn-slate" onclick="cerrarReporteTareas()" type="button"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="task-report-grid">
+   <label><span>Estado</span><select id="tr-status"><option value="">Todos</option><option value="entregada">Entregadas</option><option value="pendiente">Pendientes</option><option value="no_presentada">No presentadas</option></select></label>
+   <label><span>Responsable</span><select id="tr-owner"><option value="">Todos</option></select></label>
+   <label><span>Desde</span><input id="tr-from" type="date"></label>
+   <label><span>Hasta</span><input id="tr-to" type="date"></label>
+  </div>
+  <div class="task-report-checks">
+   <label><input type="checkbox" id="tr-kpi" checked> Resultados y KPIs</label>
+   <label><input type="checkbox" id="tr-detail" checked> Detalle por tarea</label>
+   <label><input type="checkbox" id="tr-person" checked> Resultado por joven</label>
+   <label><input type="checkbox" id="tr-log" checked> Log de actividad</label>
+  </div>
+  <div class="task-report-actions">
+   <button class="btn btn-primary" onclick="generarReporteTareas('excel')" type="button"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
+   <button class="btn btn-info" onclick="generarReporteTareas('pdf')" type="button"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+   <button class="btn btn-slate" onclick="generarReporteTareas('print')" type="button"><i class="fa-solid fa-print"></i> Imprimir</button>
+  </div>
+  <div id="task-report-preview" class="task-report-preview"></div>
+ </div>
+</div>
+
+<script id="task-report-engine">
+(function(){
+ const LOGKEY='catequesis_audit_log_v1';
+ function esc(v){return typeof escHtml==='function'?escHtml(String(v??'')):String(v??'')}
+ function money(v){return (Number(v||0)).toFixed(2)}
+ function getGroup(){return (typeof sistemaDatos!=='undefined'&&sistemaDatos.grupos&&sistemaDatos.grupos[grupoActual])||{}}
+ function ownTasks(){
+   const g=getGroup();
+   let raw=[];
+   ['tareas','tasks','actividadesTareas','trabajos'].forEach(k=>{if(Array.isArray(g[k]))raw.push(...g[k])});
+   if(Array.isArray(g.temario?.tareas))raw.push(...g.temario.tareas);
+   if(Array.isArray(g.temario?.primerAno))raw.push(...g.temario.primerAno.filter(x=>x.tarea||x.tareas));
+   if(Array.isArray(g.temario?.segundoAno))raw.push(...g.temario.segundoAno.filter(x=>x.tarea||x.tareas));
+   return raw;
+ }
+ function students(){const g=getGroup();return g.alumnos||g.jovenes||g.confirmandos||[]}
+ function taskRows(){
+   const raw=ownTasks(), g=getGroup(), alumnos=students(), rows=[];
+   raw.forEach((t,ti)=>{
+     const id=t.id||'task-'+ti, title=t.titulo||t.nombre||t.tarea||'Tarea sin título', date=t.fecha||t.fechaEntrega||t.fechaLimite||'';
+     const owner=t.responsable||t.catequista||t.asignadoA||'Sin responsable';
+     const entregas=t.entregas||t.respuestas||t.resultados||[];
+     if(Array.isArray(entregas)&&entregas.length){
+       entregas.forEach(e=>{
+         const name=e.persona||e.alumno||e.joven||e.nombre||'Sin identificar';
+         const st=String(e.estado||e.status||'').toLowerCase();
+         rows.push({id,title,date,owner,student:name,status:norm(st,e),score:e.nota??e.calificacion??'',obs:e.observacion||e.comentario||''});
+       });
+     } else {
+       const list=Array.isArray(t.alumnos)?t.alumnos:alumnos;
+       if(list.length) list.forEach(a=>{
+         const name=a.nombre||a.name||String(a), found=(t.estadoPorAlumno||t.estados||{})[name];
+         rows.push({id,title,date,owner,student:name,status:norm(found?.estado||found||t.estado||'',found),score:found?.nota??'',obs:found?.observacion||''});
+       });
+       else rows.push({id,title,date,owner,student:'General',status:norm(t.estado||'',t),score:t.nota??'',obs:t.observacion||''});
+     }
+   });
+   return rows;
+ }
+ function norm(st,obj){
+   st=String(st||'').toLowerCase().replace(/\s+/g,'_');
+   if(st.includes('entreg'))return'entregada';
+   if(st.includes('no_present')||st.includes('falt')||st.includes('no entreg'))return'no_presentada';
+   if(st.includes('pend'))return'pendiente';
+   if(obj&&obj.entregada===true)return'entregada';
+   if(obj&&obj.presentada===false)return'no_presentada';
+   return st||'pendiente';
+ }
+ function filtered(){
+   const status=document.getElementById('tr-status')?.value||'', owner=document.getElementById('tr-owner')?.value||'', from=document.getElementById('tr-from')?.value||'', to=document.getElementById('tr-to')?.value||'';
+   return taskRows().filter(r=>(!status||r.status===status)&&(!owner||r.owner===owner)&&(!from||r.date>=from)&&(!to||r.date<=to));
+ }
+ function stats(rows){
+   const total=rows.length, ent=rows.filter(r=>r.status==='entregada').length, pen=rows.filter(r=>r.status==='pendiente').length, no=rows.filter(r=>r.status==='no_presentada').length;
+   return {total,ent,pen,no,rate:total?ent/total*100:0};
+ }
+ function log(action,detail){
+   try{let a=JSON.parse(localStorage.getItem(LOGKEY)||'[]');if(!Array.isArray(a))a=[];a.unshift({fecha:new Date().toISOString(),usuario:(typeof usuarioActual!=='undefined'?usuarioActual?.nombre||usuarioActual?.email:'Usuario'),accion:action,detalle:detail});localStorage.setItem(LOGKEY,JSON.stringify(a.slice(0,1000)))}catch(e){}
+ }
+ function fillOwners(){
+   const s=document.getElementById('tr-owner');if(!s)return;
+   const owners=[...new Set(taskRows().map(r=>r.owner).filter(Boolean))];
+   s.innerHTML='<option value="">Todos</option>'+owners.map(x=>`<option>${esc(x)}</option>`).join('');
+ }
+ window.abrirReporteTareas=function(){fillOwners();document.getElementById('modal-reporte-tareas').style.display='flex';preview();log('ABRIR_REPORTE_TAREAS','Se abrió el centro de reportes de tareas')};
+ window.cerrarReporteTareas=function(){document.getElementById('modal-reporte-tareas').style.display='none'};
+ function preview(){
+   const rows=filtered(),s=stats(rows),el=document.getElementById('task-report-preview');if(!el)return;
+   el.innerHTML=`<div class="task-kpis"><div><b>${s.total}</b><span>Registros</span></div><div><b>${s.ent}</b><span>Entregadas</span></div><div><b>${s.pen}</b><span>Pendientes</span></div><div><b>${s.no}</b><span>No presentadas</span></div><div><b>${s.rate.toFixed(1)}%</b><span>Entrega</span></div></div>
+   <div class="task-preview-table"><table><thead><tr><th>Tarea</th><th>Fecha</th><th>Responsable</th><th>Joven</th><th>Estado</th><th>Resultado</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.date||'-')}</td><td>${esc(r.owner)}</td><td>${esc(r.student)}</td><td><span class="task-status ${r.status}">${r.status==='entregada'?'ENTREGADA':r.status==='no_presentada'?'NO PRESENTADA':'PENDIENTE'}</span></td><td>${esc(r.score||r.obs||'-')}</td></tr>`).join('')||'<tr><td colspan="6">No hay registros con el filtro seleccionado.</td></tr>'}</tbody></table></div>`;
+ }
+ ['tr-status','tr-owner','tr-from','tr-to'].forEach(id=>document.addEventListener('change',e=>{if(e.target.id===id)preview()}));
+ function rowsForExcel(rows){
+   const s=stats(rows), today=new Date().toLocaleString('es-BO');
+   const resumen=[
+    ['CONTROL DE CATEQUESIS — REPORTE DE TAREAS'],
+    ['Grupo',typeof grupoActual!=='undefined'?grupoActual:''],
+    ['Generado',today],[''],
+    ['INDICADORES','RESULTADO'],['Total de registros',s.total],['Entregadas',s.ent],['Pendientes',s.pen],['No presentadas',s.no],['% de entrega',s.rate.toFixed(1)+'%']
+   ];
+   const detalle=[['TAREA','FECHA','RESPONSABLE','JOVEN','ESTADO','RESULTADO/NOTA','OBSERVACIÓN']];
+   rows.forEach(r=>detalle.push([r.title,r.date,r.owner,r.student,r.status==='entregada'?'ENTREGADA':r.status==='no_presentada'?'NO PRESENTADA':'PENDIENTE',r.score,r.obs]));
+   const porPersona={};rows.forEach(r=>{const k=r.student||'Sin identificar';porPersona[k]??={total:0,e:0,p:0,n:0};porPersona[k].total++;if(r.status==='entregada')porPersona[k].e++;else if(r.status==='pendiente')porPersona[k].p++;else if(r.status==='no_presentada')porPersona[k].n++});
+   const resultados=[['JOVEN','TOTAL TAREAS','ENTREGADAS','PENDIENTES','NO PRESENTADAS','% ENTREGA']];
+   Object.entries(porPersona).forEach(([n,x])=>resultados.push([n,x.total,x.e,x.p,x.n,(x.total?x.e/x.total*100:0).toFixed(1)+'%']));
+   const logs=[['FECHA','USUARIO','ACCIÓN','DETALLE']];try{JSON.parse(localStorage.getItem(LOGKEY)||'[]').forEach(x=>logs.push([x.fecha,x.usuario,x.accion,x.detalle]))}catch(e){}
+   return {resumen,detalle,resultados,logs};
+ }
+ function sheetXML(rows){
+   return `<table border="1"><tbody>`+rows.map((r,i)=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+ }
+ window.generarReporteTareas=function(dest){
+   const rows=filtered(); if(!rows.length){alert('No hay registros para generar el reporte.');return}
+   const data=rowsForExcel(rows); log('GENERAR_REPORTE_TAREAS',`Registros: ${rows.length}; destino: ${dest}`);
+   if(dest==='excel'){
+     const htmlExcel=`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"><style>
+      body{font-family:Arial}.title{font-size:20px;font-weight:700}.head{background:#173f3b;color:white;font-weight:700}td{padding:7px;border:1px solid #d9e2e5}table{border-collapse:collapse;margin-bottom:24px} 
+      .ok{background:#dcfce7}.warn{background:#fef3c7}.bad{background:#fee2e2}
+     </style></head><body>
+      <div class="title">CONTROL DE CATEQUESIS — REPORTE DE TAREAS</div><p>Generado: ${esc(new Date().toLocaleString('es-BO'))}</p>
+      <h2>Resumen ejecutivo</h2>${sheetXML(data.resumen)}
+      <h2>Detalle de tareas</h2>${sheetXML(data.detalle)}
+      <h2>Resultados por joven</h2>${sheetXML(data.resultados)}
+      <h2>Log de actividad</h2>${sheetXML(data.logs)}
+     </body></html>`;
+     const blob=new Blob(['\ufeff'+htmlExcel],{type:'application/vnd.ms-excel;charset=utf-8'});
+     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Reporte_Tareas_'+(typeof grupoActual!=='undefined'?String(grupoActual).replace(/\s+/g,'_'):'Grupo')+'_'+new Date().toISOString().slice(0,10)+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);return;
+   }
+   const body=`<div class="task-print"><h1>Reporte de tareas</h1><p><b>Grupo:</b> ${esc(grupoActual||'')} · <b>Generado:</b> ${esc(new Date().toLocaleString('es-BO'))}</p><div class="task-kpis"><div><b>${stats(rows).total}</b> Registros</div><div><b>${stats(rows).ent}</b> Entregadas</div><div><b>${stats(rows).pen}</b> Pendientes</div><div><b>${stats(rows).no}</b> No presentadas</div><div><b>${stats(rows).rate.toFixed(1)}%</b> Entrega</div></div><table><thead><tr><th>Tarea</th><th>Fecha</th><th>Responsable</th><th>Joven</th><th>Estado</th><th>Resultado</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.date)}</td><td>${esc(r.owner)}</td><td>${esc(r.student)}</td><td>${esc(r.status)}</td><td>${esc(r.score||r.obs||'-')}</td></tr>`).join('')}</tbody></table></div>`;
+   const w=window.open('','_blank','width=1200,height=850');if(!w)return;
+   w.document.write('<html><head><title>Reporte de tareas</title><style>body{font:12px Arial;padding:25px;color:#172033}h1{color:#164e4a}.task-kpis{display:flex;gap:10px;margin:18px 0}.task-kpis div{border:1px solid #ddd;padding:12px;border-radius:8px}.task-kpis b{font-size:18px;display:block}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:7px}th{background:#e7f0ee}</style></head><body>'+body+'</body></html>');w.document.close();w.print();
+ };
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{const m=document.getElementById('modal-reporte-tareas');if(m)m.addEventListener('change',preview)},400));
+})();
+</script>
+<style id="task-report-ui">
+.task-report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.task-report-grid label span{display:block;font-size:.72rem;font-weight:800;margin-bottom:5px}.task-report-grid input,.task-report-grid select{width:100%}.task-report-checks{display:flex;flex-wrap:wrap;gap:12px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:12px 0}.task-report-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.task-report-actions .btn{min-width:170px}.task-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}.task-kpis>div{padding:12px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(148,163,184,.05)}.task-kpis b{display:block;font-size:1.15rem}.task-kpis span{font-size:.7rem;color:var(--medium-gray)}.task-preview-table{overflow:auto}.task-preview-table table{width:100%;border-collapse:collapse;font-size:.73rem}.task-preview-table th,.task-preview-table td{padding:7px;border:1px solid var(--line-soft);text-align:left}.task-status{font-size:.62rem;font-weight:900}.task-status.entregada{color:#10b981}.task-status.pendiente{color:#f59e0b}.task-status.no_presentada{color:#ef4444}
+@media(max-width:700px){.task-report-grid{grid-template-columns:1fr 1fr}.task-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:450px){.task-report-grid{grid-template-columns:1fr}}
+</style>
+
+<style id="agenda-personal-polish">
+.agenda-modal-overlay{backdrop-filter:blur(8px);background:rgba(2,6,23,.58)!important;align-items:center!important;justify-content:center!important;padding:18px}
+.agenda-personal-modal{width:min(94vw,590px);max-height:92vh;overflow:auto;background:var(--card-bg,#111827);color:var(--text-color,#f8fafc);border:1px solid var(--line-soft,#334155);border-radius:22px;box-shadow:0 25px 80px #0008}
+.agenda-modal-top{display:grid;grid-template-columns:48px 1fr 38px;gap:12px;align-items:center;padding:20px 22px 16px;border-bottom:1px solid var(--line-soft)}
+.agenda-modal-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:rgba(16,185,129,.13);color:#34d399;font-size:1.1rem}
+.agenda-modal-kicker{font-size:.62rem;letter-spacing:.12em;font-weight:900;color:#34d399;margin-bottom:3px}
+.agenda-modal-top h2{margin:0;font-size:1.3rem}.agenda-modal-top p{margin:4px 0 0;color:var(--medium-gray);font-size:.76rem}
+.agenda-close{width:36px;height:36px;border:0;border-radius:10px;background:rgba(148,163,184,.08);color:var(--text-color);cursor:pointer}
+.agenda-form-body{padding:20px 22px}.agenda-field{margin-bottom:15px}.agenda-field label{display:block;font-size:.72rem;font-weight:800;margin:0 0 6px;color:var(--medium-gray)}
+.agenda-title-input,.agenda-input-icon{display:flex;align-items:center;gap:9px;border:1px solid var(--line-soft);border-radius:12px;padding:0 12px;background:rgba(148,163,184,.045);transition:.18s}
+.agenda-title-input:focus-within,.agenda-input-icon:focus-within{border-color:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.1)}
+.agenda-title-input i,.agenda-input-icon i{color:#34d399;font-size:.82rem}.agenda-title-input input,.agenda-input-icon input,.agenda-input-icon select{border:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;width:100%;min-height:43px}
+.agenda-date-card{border:1px solid var(--line-soft);border-radius:16px;padding:15px;margin:4px 0 17px;background:linear-gradient(145deg,rgba(16,185,129,.07),rgba(148,163,184,.025))}
+.agenda-date-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.agenda-label{display:block;font-size:.6rem;letter-spacing:.1em;color:#34d399;font-weight:900}.agenda-date-head strong{display:block;text-transform:capitalize;margin-top:2px}
+.agenda-today-mini{border:1px solid rgba(52,211,153,.35);background:rgba(16,185,129,.1);color:#6ee7b7;border-radius:9px;padding:7px 10px;font-size:.72rem;font-weight:800;cursor:pointer}
+.agenda-date-picker{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:8px}.agenda-date-picker>button{width:38px;height:38px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(148,163,184,.06);color:var(--text-color);cursor:pointer}
+.agenda-date-main{text-align:center;text-transform:capitalize}.agenda-date-main span{display:block;color:var(--medium-gray);font-size:.68rem}.agenda-date-main b{display:block;font-size:2.15rem;line-height:1.05;margin:2px 0}.agenda-date-native{display:none!important}
+.agenda-quick-dates{display:flex;justify-content:center;gap:7px;margin-top:10px}.agenda-quick-dates button{border:0;background:rgba(148,163,184,.09);color:var(--text-color);border-radius:8px;padding:6px 10px;font-size:.67rem;cursor:pointer}
+.agenda-two-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.agenda-field textarea{width:100%;resize:vertical;border-radius:12px;padding:11px 12px;background:rgba(148,163,184,.045);border:1px solid var(--line-soft);color:var(--text-color);outline:none}.agenda-field textarea:focus{border-color:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.1)}
+.agenda-personal-options{padding:10px 0;border-top:1px solid var(--line-soft);font-size:.72rem;color:var(--medium-gray)}.agenda-personal-options input{accent-color:#10b981}.agenda-personal-options i{color:#34d399;margin:0 4px}
+.agenda-modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:15px 22px;border-top:1px solid var(--line-soft);background:rgba(148,163,184,.025);border-radius:0 0 22px 22px}.agenda-save-btn{min-width:190px}
+@media(max-width:520px){.agenda-modal-top{grid-template-columns:42px 1fr 34px;padding:16px}.agenda-modal-icon{width:42px;height:42px}.agenda-form-body{padding:16px}.agenda-two-fields{grid-template-columns:1fr}.agenda-modal-footer{padding:13px 16px}.agenda-save-btn{min-width:0;flex:1}.agenda-modal-footer .btn-slate{flex:0 0 auto}.agenda-quick-dates{flex-wrap:wrap}}
+</style>
+
+<script id="unified-tools-engine">
+(function(){
+  const panel=()=>document.getElementById('unified-tools-panel');
+  window.cerrarHerramientasUnificadas=function(){const p=panel();if(p)p.classList.remove('open')};
+  window.accionHerramienta=function(action){
+    cerrarHerramientasUnificadas();
+    const call=(names,args=[])=>{for(const n of names){if(typeof window[n]==='function'){try{window[n](...args)}catch(e){console.warn(e)}return true}}return false};
+    if(action==='perfil') return call(['abrirPerfil','mostrarPerfil','openProfile']);
+    if(action==='guardar') {
+      if(call(['guardarAhora','guardarDatos','guardarSistema','saveData'])) return;
+      try{ if(typeof sistemaDatos!=='undefined'){localStorage.setItem('catequesis_backup_manual',JSON.stringify(sistemaDatos)); if(typeof toast==='function')toast('✓ Datos guardados ahora.'); else alert('Datos guardados.');}}catch(e){alert('No se pudo guardar en este momento.')}
+      return;
+    }
+    if(action==='backup') return call(['exportarBackup','crearBackup','descargarBackup','backupSistema']);
+    if(action==='bloqueo') return call(['bloquearSistema','bloquearSesion','lockScreen','bloquear']);
+    if(action==='notificaciones') return call(['abrirNotificaciones','mostrarNotificaciones','openNotifications']);
+    if(action==='tema') return call(['abrirAjustes','abrirConfiguracion','mostrarAjustes']);
+    if(action==='ayuda') return call(['abrirAyuda','mostrarAyuda','openHelp']);
+    if(action==='salir') return call(['cerrarSesion','logout','salir']);
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    const trigger=document.getElementById('unified-tools-trigger'),p=panel();
+    if(!trigger||!p)return;
+    trigger.addEventListener('click',e=>{e.stopPropagation();p.classList.toggle('open')});
+    p.addEventListener('click',e=>e.stopPropagation());
+    document.addEventListener('click',()=>p.classList.remove('open'));
+  });
+})();
+</script>
+
+<style id="fluid-performance-ui">
+html{scroll-behavior:smooth}
+body{-webkit-tap-highlight-color:transparent}
+button,a,input,select,textarea{touch-action:manipulation}
+button{user-select:none;-webkit-user-select:none}
+.card,.modal-content,.agenda-personal-modal,.unified-tools-panel{contain:layout paint}
+.unified-tools{position:fixed;top:14px;right:14px;z-index:15000}
+.unified-tools-trigger{width:42px;height:42px;border:1px solid var(--line-soft,#334155);border-radius:12px;background:var(--card-bg,#111827);color:var(--text-color,#f8fafc);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 24px #0002;transition:transform .14s ease,box-shadow .14s ease}
+.unified-tools-trigger:hover{transform:translateY(-1px);box-shadow:0 12px 28px #0003}
+.unified-tools-trigger:active{transform:scale(.95)}
+.unified-tools-panel{position:absolute;right:0;top:50px;width:300px;background:var(--card-bg,#111827);border:1px solid var(--line-soft,#334155);border-radius:16px;box-shadow:0 24px 70px #0005;padding:10px;opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity .14s ease,transform .14s ease}
+.unified-tools-panel.open{opacity:1;transform:none;pointer-events:auto}
+.unified-tools-head{display:flex;justify-content:space-between;align-items:center;padding:7px 7px 10px;border-bottom:1px solid var(--line-soft,#334155);margin-bottom:8px}
+.unified-tools-head strong{display:block;font-size:.85rem}.unified-tools-head small{display:block;color:var(--medium-gray);font-size:.65rem;margin-top:2px}
+.unified-tools-head button{border:0;background:transparent;color:var(--medium-gray);font-size:1rem;cursor:pointer;width:30px;height:30px;border-radius:8px}
+.unified-tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.unified-tools-grid button{display:flex;align-items:center;gap:9px;text-align:left;border:0;background:transparent;color:var(--text-color,#f8fafc);border-radius:10px;padding:10px 9px;cursor:pointer;font-size:.72rem}
+.unified-tools-grid button:hover{background:rgba(148,163,184,.09)}
+.unified-tools-grid i{width:18px;text-align:center;color:#34d399;font-size:.78rem}
+@media(max-width:900px){
+ .unified-tools{top:10px;right:10px}
+ .unified-tools-trigger{width:40px;height:40px}
+ .unified-tools-panel{right:-2px;width:min(300px,calc(100vw - 20px))}
+}
+</style>
+
+<script id="fluid-performance-engine">
+(function(){
+  let timer=0;
+  window.agendaRenderSoon=function(){
+    clearTimeout(timer);
+    timer=setTimeout(()=>{if(typeof renderizarAgenda==='function')renderizarAgenda()},50);
+  };
+  window.addEventListener('resize',()=>{if(typeof agendaRenderSoon==='function')agendaRenderSoon()},{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&typeof agendaRenderSoon==='function')agendaRenderSoon()});
+})();
+</script>
