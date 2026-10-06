@@ -1360,6 +1360,31 @@ td,th{border-color:var(--ui-border)!important}
 }
 </style>
 
+
+<style id="reporte-visual-ui">
+.reporte-visual-modal{max-width:1180px!important;width:min(96vw,1180px)!important;padding:0!important;overflow:hidden}
+.reporte-visual-toolbar{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line-soft);background:rgba(15,23,42,.45)}
+.reporte-visual-toolbar h2{margin:0}.reporte-visual-toolbar p{margin:4px 0 0;color:var(--medium-gray);font-size:.8rem}
+.reporte-visual-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+#reporte-visual-contenido{padding:22px;max-height:72vh;overflow:auto;background:#f8fafc;color:#172033}
+#reporte-visual-contenido .report-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+#reporte-visual-contenido .report-box{background:#fff;border:1px solid #dbe3ea;border-radius:12px;padding:14px;text-align:center;box-shadow:0 3px 12px rgba(15,23,42,.05)}
+#reporte-visual-contenido .report-box b{display:block;font-size:1.45rem;color:#065f46}
+#reporte-visual-contenido .report-box small{display:block;color:#64748b;margin-top:3px;font-weight:700}
+#reporte-visual-contenido table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
+#reporte-visual-contenido th,#reporte-visual-contenido td{border-bottom:1px solid #e2e8f0;padding:10px 9px;text-align:left;vertical-align:top}
+#reporte-visual-contenido th{background:#ecfdf5;color:#064e3b;font-size:.72rem;text-transform:uppercase}
+@media(max-width:850px){
+ .reporte-visual-toolbar{align-items:flex-start;flex-direction:column}
+ .reporte-visual-actions{width:100%;justify-content:flex-start}
+ #reporte-visual-contenido .report-summary{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:520px){
+ .reporte-visual-actions .btn{flex:1;min-width:0;font-size:.72rem;padding:8px 7px}
+ #reporte-visual-contenido{padding:12px}
+ #reporte-visual-contenido .report-summary{grid-template-columns:repeat(2,1fr);gap:7px}
+}
+</style>
 </head>
 <body>
 
@@ -2436,6 +2461,30 @@ td,th{border-color:var(--ui-border)!important}
             </div>
         </div>
         <button class="btn btn-danger" style="width: 100%; padding: 12px;" onclick="ejecutarGeneracionPDF()" type="button"><i class="fa-solid fa-download"></i> Crear y Descargar PDF</button>
+    </div>
+</div>
+
+<!-- CENTRO DE REPORTE VISUAL -->
+<div id="modal-reporte-visual" class="modal" style="z-index:10080;">
+    <div class="modal-content reporte-visual-modal">
+        <div class="reporte-visual-toolbar">
+            <div>
+                <h2><i class="fa-solid fa-chart-column"></i> Reporte visual</h2>
+                <p id="reporte-visual-subtitulo">Vista previa del reporte</p>
+            </div>
+            <div class="reporte-visual-actions">
+                <button class="btn btn-danger" type="button" onclick="exportarReporteVisualPDF()">
+                    <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button class="btn btn-primary" type="button" onclick="exportarReporteVisualExcel()">
+                    <i class="fa-solid fa-file-excel"></i> Descargar Excel
+                </button>
+                <button class="btn btn-slate" type="button" onclick="cerrarReporteVisual()">
+                    <i class="fa-solid fa-xmark"></i> Cerrar
+                </button>
+            </div>
+        </div>
+        <div id="reporte-visual-contenido"></div>
     </div>
 </div>
 
@@ -4395,116 +4444,70 @@ td,th{border-color:var(--ui-border)!important}
     document.head.appendChild(reportKpiStyles);
 
     function imprimirHTML(contenido,titulo){
-        const w=window.open('','_blank','width=1100,height=800');
-        if(!w){alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes.');return;}
+        const w=window.open('','_blank','width=1100,height=850');
+        if(!w){
+            alert('Chrome bloqueó la ventana del reporte. Permite ventanas emergentes para este archivo.');
+            return;
+        }
 
-        // Cada reporte muestra únicamente su propio contenido.
-        // No se agrega automáticamente un resumen general del grupo,
-        // evitando mezclar información de notas, actividades, faltas y tareas.
-        const catequista=g.metadata?.catequista||perfilCatequista.nombre||info.catequista||'';
-        const gestion=info.gestion||g.metadata?.gestion||'';
-        w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escHtml(titulo)}</title><style>
-        @page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#172033;margin:0;font-size:12px} .report{max-width:100%;margin:auto}.report-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}.report-actions button{border:0;border-radius:9px;padding:9px 12px;background:#059669;color:#fff;font-weight:700;cursor:pointer}.report-actions button+button{background:#334155}@media print{.report-actions{display:none!important}} .head{display:flex;align-items:center;gap:15px;border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:18px}.logo{width:64px;height:64px;object-fit:cover;border-radius:12px}.brand{flex:1}.brand h1{margin:0;color:#065f46;font-size:19px}.brand h2{margin:4px 0 0;font-size:17px;color:#334155}.meta{margin-top:3px;color:#64748b;font-size:10px}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 18px}.summary span{padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#f8fafc}.content h1,.content h2{text-align:center}.content h1{color:#065f46}.content h2{color:#334155}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top}th{background:#f1f5f9;color:#1e293b}.footer{margin-top:20px;padding-top:8px;border-top:1px solid #dbe3ea;color:#64748b;font-size:9px;text-align:center}@media print{.no-print{display:none}}
-        </style>
-<style id="ajuste-final-botones-asistencia-y-guardar">
-/* Acciones de asistencia: icono + etiqueta visible, también en celular */
-#asistencia .attendance-toolbar .session-tools{display:flex!important;flex-wrap:wrap!important;gap:6px!important;align-items:center!important}
-#asistencia .attendance-toolbar .attendance-mini-action{width:auto!important;min-width:62px!important;height:38px!important;min-height:38px!important;padding:4px 7px!important;border-radius:9px!important;gap:4px!important;display:inline-flex!important;flex-direction:column!important;line-height:1!important;font-size:.58rem!important}
-#asistencia .attendance-toolbar .attendance-mini-action i{font-size:.72rem!important;margin:0!important;line-height:1!important}
-#asistencia .attendance-toolbar .attendance-mini-label{display:block!important;font-size:.52rem!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important}
-/* Guardar superior: claramente más pequeño que la campana */
-.grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important;padding:0!important;border-radius:8px!important}
-.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.72rem!important;margin:0!important}
-@media(max-width:900px){
-  #asistencia .attendance-toolbar .session-tools{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;gap:5px!important}
-  #asistencia .attendance-toolbar .attendance-mini-action{width:100%!important;min-width:0!important;height:44px!important;min-height:44px!important;padding:4px 2px!important;border-radius:9px!important}
-  #asistencia .attendance-toolbar .attendance-mini-label{font-size:.48rem!important}
-  .grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:30px!important;min-width:30px!important;max-width:30px!important;height:30px!important;min-height:30px!important;max-height:30px!important}
-  .grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.7rem!important}
-}
-@media(max-width:390px){
-  #asistencia .attendance-toolbar .session-tools{gap:3px!important}
-  #asistencia .attendance-toolbar .attendance-mini-action{height:42px!important;min-height:42px!important}
-  #asistencia .attendance-toolbar .attendance-mini-label{font-size:.44rem!important}
-}
-</style>
+        const g=(typeof sistemaDatos!=='undefined' && sistemaDatos.grupos)
+            ? (sistemaDatos.grupos[grupoActual]||{}) : {};
+        const catequista=(g.metadata&&g.metadata.catequista)||perfilCatequista.nombre||info.catequista||'';
+        const gestion=(info&&info.gestion)||(g.metadata&&g.metadata.gestion)||'';
 
-<style id="acciones-asistencia-menu-compacto">
-.attendance-bulk-menu-wrap{position:relative;display:inline-flex}.attendance-bulk-trigger{min-height:36px!important;height:36px!important;padding:0 11px!important;border-radius:10px!important;font-size:.76rem!important;gap:6px!important;box-shadow:none!important}.attendance-bulk-trigger i:first-child{font-size:.78rem!important}.attendance-bulk-chevron{font-size:.62rem!important;margin-left:2px!important;transition:transform .18s}.attendance-bulk-menu-wrap.open .attendance-bulk-chevron{transform:rotate(180deg)}
-.attendance-bulk-menu{display:none;position:absolute;top:calc(100% + 7px);left:0;width:285px;padding:7px;background:#162235;border:1px solid rgba(148,163,184,.2);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42);z-index:5000}.attendance-bulk-menu.open{display:block;animation:fadeIn .14s ease-out}.attendance-bulk-title{display:flex;gap:9px;align-items:center;padding:9px 10px 10px;border-bottom:1px solid rgba(148,163,184,.13);margin-bottom:5px}.attendance-bulk-title>i{color:#6ee7b7}.attendance-bulk-title strong{display:block;font-size:.76rem}.attendance-bulk-title small{display:block;color:var(--medium-gray);font-size:.63rem;margin-top:2px}
-.bulk-option{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;background:transparent;color:#e2e8f0;border-radius:10px;text-align:left;cursor:pointer}.bulk-option:hover{background:rgba(255,255,255,.055)}.bulk-option>i{width:28px;height:28px;min-width:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem}.bulk-option span{min-width:0}.bulk-option strong{display:block;font-size:.72rem;line-height:1.25}.bulk-option small{display:block;color:#94a3b8;font-size:.61rem;line-height:1.3;margin-top:2px}.bulk-option.present>i{background:rgba(16,185,129,.13);color:#6ee7b7}.bulk-option.delay>i{background:rgba(245,158,11,.13);color:#fcd34d}.bulk-option.absent>i{background:rgba(239,68,68,.13);color:#fca5a5}.bulk-option.reset>i,.bulk-option.copy>i{background:rgba(148,163,184,.12);color:#cbd5e1}
-@media(max-width:700px){.attendance-bulk-trigger{height:34px!important;min-height:34px!important;padding:0 9px!important;font-size:.69rem!important}.attendance-bulk-menu{position:fixed;left:10px;right:10px;top:auto;bottom:calc(76px + env(safe-area-inset-bottom));width:auto;max-width:none;padding:7px;border-radius:16px}.bulk-option{padding:10px 11px;min-height:48px}.bulk-option strong{font-size:.74rem}.bulk-option small{font-size:.64rem}.attendance-bulk-title{padding:10px 11px}}
-.grupo-bar>.topbar-save,.grupo-bar .topbar-save{width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;padding:0!important;border-radius:8px!important;box-shadow:none!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.68rem!important;margin:0!important}@media(max-width:900px){.grupo-bar>.topbar-save,.grupo-bar .topbar-save{flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important}.grupo-bar>.topbar-save i,.grupo-bar .topbar-save i{font-size:.66rem!important}}
-</style>
-
-<style id="modern-ui-upgrade">
-:root{--ui-bg:#f5f7fb;--ui-card:#fff;--ui-text:#172033;--ui-muted:#64748b;--ui-border:#e7ebf2;--ui-primary:#0f766e;--ui-primary-2:#115e59;--ui-gold:#c89b3c;--ui-shadow:0 10px 30px rgba(15,23,42,.07);--ui-radius:18px}
+        const safeTitle=String(titulo||'Reporte').replace(/[<>]/g,'');
+        const html=`<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>${safeTitle}</title>
+<style>
+@page{size:A4;margin:12mm}
 *{box-sizing:border-box}
-html{scroll-behavior:auto!important;scroll-padding-top:20px}
-body{background:var(--ui-bg);color:var(--ui-text);-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit}
-button{transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease}
-button:hover{transform:translateY(-1px)}
-button:active{transform:translateY(0)}
-input,select,textarea{border:1px solid var(--ui-border)!important;border-radius:12px!important;background:#fff!important;min-height:44px;outline:none!important;transition:border-color .16s,box-shadow .16s}
-input:focus,select:focus,textarea:focus{border-color:rgba(15,118,110,.55)!important;box-shadow:0 0 0 4px rgba(15,118,110,.09)!important}
-.card,.panel,.dashboard-card,.stat-card,.module-card,.form-card,.section-card,.content-card{border:1px solid var(--ui-border)!important;border-radius:var(--ui-radius)!important;box-shadow:var(--ui-shadow)!important;background:var(--ui-card)}
-.card:hover,.dashboard-card:hover,.stat-card:hover,.module-card:hover{box-shadow:0 16px 38px rgba(15,23,42,.10)!important}
-.section-title,.page-title,h2,h3{letter-spacing:-.02em}
-.badge,.tag,.status-badge{border-radius:999px!important}
-.table-container,.table-wrapper{border:1px solid var(--ui-border);border-radius:16px;overflow:auto;background:#fff;box-shadow:0 6px 20px rgba(15,23,42,.04)}
-table{border-collapse:separate;border-spacing:0;width:100%}
-th{background:#f8fafc!important;color:#475569!important;font-weight:700!important;position:sticky;top:0;z-index:2}
-td,th{border-bottom:1px solid #eef2f7!important;padding:12px 14px!important}
-tr:last-child td{border-bottom:0!important}
-tr:hover td{background:#fafdfc}
-.modal,.modal-overlay,.overlay{backdrop-filter:blur(7px)}
-.modal-content,.modal-dialog{border:1px solid rgba(255,255,255,.7)!important;border-radius:22px!important;box-shadow:0 25px 70px rgba(15,23,42,.22)!important}
-.alert,.toast,.notification{border-radius:14px!important;box-shadow:0 12px 30px rgba(15,23,42,.12)!important}
-/* Formularios colapsables: visual limpio sin tocar la lógica */
-.form-section,.collapsible-section{border:1px solid var(--ui-border)!important;border-radius:16px!important;background:#fff!important;overflow:hidden}
-.form-section-header,.collapsible-header{padding:14px 16px!important;background:linear-gradient(180deg,#fff,#f8fafc)!important}
-/* Barra inferior moderna */
-.bottom-nav,.mobile-bottom-nav,.bottom-navigation{background:rgba(255,255,255,.94)!important;border-top:1px solid rgba(226,232,240,.95)!important;box-shadow:0 -10px 30px rgba(15,23,42,.08)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.bottom-nav a,.bottom-nav button,.mobile-bottom-nav a,.mobile-bottom-nav button,.bottom-navigation a,.bottom-navigation button{border-radius:14px!important;color:#64748b!important}
-.bottom-nav .active,.bottom-nav a.active,.mobile-bottom-nav .active,.mobile-bottom-nav a.active,.bottom-navigation .active,.bottom-navigation a.active{color:var(--ui-primary)!important;background:rgba(15,118,110,.09)!important;font-weight:800}
-.bottom-nav i,.mobile-bottom-nav i,.bottom-navigation i{font-size:1.05rem}
-/* Sidebar */
-.sidebar,.side-menu{border-right:1px solid rgba(226,232,240,.9)!important;box-shadow:8px 0 30px rgba(15,23,42,.04)}
-.sidebar a,.sidebar button,.side-menu a,.side-menu button{border-radius:12px!important;margin:3px 8px}
-.sidebar a.active,.sidebar button.active,.side-menu a.active,.side-menu button.active{background:linear-gradient(135deg,rgba(15,118,110,.13),rgba(200,155,60,.08))!important;color:var(--ui-primary)!important}
-/* Botones */
-.btn-primary,.button-primary,.btn-success{background:linear-gradient(135deg,var(--ui-primary),var(--ui-primary-2))!important;border:0!important;color:#fff!important;box-shadow:0 8px 18px rgba(15,118,110,.18)!important}
-.btn-primary:hover,.button-primary:hover,.btn-success:hover{box-shadow:0 12px 24px rgba(15,118,110,.24)!important}
-/* Encabezados de módulos */
-.module-header,.page-header{border-bottom:1px solid var(--ui-border)!important;margin-bottom:18px!important;padding-bottom:14px!important}
-/* Scrollbars discretas */
-*{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
-*::-webkit-scrollbar{width:8px;height:8px}
-*::-webkit-scrollbar-track{background:transparent}
-*::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
-*::-webkit-scrollbar-thumb:hover{background:#94a3b8}
-@media(max-width:768px){
-  body{padding-bottom:78px}
-  .card,.panel,.dashboard-card,.stat-card,.module-card,.form-card,.section-card,.content-card{border-radius:16px!important}
-  input,select,textarea{min-height:46px}
-  .table-container,.table-wrapper{border-radius:14px}
-}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+body{font-family:Arial,Helvetica,sans-serif;color:#172033;background:#fff;margin:0;font-size:12px}
+.report{width:100%;max-width:190mm;margin:auto}
+.report-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px}
+.report-actions button{border:0;border-radius:8px;padding:9px 13px;background:#059669;color:#fff;font-weight:700;cursor:pointer}
+.report-actions button.secondary{background:#334155}
+.head{border-bottom:3px solid #059669;padding-bottom:12px;margin-bottom:16px}
+.brand h1{margin:0;color:#065f46;font-size:19px}
+.brand h2{margin:4px 0 0;font-size:16px;color:#334155}
+.meta{margin-top:5px;color:#64748b;font-size:10px}
+.summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+.summary span{padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#f8fafc}
+.content h1{color:#065f46}
+.content h2{color:#334155}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #cbd5e1;padding:7px;text-align:left;vertical-align:top}
+th{background:#ecfdf5;color:#064e3b}
+.footer{margin-top:18px;padding-top:8px;border-top:1px solid #dbe3ea;color:#64748b;font-size:9px;text-align:center}
+@media print{.no-print{display:none!important}.report-actions{display:none!important}}
 </style>
-</head><body><div class="report"><div class="report-actions no-print"><button onclick="compartirReporteWhatsApp()" type="button"><i class="fa-brands fa-whatsapp"></i> Enviar por WhatsApp</button><button onclick="window.print()" type="button"><i class="fa-solid fa-print"></i> Imprimir</button></div><div class="head"><img class="logo" src="logo.jpg" alt="Logo de la parroquia"><div class="brand"><h1>${escHtml(parroquia||'PARROQUIA')}</h1><h2>${escHtml(titulo)}</h2><div class="meta">Grupo: <b>${escHtml(grupoActual||'-')}</b>${gestion?' · Gestión: '+escHtml(gestion):''}${catequista?' · Catequista: '+escHtml(catequista):''}</div></div></div><div class="content">${contenido}</div><div class="footer">Control de Catequesis · ${new Date().toLocaleDateString('es-BO')} · ${escHtml(parroquia||'Parroquia')}</div></div>
-</html>`);
+</head>
+<body>
+<div class="report">
+<div class="report-actions no-print">
+<button onclick="window.print()">Guardar / Imprimir PDF</button>
+<button class="secondary" onclick="window.close()">Cerrar</button>
+</div>
+<div class="head">
+<div class="brand">
+<div style="font-size:10px;font-weight:800;color:#047857">PARROQUIA SAN MARTÍN DE PORRES</div>
+<h1>CONTROL DE CATEQUESIS</h1>
+<h2>${safeTitle}</h2>
+<div class="meta">Grupo: ${escHtml(grupoActual)} · Catequista: ${escHtml(catequista)} · Gestión: ${escHtml(gestion)} · Generado: ${new Date().toLocaleString('es-BO')}</div>
+</div>
+</div>
+<div class="content">${contenido}</div>
+<div class="footer">Reporte generado por el Sistema de Control de Catequesis</div>
+</div>
+</body>
+</html>`;
+
+        w.document.open();
+        w.document.write(html);
         w.document.close();
-        w.compartirReporteWhatsApp = function(){
-            const t = w.document.querySelector('.report');
-            if(!t) return;
-            const copia = t.cloneNode(true);
-            copia.querySelectorAll('.no-print').forEach(function(e){e.remove();});
-            const texto = (copia.innerText || copia.textContent || '').replace(/\n{3,}/g,'\n\n').trim();
-            w.open('https://wa.me/?text=' + encodeURIComponent('📋 ' + (w.document.title || 'Reporte') + '\n\n' + texto), '_blank');
-        };
         w.focus();
-        setTimeout(()=>w.print(),350);
     }
 
     function imprimirTemario(){
@@ -4692,134 +4695,121 @@ tr:hover td{background:#fafdfc}
     }
 
     async function ejecutarGeneracionPDF() {
-        const tituloSolicitado = document.getElementById('pdf-titulo').value.trim() || "Reporte de Catequesis";
-        const tipo = document.getElementById('pdf-tipo').value;
-        const alumnoSel = document.getElementById('pdf-alumno-select').value;
+        const tituloSolicitado=document.getElementById('pdf-titulo').value.trim()||'Reporte de Catequesis';
+        const tipo=document.getElementById('pdf-tipo').value;
+        const alumnoSel=document.getElementById('pdf-alumno-select').value;
         cerrarModalPDF();
 
-        const grupo = sistemaDatos.grupos[grupoActual] || {};
-        const registros = Array.isArray(grupo.registros) ? grupo.registros : [];
+        const grupo=sistemaDatos.grupos[grupoActual]||{};
+        const registros=Array.isArray(grupo.registros)?grupo.registros:[];
 
-        let filtrados = registros;
-        if (tipo === 'faltas') filtrados = registros.filter(r => String(r.asistencia||'').includes('Falta'));
-        else if (tipo === 'tareas') filtrados = registros.filter(r => registroNoPresentoTarea(r));
-        else if (tipo === 'alumno') filtrados = registros.filter(r => String(r.alumno||'') === String(alumnoSel||''));
+        let filtrados=registros;
+        if(tipo==='faltas') filtrados=registros.filter(r=>String(r.asistencia||'').includes('Falta'));
+        else if(tipo==='tareas') filtrados=registros.filter(r=>registroNoPresentoTarea(r));
+        else if(tipo==='alumno') filtrados=registros.filter(r=>String(r.alumno||'')===String(alumnoSel||''));
 
-        const contar = {
-            presentes: filtrados.filter(r => /Presente|Retraso/i.test(String(r.asistencia||''))).length,
-            faltas: filtrados.filter(r => /Falta/i.test(String(r.asistencia||''))).length,
-            pendientes: filtrados.filter(r => registroNoPresentoTarea(r)).length,
-            entregadas: filtrados.filter(r => String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length
-        };
-        const pct = filtrados.length ? Math.round((contar.presentes / filtrados.length) * 100) : 100;
+        const presentes=filtrados.filter(r=>/Presente|Retraso/i.test(String(r.asistencia||''))).length;
+        const faltas=filtrados.filter(r=>/Falta/i.test(String(r.asistencia||''))).length;
+        const pendientes=filtrados.filter(r=>registroNoPresentoTarea(r)).length;
+        const entregadas=filtrados.filter(r=>String(r.tareaEstado||'').trim().toLowerCase()==='entregado').length;
+        const pct=filtrados.length?Math.round(presentes/filtrados.length*100):100;
 
-        let encabezados = '';
-        let rows = '';
+        let titulo=tituloSolicitado;
+        let encabezados='';
+        let rows='';
 
-        if (tipo === 'faltas') {
-            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th>';
-            rows = filtrados.slice().reverse().map(r => `
-                <tr>
+        if(tipo==='faltas'){
+            titulo='Reporte de Inasistencias';
+            encabezados='<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th>';
+            rows=filtrados.slice().reverse().map(r=>`
+                <tr><td>${escHtml(r.fecha||'-')}</td>
+                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                <td style="color:#dc2626;font-weight:700">${escHtml(r.asistencia||'Falta')}</td></tr>`).join('');
+        }else if(tipo==='tareas'){
+            titulo='Reporte de Tareas No Presentadas';
+            encabezados='<th>Fecha</th><th>Catequizando</th><th>Tarea que no presentó</th><th>Estado</th>';
+            rows=filtrados.slice().reverse().map(r=>`
+                <tr><td>${escHtml(r.fecha||'-')}</td>
+                <td><strong>${escHtml(r.alumno||'-')}</strong></td>
+                <td><strong>${escHtml(nombreTareaRegistro(r))}</strong></td>
+                <td style="color:#dc2626;font-weight:700">No presentó</td></tr>`).join('');
+        }else{
+            if(tipo==='alumno') titulo='Reporte Individual · '+(alumnoSel||'Catequizando');
+            encabezados='<th>Fecha</th><th>Catequizando</th><th>Asistencia / Motivo</th><th>Tarea</th><th>Estado</th>';
+            rows=filtrados.slice().reverse().map(r=>{
+                const noPresento=registroNoPresentoTarea(r);
+                const estado=noPresento?'No presentó':
+                    String(r.tareaEstado||'').trim().toLowerCase()==='entregado'?'Entregado':
+                    (r.tareaNombre==='Ninguna'?'—':(r.tareaEstado||'—'));
+                return `<tr>
                     <td>${escHtml(r.fecha||'-')}</td>
                     <td><strong>${escHtml(r.alumno||'-')}</strong></td>
-                    <td class="pdf-danger">${escHtml(r.asistencia||'Falta')}</td>
-                </tr>`).join('');
-        } else if (tipo === 'tareas') {
-            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Cumplimiento</th>';
-            rows = filtrados.slice().reverse().map(r => `
-                <tr>
-                    <td>${escHtml(r.fecha||'-')}</td>
-                    <td><strong>${escHtml(r.alumno||'-')}</strong></td>
-                    <td class="pdf-danger">No presentó</td>
-                </tr>`).join('');
-        } else {
-            encabezados = '<th>Fecha</th><th>Catequizando</th><th>Estado / Motivo</th><th>Cumplimiento</th>';
-            rows = filtrados.slice().reverse().map(r => {
-                const noPresento = registroNoPresentoTarea(r);
-                const estadoTarea = noPresento ? 'No presentó' :
-                    String(r.tareaEstado||'').trim().toLowerCase()==='entregado' ? 'Entregado' :
-                    (r.tareaNombre==='Ninguna' ? '-' : (r.tareaEstado||'-'));
-                return `
-                    <tr>
-                        <td>${escHtml(r.fecha||'-')}</td>
-                        <td><strong>${escHtml(r.alumno||'-')}</strong></td>
-                        <td>${escHtml(r.asistencia||'-')}</td>
-                        <td class="${noPresento?'pdf-danger':'pdf-ok'}">${escHtml(estadoTarea)}</td>
-                    </tr>`;
+                    <td>${escHtml(r.asistencia||'-')}</td>
+                    <td>${escHtml(nombreTareaRegistro(r))}</td>
+                    <td style="font-weight:700;color:${noPresento?'#dc2626':'#059669'}">${escHtml(estado)}</td>
+                </tr>`;
             }).join('');
         }
 
-        const colspan = tipo === 'faltas' || tipo === 'tareas' ? 3 : 4;
-        if (!rows) rows = `<tr><td colspan="${colspan}" class="pdf-empty">No hay registros que coincidan con este reporte.</td></tr>`;
+        const colspan=tipo==='faltas'?3:(tipo==='tareas'?4:5);
+        if(!rows) rows=`<tr><td colspan="${colspan}" style="text-align:center;padding:25px;color:#64748b">No hay registros para este reporte.</td></tr>`;
 
-        const cat = (grupo.metadata && grupo.metadata.catequista) || perfilCatequista.nombre || '';
-        const parroquia = (sistemaDatos.info && sistemaDatos.info.parroquia) || 'PARROQUIA';
+        const contenido=`
+            <div class="report-summary">
+                <div class="report-box"><b>${filtrados.length}</b><small>Registros</small></div>
+                <div class="report-box"><b>${pct}%</b><small>Asistencia</small></div>
+                <div class="report-box"><b>${faltas}</b><small>Faltas</small></div>
+                <div class="report-box"><b>${pendientes}</b><small>Tareas no presentadas</small></div>
+                <div class="report-box"><b>${entregadas}</b><small>Tareas entregadas</small></div>
+            </div>
+            <table>
+                <thead><tr>${encabezados}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
 
-        const titulo = tipo === 'faltas'
-            ? 'Reporte de Inasistencias'
-            : tipo === 'tareas'
-                ? 'Reporte de Tareas Pendientes'
-                : tipo === 'alumno'
-                    ? 'Reporte Individual del Catequizando'
-                    : tituloSolicitado;
+        const cont=document.getElementById('reporte-visual-contenido');
+        const subt=document.getElementById('reporte-visual-subtitulo');
+        if(cont)cont.innerHTML=contenido;
+        if(subt)subt.textContent=`${titulo} · ${grupoActual}`;
+        window.__reporteVisualActual={titulo,contenido,tipo,filtrados};
+        document.getElementById('modal-reporte-visual').style.display='flex';
+    }
 
-        const kpis = tipo === 'faltas'
-            ? `
-              <div><strong>${contar.faltas}</strong><span>Faltas</span></div>
-              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`
-            : tipo === 'tareas'
-                ? `
-              <div><strong>${contar.pendientes}</strong><span>Tareas pendientes</span></div>
-              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`
-                : `
-              <div><strong>${pct}%</strong><span>Asistencia</span></div>
-              <div><strong>${contar.faltas}</strong><span>Faltas</span></div>
-              <div><strong>${contar.pendientes}</strong><span>Tareas pendientes</span></div>
-              <div><strong>${filtrados.length}</strong><span>Registros</span></div>`;
+    function cerrarReporteVisual(){
+        const m=document.getElementById('modal-reporte-visual');
+        if(m)m.style.display='none';
+    }
 
-        const container = document.createElement('div');
-        container.id = 'reporte-pdf-local';
-        container.innerHTML = `
-          <div class="pdf-doc">
-            <header class="pdf-head">
-              <img class="pdf-logo" src="logo.jpg" alt="Logo">
-              <div>
-                <div class="pdf-org">${escHtml(parroquia)}</div>
-                <h1>CONTROL DE CATEQUESIS</h1>
-                <h2>${escHtml(titulo)}</h2>
-                <p><b>Grupo:</b> ${escHtml(grupoActual)} &nbsp;|&nbsp; <b>Fecha:</b> ${new Date().toLocaleDateString('es-BO')}</p>
-                <p class="pdf-small"><b>Catequista:</b> ${escHtml(cat)} ${perfilCatequista.cargo ? '('+escHtml(perfilCatequista.cargo)+')' : ''}</p>
-              </div>
-            </header>
-            <div class="pdf-kpis">${kpis}</div>
-            <table class="pdf-table">
-              <thead><tr>${encabezados}</tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-            <footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer>
-          </div>`;
+    function exportarReporteVisualPDF(){
+        const r=window.__reporteVisualActual;
+        if(!r){alert('Primero genera un reporte.');return;}
+        imprimirHTML(r.contenido,r.titulo);
+    }
 
-        document.body.appendChild(container);
-
-        const oldTitle = document.title;
-        document.title = titulo + ' - ' + grupoActual;
-
-        const limpiar = () => {
-            if (container.parentNode) container.parentNode.removeChild(container);
-            document.title = oldTitle;
-            window.removeEventListener('afterprint', limpiar);
-            if (typeof showLoading === 'function') showLoading(false);
-        };
-
-        window.addEventListener('afterprint', limpiar);
-        if (typeof showLoading === 'function') showLoading(false);
-
-        setTimeout(() => {
-            window.print();
-            setTimeout(() => {
-                if (container.parentNode && !window.matchMedia('print').matches) limpiar();
-            }, 3000);
-        }, 80);
+    function exportarReporteVisualExcel(){
+        const r=window.__reporteVisualActual;
+        if(!r){alert('Primero genera un reporte.');return;}
+        const g=sistemaDatos.grupos[grupoActual]||{};
+        const registros=r.filtrados||[];
+        let headers=['Fecha','Catequizando','Asistencia','Tarea','Estado Tarea'];
+        let data=registros.map(x=>[
+            x.fecha||'',x.alumno||'',x.asistencia||'',
+            nombreTareaRegistro(x),x.tareaEstado||''
+        ]);
+        if(r.tipo==='faltas'){
+            headers=['Fecha','Catequizando','Estado / Motivo'];
+            data=registros.map(x=>[x.fecha||'',x.alumno||'',x.asistencia||'']);
+        }else if(r.tipo==='tareas'){
+            headers=['Fecha','Catequizando','Tarea que no presentó','Estado'];
+            data=registros.map(x=>[x.fecha||'',x.alumno||'',nombreTareaRegistro(x),'No presentó']);
+        }
+        const csv=[headers,...data].map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download=(r.titulo||'Reporte_Catequesis').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+/g,'_')+'.csv';
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
     }
 
     // =========================================================================
