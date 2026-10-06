@@ -1744,10 +1744,16 @@ td,th{border-color:var(--ui-border)!important}
             <section id="finanzas" class="section">
                 <div class="page-head">
                     <h2><i class="fa-solid fa-money-bill-transfer"></i> Finanzas de Actividades</h2>
-                    <div class="acciones">
-                        <button class="btn btn-info" onclick="exportarFinanzasCSV()" type="button"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
-                        <button class="btn btn-slate" onclick="imprimirFinanzas()" type="button"><i class="fa-solid fa-print"></i> Imprimir caja</button>
-                        <button class="btn btn-success" onclick="compartirFinanzasWhatsApp()" type="button"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button><button class="btn btn-info" onclick="abrirReportesFinanzas()" type="button" title="Elegir qué información generar o compartir"><i class="fa-solid fa-chart-pie"></i> Reportes</button>
+                    <div class="acciones finance-head-actions">
+                        <div class="finance-actions-menu">
+                            <button class="btn btn-info finance-actions-trigger" type="button" onclick="toggleFinanceActionsMenu()" aria-expanded="false" title="Acciones de Finanzas"><i class="fa-solid fa-ellipsis"></i><span>Acciones</span></button>
+                            <div class="finance-actions-dropdown" id="finance-actions-dropdown">
+                                <button type="button" onclick="exportarFinanzasCSV();toggleFinanceActionsMenu(false)"><i class="fa-solid fa-file-csv"></i><span>Exportar CSV</span></button>
+                                <button type="button" onclick="imprimirFinanzas();toggleFinanceActionsMenu(false)"><i class="fa-solid fa-print"></i><span>Imprimir caja</span></button>
+                                <button type="button" onclick="compartirFinanzasWhatsApp();toggleFinanceActionsMenu(false)"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></button>
+                                <button type="button" onclick="abrirReportesFinanzas();toggleFinanceActionsMenu(false)"><i class="fa-solid fa-chart-pie"></i><span>Reportes financieros</span></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="finance-kpis">
@@ -6705,7 +6711,7 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
       ${d.movimientos.map(m=>`<tr><td>${finEsc(m.fecha)}</td><td>${finEsc(m.persona)}</td><td>${finEsc(m.actividadNombre)}</td><td>${m.tipo==='pago'?'Pago':'Devolución'}</td><td>${finMoney(m.monto)}</td><td>${finEsc(m.observacion||'Sin observación registrada')}</td></tr>`).join('')||'<tr><td colspan="6">No hay movimientos.</td></tr>'}
       </tbody></table></section>`;
 
-    return `<div class="fin-report-document"><header><div><div class="fin-report-org">CONTROL DE CATEQUESIS</div><h1>Informe financiero y de actividades</h1><p>Documento de gestión · ${finEsc(grupoActual)}</p></div><div class="fin-report-date">${new Date().toLocaleDateString('es-BO')}</div></header>${sections||'<div class="fin-report-empty">Selecciona al menos una sección del reporte.</div>'}<footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer></div>`;
+    return `<div class="fin-report-document"><header><div><div class="fin-report-org">CONTROL DE CATEQUESIS</div><h1>Informe de Control Financiero</h1><p>Documento de gestión · ${finEsc(grupoActual)}</p></div><div class="fin-report-date">${new Date().toLocaleDateString('es-BO')}</div></header>${sections||'<div class="fin-report-empty">Selecciona al menos una sección del reporte.</div>'}<footer>Documento generado por el Sistema de Control de Catequesis · Uso administrativo</footer></div>`;
   }
 
 
@@ -6782,29 +6788,55 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
     return `<Worksheet ss:Name="${finXml(name)}"><Table>${widths}${body}</Table>${freeze?`<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane><ProtectContents>False</ProtectContents></WorksheetOptions>`:''}</Worksheet>`;
   }
 
-  function descargarExcelFinanzas(d){
+  async function cargarLibreriaExcel(){
+    if(window.XLSX)return true;
+    return await new Promise(resolve=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s.onload=()=>resolve(true);
+      s.onerror=()=>resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function descargarExcelFinanzas(d){
+    const ok=await cargarLibreriaExcel();
+    if(!ok || !window.XLSX){
+      alert('No se pudo cargar el generador de Excel. Conéctate a Internet y vuelve a intentarlo.');
+      return;
+    }
+
     const data=finRows(d);
-    const workbook=`<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal"><Font ss:FontName="Aptos" ss:Size="10"/></Style>
-  <Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0F766E" ss:Pattern="Solid"/><Alignment ss:Vertical="Center"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#0B4F4B"/></Borders></Style>
- </Styles>
- ${xmlSheet('Resumen financiero',data.resumen,false)}
- ${xmlSheet('Actividades financieras',data.actividades)}
- ${xmlSheet('Movimientos',data.movimientos)}
- ${xmlSheet('Planificación financiera',data.plan)}
-</Workbook>`;
-    const blob=new Blob(['\ufeff'+workbook],{type:'application/vnd.ms-excel'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='Informe_Financiero_'+String(grupoActual||'Grupo').replace(/[^\wáéíóúñ-]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.xls';
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    const wb=XLSX.utils.book_new();
+
+    function addSheet(name,rows,widths){
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols']=widths.map(w=>({wch:w}));
+      if(rows.length){
+        ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:rows[0].length-1}})};
+        ws['!freeze']={xSplit:0,ySplit:1};
+        const lastCol=XLSX.utils.encode_col(rows[0].length-1);
+        ws['!freeze']={xSplit:0,ySplit:1,topLeft:'A2',activeCell:'A2'};
+        // Excel styling supported by SheetJS builds varies; the table itself is
+        // kept clean, filterable and frozen even on mobile Excel viewers.
+        ws['!autofilter']={ref:`A1:${lastCol}${rows.length}`};
+      }
+      XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));
+    }
+
+    if(d.seleccion.includes('resumen')) addSheet('Resumen financiero',data.resumen,[32,22,24]);
+    if(d.seleccion.includes('actividades')) addSheet('Actividades financieras',data.actividades,[32,18,18,18,18,20]);
+    if(d.seleccion.includes('personas')) addSheet('Estado por persona',data.personas,[35,18,18,18,15]);
+    if(d.seleccion.includes('movimientos')) addSheet('Movimientos',data.movimientos,[14,32,32,16,18,16,45]);
+    if(d.seleccion.includes('actividades_info')) addSheet('Planificación financiera',data.plan,[30,16,16,14,14,18,16,55]);
+    if(d.seleccion.includes('comprobantes')) addSheet('Respaldo financiero',data.movimientos,[14,32,32,16,16,45]);
+
+    if(!wb.SheetNames.length){
+      addSheet('Resumen financiero',data.resumen,[32,22,24]);
+    }
+
+    const file='Control_Financiero_'+String(grupoActual||'Grupo').replace(/[^\wáéíóúñ-]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+    XLSX.writeFile(wb,file,{bookType:'xlsx',compression:true});
   }
 
   async function descargarPDFFinanzas(d){
@@ -6836,7 +6868,7 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
     }
   }
 
-  window.generarReporteFinanzasProfesional=function(destino){
+  window.generarReporteFinanzasProfesional=async function(destino){
     const d=getReportData();
     if(!d.seleccion.length){alert('Selecciona al menos una sección para generar el reporte.');return;}
     if(destino==='whatsapp'){
@@ -6848,7 +6880,7 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
       if(typeof abrirWhatsAppConTexto==='function')abrirWhatsAppConTexto(text); cerrarReportesFinanzas(); return;
     }
     if(destino==='excel'){
-      descargarExcelFinanzas(d);
+      await descargarExcelFinanzas(d);
       cerrarReportesFinanzas(); return;
     }
     if(destino==='csv'){
@@ -7205,5 +7237,39 @@ document.addEventListener('DOMContentLoaded',()=>{
     n.innerHTML='<i class="fa-solid fa-shield-halved"></i> Este módulo contiene únicamente información financiera: ingresos, devoluciones, movimientos, actividades, saldos y planificación financiera.';
     host.prepend(n);
   }
+});
+</script>
+
+<style id="finance-compact-actions">
+.finance-head-actions{position:relative}
+.finance-actions-menu{position:relative}
+.finance-actions-trigger{width:auto!important;min-width:42px!important;height:38px!important;padding:0 12px!important;font-size:.74rem!important}
+.finance-actions-dropdown{position:absolute;right:0;top:44px;z-index:5000;min-width:210px;padding:6px;background:var(--card-bg,#172033);border:1px solid var(--line-soft,#334155);border-radius:12px;box-shadow:0 18px 45px #0005;display:none}
+.finance-actions-dropdown.open{display:block}
+.finance-actions-dropdown button{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border:0;background:transparent;color:var(--text-color,#fff);border-radius:8px;text-align:left;font-size:.72rem;cursor:pointer}
+.finance-actions-dropdown button:hover{background:rgba(52,211,153,.08)}
+.finance-actions-dropdown i{width:18px;text-align:center;color:#34d399}
+.finance-report-actions{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
+.finance-report-actions .btn{font-size:.68rem!important;padding:7px 9px!important;min-height:32px!important}
+.finance-report-actions .btn i{font-size:.72rem!important}
+@media(max-width:650px){
+ .finance-actions-trigger span{display:none}
+ .finance-actions-trigger{width:40px!important;padding:0!important}
+ .finance-report-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));}
+ .finance-report-actions .btn{width:100%!important;justify-content:center}
+}
+</style>
+<script>
+function toggleFinanceActionsMenu(force){
+  const el=document.getElementById('finance-actions-dropdown');
+  const btn=document.querySelector('.finance-actions-trigger');
+  if(!el)return;
+  const open=typeof force==='boolean'?force:!el.classList.contains('open');
+  el.classList.toggle('open',open);
+  if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('click',e=>{
+  const menu=document.querySelector('.finance-actions-menu');
+  if(menu && !menu.contains(e.target))toggleFinanceActionsMenu(false);
 });
 </script>
