@@ -2586,15 +2586,37 @@ td,th{border-color:var(--ui-border)!important}
     // =========================================================================
     window.onload = function () {
         cargarPerfil();
-        // SEGURIDAD: nunca restaurar automáticamente una sesión anterior.
-        // La sesión vive únicamente en memoria mientras esta pestaña está activa.
-        equipoActualLogin = '';
-        localStorage.removeItem('catequesis_auth');
-        localStorage.removeItem('catequesis_equipo');
+
+        // La sesión se conserva al refrescar esta pestaña, pero NO se guarda
+        // en localStorage ni contiene la contraseña.
+        const sesionEquipo = sessionStorage.getItem('catequesis_session_equipo');
+        const sesionAdmin = sessionStorage.getItem('catequesis_session_admin') === '1';
+
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'none';
         instalarBloqueoSesionSeguro();
+
+        if (sesionAdmin) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            equipoActualLogin = '';
+            cargarPanelAdmin();
+            return;
+        }
+
+        if (sesionEquipo) {
+            const localSesion = leerEquipoLocal(sesionEquipo);
+            if (localSesion) {
+                equipoActualLogin = localSesion.nombre;
+                mostrarApp();
+                cargarDatos();
+                return;
+            }
+            sessionStorage.removeItem('catequesis_session_equipo');
+        }
+
+        equipoActualLogin = '';
     };
 
     function mostrarApp() {
@@ -2619,6 +2641,8 @@ td,th{border-color:var(--ui-border)!important}
         // MODO ADMINISTRADOR
         if (equipo.toLowerCase() === ADMIN_USER) {
             if (pass === ADMIN_PASS) {
+                sessionStorage.setItem('catequesis_session_admin', '1');
+                sessionStorage.removeItem('catequesis_session_equipo');
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
                 cargarPanelAdmin();
@@ -2661,7 +2685,10 @@ td,th{border-color:var(--ui-border)!important}
         }
 
         equipoActualLogin = encontrado.nombre;
-        // SEGURIDAD: no persistir identidad ni sesión en localStorage.
+        // Conservar la sesión solo durante la vida de esta pestaña.
+        // No se almacena la contraseña.
+        sessionStorage.setItem('catequesis_session_equipo', encontrado.nombre);
+        sessionStorage.removeItem('catequesis_session_admin');
         localStorage.removeItem('catequesis_equipo');
         localStorage.removeItem('catequesis_auth');
         mostrarApp();
@@ -6112,6 +6139,8 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
             if(typeof sincronizarConNube==='function' && equipoActualLogin) sincronizarConNube(false);
         }catch(e){}
         equipoActualLogin='';
+         sessionStorage.removeItem('catequesis_session_equipo');
+         sessionStorage.removeItem('catequesis_session_admin');
         tareasSeleccionadasSesion=[];
         localStorage.removeItem('catequesis_auth');
         localStorage.removeItem('catequesis_equipo');
@@ -6150,10 +6179,7 @@ transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
                 reiniciarTemporizador();
             }
         });
-        window.addEventListener('beforeunload',()=>{
-            localStorage.removeItem('catequesis_auth');
-            localStorage.removeItem('catequesis_equipo');
-        });
+        // No borrar sessionStorage aquí: F5/Ctrl+R debe conservar la sesión.
     };
 })();
 </script>
